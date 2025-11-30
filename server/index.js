@@ -7,7 +7,9 @@ import userRoutes from './routes/users.js';
 import attendanceRoutes from './routes/attendance.js';
 import gradeRoutes from './routes/grades.js';
 import libraryRoutes from './routes/library.js';
+import dashboardRoutes from './routes/dashboard.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
+import seedData from './utils/seeder.js';
 
 dotenv.config();
 
@@ -23,7 +25,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // Database Connection
 mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log('MongoDB Connected'))
+    .then(() => {
+        console.log('MongoDB Connected');
+        seedData();
+    })
     .catch(err => console.error('MongoDB Connection Error:', err));
 
 // Routes
@@ -32,6 +37,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/attendance', attendanceRoutes);
 app.use('/api/grades', gradeRoutes);
 app.use('/api/library', libraryRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 app.get('/', (req, res) => {
     res.send('EduCore API is running...');

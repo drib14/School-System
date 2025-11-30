@@ -6,13 +6,24 @@ import logo from '../../assets/img/logo.png';
 const Topbar = ({ toggleSidebar }) => {
     const { currentUser, logout } = useStorage();
 
+    // Helper to get initials
+    const getInitials = (name) => {
+        if (!name) return 'U';
+        const parts = name.trim().split(' ');
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+    };
+
     return (
         <div className="topbar">
             <div className="d-flex align-items-center">
                 <Button variant="outline-secondary" className="d-lg-none me-3" onClick={toggleSidebar}>
                     <i className="fas fa-bars"></i>
                 </Button>
-                <img src={logo} alt="Logo" width="30" height="30" className="me-2 d-none d-lg-block" />
+                {/* <img src={logo} alt="Logo" width="30" height="30" className="me-2 d-none d-lg-block" /> */}
+                 <div className="bg-primary-custom text-white rounded-circle d-none d-lg-inline-flex align-items-center justify-content-center me-2" style={{width: 30, height: 30, fontSize: 14}}>
+                    <i className="fas fa-graduation-cap"></i>
+                </div>
                 <h4 className="mb-0 fw-bold">EduCore University</h4>
             </div>
 
@@ -25,11 +36,11 @@ const Topbar = ({ toggleSidebar }) => {
                 <Dropdown align="end">
                     <Dropdown.Toggle as="div" className="user-profile bs-toggle-hide" id="dropdown-custom-components">
                          <div className="text-end me-2 d-none d-sm-block">
-                            <div className="fw-bold small">{currentUser?.firstName} {currentUser?.lastName}</div>
+                            <div className="fw-bold small">{currentUser?.name}</div>
                             <div className="text-muted small" style={{fontSize: '0.75rem'}}>{currentUser?.role}</div>
                         </div>
                         <div className="user-avatar">
-                            {currentUser?.firstName?.charAt(0)}
+                            {getInitials(currentUser?.name)}
                         </div>
                     </Dropdown.Toggle>
 

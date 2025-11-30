@@ -34,8 +34,8 @@ const RegisterPage = () => {
         setLoading(false);
 
         if (res.success) {
-            localStorage.setItem('tempEmail', formData.email);
-            navigate('/verify');
+            // Auto-login successful
+            navigate('/dashboard');
         } else {
             setError(res.message);
         }

@@ -79,7 +79,12 @@ export const StorageProvider = ({ children }) => {
     const register = async (userData) => {
         try {
             const { data } = await api.post('/auth/register', userData);
-            // Don't auto-login, wait for verification
+
+            // Auto-login if token is provided
+            if (data.token) {
+                setCurrentUser(data);
+                localStorage.setItem('userInfo', JSON.stringify(data));
+            }
             return { success: true, user: data };
         } catch (error) {
              return {

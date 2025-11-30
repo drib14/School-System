@@ -16,12 +16,17 @@ const transporter = nodemailer.createTransport({
 
 const sendEmail = async (email, subject, text) => {
     try {
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+             console.error('Email credentials missing in .env');
+             return;
+        }
         await transporter.sendMail({
             from: process.env.EMAIL_USER,
             to: email,
             subject,
             text
         });
+        console.log(`Email sent to ${email}`);
     } catch (error) {
         console.error('Email sending failed:', error);
     }
@@ -39,24 +44,23 @@ const registerUser = asyncHandler(async (req, res) => {
         throw new Error('User already exists');
     }
 
-    const verificationCode = generateCode();
-
+    // No verification code needed for registration anymore
     const user = await User.create({
         name,
         email,
         password,
         role,
-        verificationCode
+        isVerified: true // Auto-verify
     });
 
     if (user) {
-        await sendEmail(user.email, 'Verify your email', `Your verification code is: ${verificationCode}`);
         res.status(201).json({
             _id: user._id,
             name: user.name,
             email: user.email,
             role: user.role,
-            message: 'User registered. Please check email for verification code.'
+            token: generateToken(user._id), // Return token immediately
+            message: 'User registered successfully.'
         });
     } else {
         res.status(400);
@@ -64,7 +68,7 @@ const registerUser = asyncHandler(async (req, res) => {
     }
 });
 
-// @desc    Verify email with code
+// @desc    Verify email with code (Deprecated for Register, kept for legacy or manual verify)
 // @route   POST /api/auth/verify
 // @access  Public
 const verifyEmail = asyncHandler(async (req, res) => {
@@ -97,16 +101,7 @@ const authUser = asyncHandler(async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await user.matchPassword(password))) {
-        if (!user.isVerified) {
-             // Resend code if not verified?
-             const code = generateCode();
-             user.verificationCode = code;
-             await user.save();
-             await sendEmail(user.email, 'Verify your email', `Your verification code is: ${code}`);
-
-             res.status(401);
-             throw new Error('Account not verified. Verification code sent to email.');
-        }
+        // Removed !user.isVerified check as requested
 
         res.json({
             _id: user._id,

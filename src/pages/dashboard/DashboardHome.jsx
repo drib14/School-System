@@ -3,6 +3,7 @@ import { Row, Col, Card, Spinner } from 'react-bootstrap';
 import { useStorage } from '../../context/StorageContext';
 import StudentDashboard from './StudentDashboard';
 import ParentDashboard from './ParentDashboard';
+import TeacherDashboard from './TeacherDashboard';
 import api from '../../api/axios';
 
 const DashboardHome = () => {
@@ -32,6 +33,10 @@ const DashboardHome = () => {
 
     if (currentUser.role === 'Parent') {
         return <ParentDashboard />;
+    }
+
+    if (currentUser.role === 'Teacher') {
+        return <TeacherDashboard />;
     }
 
     if (currentUser.role === 'Admin') {

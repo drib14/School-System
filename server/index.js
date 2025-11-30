@@ -8,6 +8,9 @@ import attendanceRoutes from './routes/attendance.js';
 import gradeRoutes from './routes/grades.js';
 import libraryRoutes from './routes/library.js';
 import dashboardRoutes from './routes/dashboard.js';
+import courseRoutes from './routes/courses.js';
+import financeRoutes from './routes/finance.js';
+import enrollmentRoutes from './routes/enrollments.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import seedData from './utils/seeder.js';
 
@@ -38,6 +41,9 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/grades', gradeRoutes);
 app.use('/api/library', libraryRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/courses', courseRoutes);
+app.use('/api/finance', financeRoutes);
+app.use('/api/enrollments', enrollmentRoutes);
 
 app.get('/', (req, res) => {
     res.send('EduCore API is running...');

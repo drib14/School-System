@@ -28,6 +28,7 @@ import LMSPage from './pages/academic/LMSPage';
 import ExamsPage from './pages/academic/ExamsPage';
 import SchedulingPage from './pages/academic/SchedulingPage';
 import SettingsPage from './pages/admin/SettingsPage';
+import ProfilePage from './pages/admin/ProfilePage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 
 // Protected Route Component
@@ -90,6 +91,7 @@ function AppRoutes() {
           <Route path="/exams" element={<ExamsPage />} />
           <Route path="/scheduling" element={<SchedulingPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
           <Route path="/users" element={<UserManagementPage />} />
 
           <Route path="/reports" element={<PlaceholderPage title="Reports & Analytics" />} />

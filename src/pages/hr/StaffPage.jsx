@@ -1,10 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Badge } from 'react-bootstrap';
-import { useStorage } from '../../context/StorageContext';
+import api from '../../api/axios';
 
 const StaffPage = () => {
-    const { users } = useStorage();
-    const staff = users.filter(u => u.role === 'Teacher');
+    const [staff, setStaff] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchStaff = async () => {
+            try {
+                // Fetch Teachers and Admins? Just Teachers for now as "Staff"
+                const { data } = await api.get('/users?role=Teacher');
+                setStaff(data);
+            } catch (error) {
+                console.error(error);
+            }
+            setLoading(false);
+        };
+        fetchStaff();
+    }, []);
+
+    if (loading) return <div className="p-4 text-center">Loading Staff...</div>;
 
     return (
         <div className="p-4">
@@ -28,15 +44,15 @@ const StaffPage = () => {
                     </thead>
                     <tbody>
                         {staff.length === 0 ? (
-                            <tr><td colspan="5" className="text-center py-4">No staff found.</td></tr>
+                            <tr><td colSpan="5" className="text-center py-4">No staff found.</td></tr>
                         ) : (
                             staff.map(s => (
-                                <tr key={s.id}>
-                                    <td className="ps-4 fw-bold">{s.id}</td>
-                                    <td>{s.firstName} {s.lastName}</td>
+                                <tr key={s._id}>
+                                    <td className="ps-4 fw-bold">{s.idNumber || s.teacherId || '-'}</td>
+                                    <td>{s.name}</td>
                                     <td>{s.email}</td>
                                     <td>{s.role}</td>
-                                    <td><Badge bg="info">{s.status}</Badge></td>
+                                    <td><Badge bg="info">Active</Badge></td>
                                 </tr>
                             ))
                         )}

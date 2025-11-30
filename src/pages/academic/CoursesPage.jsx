@@ -1,18 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Badge, Modal, Form, Row, Col } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
-import { useStorage } from '../../context/StorageContext';
+import api from '../../api/axios';
 
 const CoursesPage = () => {
-    const { getItems, saveItem, updateItem, STORAGE_KEYS } = useStorage();
-    const courses = getItems(STORAGE_KEYS.COURSES);
+    const [courses, setCourses] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const { register, handleSubmit, reset } = useForm();
+    const [loading, setLoading] = useState(false);
 
-    const onSubmit = (data) => {
-        saveItem(STORAGE_KEYS.COURSES, { ...data, id: Date.now().toString(), status: 'Active' });
-        setShowModal(false);
-        reset();
+    useEffect(() => {
+        fetchCourses();
+    }, []);
+
+    const fetchCourses = async () => {
+        try {
+            const { data } = await api.get('/courses');
+            setCourses(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const onSubmit = async (data) => {
+        setLoading(true);
+        try {
+            await api.post('/courses', data);
+            setShowModal(false);
+            reset();
+            fetchCourses();
+        } catch (error) {
+            console.error(error);
+        }
+        setLoading(false);
     };
 
     return (
@@ -30,22 +50,22 @@ const CoursesPage = () => {
                         <tr>
                             <th className="ps-4">Code</th>
                             <th>Course Title</th>
-                            <th>Units</th>
-                            <th>Type</th>
-                            <th>Status</th>
+                            <th>Schedule</th>
+                            <th>Room</th>
+                            <th>Teacher</th>
                         </tr>
                     </thead>
                     <tbody>
                         {courses.length === 0 ? (
-                             <tr><td colspan="5" className="text-center py-4 text-muted">No courses found.</td></tr>
+                             <tr><td colSpan="5" className="text-center py-4 text-muted">No courses found.</td></tr>
                         ) : (
                             courses.map(c => (
-                                <tr key={c.id}>
+                                <tr key={c._id}>
                                     <td className="ps-4 fw-bold text-primary-custom">{c.code}</td>
-                                    <td>{c.title}</td>
-                                    <td>{c.units}</td>
-                                    <td>{c.type}</td>
-                                    <td><Badge bg="success" className="badge-custom">Active</Badge></td>
+                                    <td>{c.name}</td>
+                                    <td>{c.schedule}</td>
+                                    <td>{c.room}</td>
+                                    <td>{c.teacher?.name || '-'}</td>
                                 </tr>
                             ))
                         )}
@@ -59,20 +79,14 @@ const CoursesPage = () => {
                     <Modal.Body>
                         <Row className="g-3">
                             <Col md={12}><Form.Control placeholder="Course Code (e.g. MATH101)" {...register('code', {required:true})} /></Col>
-                            <Col md={12}><Form.Control placeholder="Course Title" {...register('title', {required:true})} /></Col>
-                            <Col md={6}><Form.Control type="number" placeholder="Units" {...register('units', {required:true})} /></Col>
-                            <Col md={6}>
-                                <Form.Select {...register('type')}>
-                                    <option>Major</option>
-                                    <option>Minor</option>
-                                    <option>Elective</option>
-                                </Form.Select>
-                            </Col>
+                            <Col md={12}><Form.Control placeholder="Course Name" {...register('name', {required:true})} /></Col>
+                            <Col md={12}><Form.Control placeholder="Schedule (e.g. Mon/Wed 10am)" {...register('schedule')} /></Col>
+                            <Col md={12}><Form.Control placeholder="Room" {...register('room')} /></Col>
                         </Row>
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="light" onClick={() => setShowModal(false)}>Cancel</Button>
-                        <Button type="submit" className="btn-primary-custom">Save Course</Button>
+                        <Button type="submit" className="btn-primary-custom" disabled={loading}>Save Course</Button>
                     </Modal.Footer>
                 </Form>
             </Modal>

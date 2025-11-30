@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, Form, Button, Row, Col, Alert, Badge, Table } from 'react-bootstrap';
 import { useStorage, ACADEMIC_DATA } from '../../context/StorageContext';
 import { useNavigate } from 'react-router-dom';
+import api from '../../api/axios';
 
 const EnrollmentPage = () => {
-    const { currentUser, updateItem, saveItem, STORAGE_KEYS, getItems } = useStorage();
+    const { currentUser } = useStorage();
     const navigate = useNavigate();
 
-    // Check existing enrollment
-    const enrollments = getItems(STORAGE_KEYS.ENROLLMENTS);
-    const existingEnrollment = enrollments.find(e => e.studentId === currentUser.id && (e.status === 'Active' || e.status === 'Pending Approval'));
+    const [existingEnrollment, setExistingEnrollment] = useState(null);
+    const [loading, setLoading] = useState(true);
 
     const [step, setStep] = useState(1);
     const [formData, setFormData] = useState({
@@ -22,10 +22,25 @@ const EnrollmentPage = () => {
     const [fees, setFees] = useState([]);
 
     useEffect(() => {
-        if (existingEnrollment) {
-           // If pending or active, show status
+        fetchMyEnrollment();
+    }, []);
+
+    const fetchMyEnrollment = async () => {
+        try {
+            // In a real app, API would filter by current user automatically if no ID passed, or we pass ID
+            // Here, assumes GET /api/enrollments returns array, we find ours.
+            // Better: GET /api/enrollments?student=myID (handled by backend)
+            const { data } = await api.get('/enrollments');
+            // Assuming the backend filters for student role
+            // If multiple, take latest?
+            if (data.length > 0) {
+                setExistingEnrollment(data[data.length - 1]); // Latest
+            }
+        } catch (error) {
+            console.error(error);
         }
-    }, [existingEnrollment]);
+        setLoading(false);
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -53,40 +68,20 @@ const EnrollmentPage = () => {
         setStep(2);
     };
 
-    const handlePaymentSubmit = (e) => {
-        e.preventDefault();
-        setStep(3);
-    };
-
-    const handleFinalSubmit = () => {
-        // Generate Subjects
-        let subjects = [];
-        const yearKey = formData.yearLevel;
-        if (ACADEMIC_DATA.subjects[yearKey]) {
-            subjects = ACADEMIC_DATA.subjects[yearKey];
-        } else if (yearKey.includes('Grade')) {
-            subjects = ['Math', 'Science', 'English', 'History'];
-        } else {
-            subjects = ['Major 1', 'Major 2', 'Gen Ed 1', 'Gen Ed 2'];
+    const handleFinalSubmit = async () => {
+        try {
+            await api.post('/enrollments', {
+                ...formData,
+                status: 'Pending Approval'
+            });
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+            alert('Enrollment submission failed.');
         }
-
-        const enrollmentRecord = {
-            id: Date.now().toString(),
-            studentId: currentUser.id,
-            ...formData,
-            subjects,
-            status: 'Pending Approval', // Changed from Active
-            dateEnrolled: new Date().toISOString(),
-            fees: fees
-        };
-
-        saveItem(STORAGE_KEYS.ENROLLMENTS, enrollmentRecord);
-        // Note: We do NOT set enrollmentStatus to 'Enrolled' yet.
-        // We set it to 'Pending'.
-        updateItem(STORAGE_KEYS.USERS, currentUser.id, { enrollmentStatus: 'Pending' });
-
-        window.location.reload();
     };
+
+    if (loading) return <div className="p-4 text-center">Loading Enrollment Status...</div>;
 
     if (existingEnrollment) {
         return (
@@ -109,7 +104,7 @@ const EnrollmentPage = () => {
                             <>
                                 <div className="bg-light p-4 rounded text-start d-inline-block mt-3" style={{minWidth: '300px'}}>
                                     <h5 className="fw-bold border-bottom pb-2 mb-3">Certificate of Registration</h5>
-                                    <p className="mb-1"><strong>Student:</strong> {currentUser.firstName} {currentUser.lastName}</p>
+                                    <p className="mb-1"><strong>Student:</strong> {currentUser.name}</p>
                                     <p className="mb-1"><strong>Program:</strong> {existingEnrollment.program}</p>
                                     <p className="mb-1"><strong>Year/Section:</strong> {existingEnrollment.yearLevel} - {existingEnrollment.section}</p>
                                     <p className="mb-0"><strong>Status:</strong> <Badge bg="success">Enrolled</Badge></p>

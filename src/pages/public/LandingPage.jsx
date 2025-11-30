@@ -5,25 +5,28 @@ import logo from '../../assets/img/logo.png';
 
 const LandingPage = () => {
     return (
-        <div style={{ background: '#F8FAFC', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-            {/* Navbar */}
-            <Navbar bg="white" expand="lg" className="shadow-sm py-3 sticky-top">
+        <div style={{ background: '#F8FAFC', minHeight: '100vh' }}>
+            <Navbar bg="white" expand="lg" className="shadow-sm py-3">
                 <Container>
-                    <Navbar.Brand as={Link} to="/" className="d-flex align-items-center gap-2">
-                        <img src={logo} alt="EduCore Logo" width="40" height="40" className="d-inline-block align-top" />
-                        <span className="fw-bold text-primary-custom fs-4">EduCore University</span>
+                    <Navbar.Brand href="#" className="d-flex align-items-center fw-bold text-primary-custom">
+                        {/* <img src={logo} alt="Logo" width="30" height="30" className="me-2" /> */}
+                        <div className="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center me-2" style={{width: 30, height: 30, fontSize: 14}}>
+                            <i className="fas fa-graduation-cap"></i>
+                        </div>
+                        EduCore University
                     </Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
-                        <Nav className="ms-auto align-items-center gap-3">
-                            <Nav.Link href="#features" className="fw-medium">Features</Nav.Link>
-                            <Nav.Link href="#programs" className="fw-medium">Programs</Nav.Link>
-                            <Nav.Link href="#about" className="fw-medium">About</Nav.Link>
+                        <Nav className="ms-auto align-items-center">
+                            <Nav.Link href="#about">About</Nav.Link>
+                            <Nav.Link href="#admissions">Admissions</Nav.Link>
+                            <Nav.Link href="#programs">Programs</Nav.Link>
+                            <Nav.Link href="#contact">Contact</Nav.Link>
                             <Link to="/login">
-                                <Button variant="outline-primary" className="btn-outline-custom px-4">Login</Button>
+                                <Button variant="outline-primary" className="ms-3 rounded-pill px-4">Login</Button>
                             </Link>
                             <Link to="/register">
-                                <Button variant="primary" className="btn-primary-custom px-4">Enroll Now</Button>
+                                <Button variant="primary" className="btn-primary-custom ms-2 rounded-pill px-4">Enroll Now</Button>
                             </Link>
                         </Nav>
                     </Navbar.Collapse>
@@ -31,99 +34,62 @@ const LandingPage = () => {
             </Navbar>
 
             {/* Hero Section */}
-            <section className="py-5 text-center text-lg-start" style={{ background: 'linear-gradient(135deg, #0FB4A9 0%, #0A7A87 100%)', color: 'white' }}>
+            <header className="py-5 text-center bg-white border-bottom">
                 <Container className="py-5">
-                    <Row className="align-items-center">
-                        <Col lg={6} className="mb-5 mb-lg-0">
-                            <h1 className="display-4 fw-bold mb-4">Shaping the Future of Education</h1>
-                            <p className="lead mb-4 opacity-90">
-                                EduCore University provides a world-class learning environment with cutting-edge technology and comprehensive academic programs from Kindergarten to College.
-                            </p>
-                            <div className="d-flex gap-3 justify-content-center justify-content-lg-start">
-                                <Link to="/register">
-                                    <Button variant="light" size="lg" className="text-primary-custom fw-bold px-5">Get Started</Button>
-                                </Link>
-                                <Button variant="outline-light" size="lg" className="px-4">Learn More</Button>
-                            </div>
-                        </Col>
-                        <Col lg={6} className="text-center">
-                            <img src={logo} alt="University Banner" className="img-fluid drop-shadow" style={{ maxHeight: '400px', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))' }} />
-                        </Col>
-                    </Row>
+                    <h1 className="display-4 fw-bold text-primary-custom mb-3">Shaping the Future of Education</h1>
+                    <p className="lead text-muted mb-4" style={{ maxWidth: '700px', margin: '0 auto' }}>
+                        Join a world-class institution dedicated to academic excellence, innovation, and holistic development.
+                    </p>
+                    <Link to="/register">
+                        <Button size="lg" className="btn-primary-custom rounded-pill px-5 py-3 shadow">Start Your Journey</Button>
+                    </Link>
                 </Container>
-            </section>
+            </header>
 
             {/* Features */}
-            <section id="features" className="py-5">
-                <Container className="py-5">
-                    <div className="text-center mb-5">
-                        <h6 className="text-primary-custom fw-bold text-uppercase letter-spacing-1">Why Choose Us</h6>
-                        <h2 className="fw-bold">Excellence in Every Aspect</h2>
-                    </div>
-                    <Row className="g-4">
-                        {[
-                            { icon: 'fa-graduation-cap', title: 'Quality Education', desc: 'Accredited programs designed for global competitiveness.' },
-                            { icon: 'fa-chalkboard-teacher', title: 'Expert Faculty', desc: 'Learn from industry practitioners and seasoned educators.' },
-                            { icon: 'fa-laptop-code', title: 'Modern Facilities', desc: 'State-of-the-art labs, libraries, and digital learning tools.' },
-                            { icon: 'fa-users', title: 'Vibrant Community', desc: 'A diverse and inclusive environment for holistic growth.' }
-                        ].map((feature, idx) => (
-                            <Col md={6} lg={3} key={idx}>
-                                <Card className="h-100 border-0 shadow-sm text-center p-4 hover-lift">
-                                    <div className="mb-3 text-primary-custom">
-                                        <i className={`fas ${feature.icon} fa-3x`}></i>
-                                    </div>
-                                    <h5 className="fw-bold mb-2">{feature.title}</h5>
-                                    <p className="text-muted small mb-0">{feature.desc}</p>
-                                </Card>
-                            </Col>
-                        ))}
-                    </Row>
-                </Container>
-            </section>
-
-            {/* Footer */}
-            <footer className="bg-white border-top py-5 mt-auto">
+            <section className="py-5" id="programs">
                 <Container>
                     <Row className="g-4">
                         <Col md={4}>
-                            <div className="d-flex align-items-center gap-2 mb-3">
-                                <img src={logo} alt="Logo" width="32" />
-                                <h5 className="fw-bold mb-0 text-primary-custom">EduCore</h5>
-                            </div>
-                            <p className="text-muted small">
-                                Empowering students to become leaders of tomorrow through excellence in education and character formation.
-                            </p>
+                            <Card className="h-100 border-0 shadow-sm p-3 hover-card">
+                                <Card.Body className="text-center">
+                                    <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 70, height: 70}}>
+                                        <i className="fas fa-microscope fs-3 text-success"></i>
+                                    </div>
+                                    <h5 className="fw-bold">STEM & Research</h5>
+                                    <p className="text-muted">Cutting-edge laboratories and research opportunities.</p>
+                                </Card.Body>
+                            </Card>
                         </Col>
-                        <Col md={2}>
-                            <h6 className="fw-bold mb-3">Quick Links</h6>
-                            <ul className="list-unstyled small text-muted">
-                                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Admissions</a></li>
-                                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Programs</a></li>
-                                <li className="mb-2"><a href="#" className="text-decoration-none text-muted">Portal</a></li>
-                            </ul>
+                        <Col md={4}>
+                            <Card className="h-100 border-0 shadow-sm p-3 hover-card">
+                                <Card.Body className="text-center">
+                                    <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 70, height: 70}}>
+                                        <i className="fas fa-palette fs-3 text-warning"></i>
+                                    </div>
+                                    <h5 className="fw-bold">Arts & Humanities</h5>
+                                    <p className="text-muted">Cultivating creativity and critical thinking.</p>
+                                </Card.Body>
+                            </Card>
                         </Col>
-                        <Col md={3}>
-                            <h6 className="fw-bold mb-3">Contact Us</h6>
-                            <ul className="list-unstyled small text-muted">
-                                <li className="mb-2"><i className="fas fa-map-marker-alt me-2"></i> 123 Education Ave, City</li>
-                                <li className="mb-2"><i className="fas fa-phone me-2"></i> +1 234 567 8900</li>
-                                <li className="mb-2"><i className="fas fa-envelope me-2"></i> admissions@educore.edu</li>
-                            </ul>
-                        </Col>
-                        <Col md={3}>
-                            <h6 className="fw-bold mb-3">Follow Us</h6>
-                            <div className="d-flex gap-3">
-                                <a href="#" className="text-primary-custom fs-5"><i className="fab fa-facebook"></i></a>
-                                <a href="#" className="text-primary-custom fs-5"><i className="fab fa-twitter"></i></a>
-                                <a href="#" className="text-primary-custom fs-5"><i className="fab fa-instagram"></i></a>
-                                <a href="#" className="text-primary-custom fs-5"><i className="fab fa-linkedin"></i></a>
-                            </div>
+                        <Col md={4}>
+                            <Card className="h-100 border-0 shadow-sm p-3 hover-card">
+                                <Card.Body className="text-center">
+                                    <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 70, height: 70}}>
+                                        <i className="fas fa-laptop-code fs-3 text-primary"></i>
+                                    </div>
+                                    <h5 className="fw-bold">Technology</h5>
+                                    <p className="text-muted">Advanced computer science and IT curriculum.</p>
+                                </Card.Body>
+                            </Card>
                         </Col>
                     </Row>
-                    <hr className="my-4" />
-                    <div className="text-center text-muted small">
-                        &copy; 2024 EduCore University. All Rights Reserved.
-                    </div>
+                </Container>
+            </section>
+
+            <footer className="bg-dark text-white py-4 text-center mt-auto">
+                <Container>
+                    <small className="opacity-50">&copy; {new Date().getFullYear()} EduCore University. All rights reserved.</small>
                 </Container>
             </footer>
         </div>

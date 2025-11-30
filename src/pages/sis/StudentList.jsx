@@ -1,18 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Badge, Form, InputGroup } from 'react-bootstrap';
-import { useStorage } from '../../context/StorageContext';
+import api from '../../api/axios';
 import StudentModal from '../../components/sis/StudentModal';
 
 const StudentList = () => {
-    const { users, saveItem } = useStorage();
-    const [showModal, setShowModal] = useState(false);
+    const [students, setStudents] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showModal, setShowModal] = useState(false);
     const [editingStudent, setEditingStudent] = useState(null);
 
-    const students = users.filter(u => u.role === 'Student' &&
-        (u.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         u.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-         u.id.includes(searchTerm))
+    useEffect(() => {
+        fetchStudents();
+    }, []);
+
+    const fetchStudents = async () => {
+        try {
+            const { data } = await api.get('/users?role=Student');
+            setStudents(data);
+        } catch (error) {
+            console.error('Failed to fetch students:', error);
+        }
+        setLoading(false);
+    };
+
+    const filteredStudents = students.filter(u =>
+        u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (u.studentId && u.studentId.includes(searchTerm)) ||
+        u.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleEdit = (student) => {
@@ -24,6 +39,8 @@ const StudentList = () => {
         setEditingStudent(null);
         setShowModal(true);
     };
+
+    if (loading) return <div className="p-4 text-center">Loading Students...</div>;
 
     return (
         <div className="p-4">
@@ -54,29 +71,29 @@ const StudentList = () => {
                             <th className="ps-4">ID</th>
                             <th>Name</th>
                             <th>Email</th>
-                            <th>Status</th>
+                            <th>Role</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {students.length === 0 ? (
-                            <tr><td colspan="5" className="text-center py-4 text-muted">No students found.</td></tr>
+                        {filteredStudents.length === 0 ? (
+                            <tr><td colSpan="5" className="text-center py-4 text-muted">No students found.</td></tr>
                         ) : (
-                            students.map(s => (
-                                <tr key={s.id}>
-                                    <td className="ps-4 fw-bold text-primary-custom">{s.id}</td>
+                            filteredStudents.map(s => (
+                                <tr key={s._id}>
+                                    <td className="ps-4 fw-bold text-primary-custom">{s.idNumber || s.studentId || '-'}</td>
                                     <td>
                                         <div className="d-flex align-items-center">
                                             <div className="user-avatar me-3" style={{width: 32, height: 32, fontSize: '0.8rem'}}>
-                                                {s.firstName[0]}
+                                                {s.name.charAt(0)}
                                             </div>
-                                            {s.firstName} {s.lastName}
+                                            {s.name}
                                         </div>
                                     </td>
                                     <td>{s.email}</td>
                                     <td>
-                                        <Badge bg={s.status === 'Active' ? 'success' : 'warning'} className="badge-custom">
-                                            {s.status}
+                                        <Badge bg="info" className="badge-custom">
+                                            {s.role}
                                         </Badge>
                                     </td>
                                     <td>

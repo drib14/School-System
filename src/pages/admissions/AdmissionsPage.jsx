@@ -1,30 +1,36 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Button, Badge, Nav } from 'react-bootstrap';
-import { useStorage } from '../../context/StorageContext';
+import api from '../../api/axios';
 
 const AdmissionsPage = () => {
-    const { users, updateItem, getItems, STORAGE_KEYS } = useStorage();
-    const [activeTab, setActiveTab] = useState('users');
+    const [enrollments, setEnrollments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState('enrollments');
 
-    const pendingUsers = users.filter(u => u.status === 'Pending');
+    useEffect(() => {
+        fetchEnrollments();
+    }, []);
 
-    const enrollments = getItems(STORAGE_KEYS.ENROLLMENTS);
-    const pendingEnrollments = enrollments.filter(e => e.status === 'Pending Approval');
-
-    const handleApproveUser = (id) => {
-        updateItem(STORAGE_KEYS.USERS, id, { status: 'Active' });
+    const fetchEnrollments = async () => {
+        try {
+            const { data } = await api.get('/enrollments?status=Pending Approval');
+            setEnrollments(data);
+        } catch (error) {
+            console.error(error);
+        }
+        setLoading(false);
     };
 
-    const handleRejectUser = (id) => {
-        updateItem(STORAGE_KEYS.USERS, id, { status: 'Rejected' });
+    const handleApproveEnrollment = async (id) => {
+        try {
+            await api.put(`/enrollments/${id}`, { status: 'Active' });
+            fetchEnrollments();
+        } catch (error) {
+            console.error(error);
+        }
     };
 
-    const handleApproveEnrollment = (enrollment) => {
-        // Approve Enrollment
-        updateItem(STORAGE_KEYS.ENROLLMENTS, enrollment.id, { status: 'Active' });
-        // Update User Status
-        updateItem(STORAGE_KEYS.USERS, enrollment.studentId, { enrollmentStatus: 'Enrolled' });
-    };
+    if (loading) return <div className="p-4 text-center">Loading Admissions...</div>;
 
     return (
         <div className="p-4">
@@ -32,59 +38,21 @@ const AdmissionsPage = () => {
 
             <Card className="shadow-sm border-0 mb-4">
                 <Card.Header className="bg-white">
-                    <Nav variant="tabs" defaultActiveKey="users" onSelect={(k) => setActiveTab(k)}>
-                        <Nav.Item>
-                            <Nav.Link eventKey="users" className={activeTab === 'users' ? 'fw-bold text-primary-custom' : 'text-muted'}>
-                                User Applications <Badge bg="warning" text="dark" className="ms-1">{pendingUsers.length}</Badge>
-                            </Nav.Link>
-                        </Nav.Item>
+                    <Nav variant="tabs" defaultActiveKey="enrollments" onSelect={(k) => setActiveTab(k)}>
                         <Nav.Item>
                             <Nav.Link eventKey="enrollments" className={activeTab === 'enrollments' ? 'fw-bold text-primary-custom' : 'text-muted'}>
-                                Enrollment Requests <Badge bg="info" className="ms-1">{pendingEnrollments.length}</Badge>
+                                Enrollment Requests <Badge bg="info" className="ms-1">{enrollments.length}</Badge>
                             </Nav.Link>
                         </Nav.Item>
+                        {/* Removed User Applications tab as auth is now immediate */}
                     </Nav>
                 </Card.Header>
                 <Card.Body className="p-0">
-                    {activeTab === 'users' && (
-                        <Table hover responsive className="mb-0 align-middle">
-                            <thead className="bg-light">
-                                <tr>
-                                    <th className="ps-4">ID</th>
-                                    <th>Name</th>
-                                    <th>Role</th>
-                                    <th>Email</th>
-                                    <th>Date</th>
-                                    <th className="text-end pe-4">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {pendingUsers.length === 0 ? (
-                                    <tr><td colspan="6" className="text-center py-5 text-muted">No pending user applications.</td></tr>
-                                ) : (
-                                    pendingUsers.map(u => (
-                                        <tr key={u.id}>
-                                            <td className="ps-4 fw-bold">{u.id}</td>
-                                            <td>{u.firstName} {u.lastName}</td>
-                                            <td><Badge bg="light" text="dark" className="border">{u.role}</Badge></td>
-                                            <td>{u.email}</td>
-                                            <td>{new Date(u.createdAt).toLocaleDateString()}</td>
-                                            <td className="text-end pe-4">
-                                                <Button size="sm" variant="success" className="me-2" onClick={() => handleApproveUser(u.id)}>Approve</Button>
-                                                <Button size="sm" variant="outline-danger" onClick={() => handleRejectUser(u.id)}>Reject</Button>
-                                            </td>
-                                        </tr>
-                                    ))
-                                )}
-                            </tbody>
-                        </Table>
-                    )}
-
                     {activeTab === 'enrollments' && (
                         <Table hover responsive className="mb-0 align-middle">
                             <thead className="bg-light">
                                 <tr>
-                                    <th className="ps-4">Student ID</th>
+                                    <th className="ps-4">Student</th>
                                     <th>Program</th>
                                     <th>Year/Section</th>
                                     <th>Payment</th>
@@ -93,19 +61,22 @@ const AdmissionsPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {pendingEnrollments.length === 0 ? (
-                                    <tr><td colspan="6" className="text-center py-5 text-muted">No pending enrollment requests.</td></tr>
+                                {enrollments.length === 0 ? (
+                                    <tr><td colSpan="6" className="text-center py-5 text-muted">No pending enrollment requests.</td></tr>
                                 ) : (
-                                    pendingEnrollments.map(e => (
-                                        <tr key={e.id}>
-                                            <td className="ps-4 fw-bold">{e.studentId}</td>
+                                    enrollments.map(e => (
+                                        <tr key={e._id}>
+                                            <td className="ps-4 fw-bold">
+                                                <div>{e.student?.name}</div>
+                                                <small className="text-muted">{e.student?.email}</small>
+                                            </td>
                                             <td>{e.program}</td>
                                             <td>{e.yearLevel} - {e.section}</td>
                                             <td>{e.paymentMethod}</td>
                                             <td>{new Date(e.dateEnrolled).toLocaleDateString()}</td>
                                             <td className="text-end pe-4">
                                                 <Button size="sm" variant="info" className="me-2 text-white" onClick={() => alert('View Proof (Mock)')}>View Proof</Button>
-                                                <Button size="sm" variant="success" onClick={() => handleApproveEnrollment(e)}>Validate & Approve</Button>
+                                                <Button size="sm" variant="success" onClick={() => handleApproveEnrollment(e._id)}>Validate & Approve</Button>
                                             </td>
                                         </tr>
                                     ))

@@ -2,6 +2,8 @@ import User from '../models/User.js';
 import Attendance from '../models/Attendance.js';
 import Grade from '../models/Grade.js';
 import Book from '../models/Book.js';
+import Course from '../models/Course.js';
+import Finance from '../models/Finance.js';
 
 const seedData = async () => {
     try {
@@ -37,16 +39,21 @@ const seedData = async () => {
                  studentIds.push(newStudent._id);
             }
         } else {
-             const students = await User.find({ role: 'Student' }).limit(1);
-             if (students.length > 0) studentIds.push(students[0]._id);
+             const students = await User.find({ role: 'Student' });
+             studentIds = students.map(s => s._id);
         }
 
         // 3. Seed Mock Teachers if none
+        let teacherIds = [];
         const teacherCount = await User.countDocuments({ role: 'Teacher' });
         if (teacherCount < 2) {
              console.log('Seeding Mock Teachers...');
-             await User.create({ name: 'Mr. Anderson', email: 'anderson@teacher.com', password: 'password123', role: 'Teacher', isVerified: true });
-             await User.create({ name: 'Ms. Frizzle', email: 'frizzle@teacher.com', password: 'password123', role: 'Teacher', isVerified: true });
+             const t1 = await User.create({ name: 'Mr. Anderson', email: 'anderson@teacher.com', password: 'password123', role: 'Teacher', isVerified: true });
+             const t2 = await User.create({ name: 'Ms. Frizzle', email: 'frizzle@teacher.com', password: 'password123', role: 'Teacher', isVerified: true });
+             teacherIds.push(t1._id, t2._id);
+        } else {
+            const teachers = await User.find({ role: 'Teacher' });
+            teacherIds = teachers.map(t => t._id);
         }
 
         // 4. Seed Mock Parent
@@ -62,6 +69,25 @@ const seedData = async () => {
                 isVerified: true,
                 children: [studentIds[0]] // Link to first student (Alice)
             });
+        }
+
+        // 5. Seed Courses
+        const courseCount = await Course.countDocuments();
+        if (courseCount === 0 && teacherIds.length > 0) {
+            console.log('Seeding Courses...');
+            await Course.create({ code: 'MATH101', name: 'Mathematics', teacher: teacherIds[0], schedule: 'Mon/Wed 10:00 AM', room: 'Rm 101' });
+            await Course.create({ code: 'SCI101', name: 'Science', teacher: teacherIds[1], schedule: 'Tue/Thu 01:00 PM', room: 'Lab 3' });
+            await Course.create({ code: 'HIST101', name: 'History', teacher: teacherIds[0], schedule: 'Fri 09:00 AM', room: 'Rm 102' });
+        }
+
+        // 6. Seed Finance
+        const financeCount = await Finance.countDocuments();
+        if (financeCount === 0 && studentIds.length > 0) {
+            console.log('Seeding Finance...');
+            for (const sid of studentIds) {
+                await Finance.create({ student: sid, title: 'Tuition Fee - Sem 1', amount: 25000, type: 'Income', status: 'Pending', dueDate: new Date() });
+                await Finance.create({ student: sid, title: 'Misc Fee', amount: 5000, type: 'Income', status: 'Paid', dueDate: new Date() });
+            }
         }
 
         console.log('Seeding Complete (or Skipped if exists).');

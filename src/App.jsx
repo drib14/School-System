@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { StorageProvider, useStorage } from './context/StorageContext';
 import LoginPage from './pages/auth/LoginPage';
 import RegisterPage from './pages/auth/RegisterPage';
+import VerificationPage from './pages/auth/VerificationPage';
 import DashboardLayout from './components/layout/DashboardLayout';
 import DashboardHome from './pages/dashboard/DashboardHome';
 import StudentList from './pages/sis/StudentList';
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
+      <Route path="/verify" element={<VerificationPage />} />
 
       {/* Protected Dashboard Routes */}
       <Route element={

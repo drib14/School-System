@@ -9,7 +9,7 @@ const RegisterPage = () => {
         firstName: '', lastName: '', email: '', phone: '', password: '', role: 'Student'
     });
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState(false);
+    const [loading, setLoading] = useState(false);
     const { register } = useStorage();
     const navigate = useNavigate();
 
@@ -17,13 +17,25 @@ const RegisterPage = () => {
         setFormData({...formData, [e.target.name]: e.target.value});
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        const res = register(formData);
+        setLoading(true);
+
+        const dataToSend = {
+            name: `${formData.firstName} ${formData.lastName}`,
+            email: formData.email,
+            password: formData.password,
+            role: formData.role
+            // Phone is in user schema but basic register might just be name/email/pass/role first
+        };
+
+        const res = await register(dataToSend);
+        setLoading(false);
+
         if (res.success) {
-            setSuccess(true);
-            setTimeout(() => navigate('/login'), 2000);
+            localStorage.setItem('tempEmail', formData.email);
+            navigate('/verify');
         } else {
             setError(res.message);
         }
@@ -34,12 +46,14 @@ const RegisterPage = () => {
             <Card className="shadow-lg border-0" style={{ maxWidth: '600px', width: '100%' }}>
                 <Card.Body className="p-4 p-md-5">
                     <div className="text-center mb-4">
-                        <img src={logo} alt="Logo" width="60" className="mb-3" />
+                        {/* <img src={logo} alt="Logo" width="60" className="mb-3" /> */}
+                        <div className="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 60, height: 60, fontSize: 24}}>
+                            <i className="fas fa-user-plus"></i>
+                        </div>
                         <h2 className="fw-bold text-primary-custom">Create Account</h2>
                         <p className="text-muted">Join the EduCore community</p>
                     </div>
                     {error && <Alert variant="danger">{error}</Alert>}
-                    {success && <Alert variant="success">Registration successful! Redirecting to login...</Alert>}
 
                     <Form onSubmit={handleSubmit}>
                         <Row className="g-3">
@@ -64,7 +78,7 @@ const RegisterPage = () => {
                              <Col md={12}>
                                 <Form.Group>
                                     <Form.Label>Phone</Form.Label>
-                                    <Form.Control type="tel" name="phone" onChange={handleChange} required />
+                                    <Form.Control type="tel" name="phone" onChange={handleChange} />
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -84,8 +98,8 @@ const RegisterPage = () => {
                                 </Form.Group>
                             </Col>
                         </Row>
-                        <Button variant="primary" type="submit" className="w-100 btn-primary-custom py-2 mt-4">
-                            Register
+                        <Button variant="primary" type="submit" className="w-100 btn-primary-custom py-2 mt-4" disabled={loading}>
+                            {loading ? 'Registering...' : 'Register'}
                         </Button>
                     </Form>
                     <div className="text-center mt-3">

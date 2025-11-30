@@ -8,17 +8,26 @@ const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const { login } = useStorage();
     const navigate = useNavigate();
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
-        const res = login(email, password);
+        setLoading(true);
+        const res = await login(email, password);
+        setLoading(false);
         if (res.success) {
             navigate('/dashboard');
         } else {
             setError(res.message);
+            // If verification needed, maybe redirect to verify?
+             if (res.message.includes('verification')) {
+                 // Store email temporarily to pre-fill verification
+                 localStorage.setItem('tempEmail', email);
+                 navigate('/verify');
+             }
         }
     };
 
@@ -27,7 +36,10 @@ const LoginPage = () => {
             <Card className="shadow-lg border-0" style={{ maxWidth: '400px', width: '100%' }}>
                 <Card.Body className="p-5">
                     <div className="text-center mb-4">
-                        <img src={logo} alt="Logo" width="60" className="mb-3" />
+                        {/* <img src={logo} alt="Logo" width="60" className="mb-3" /> */}
+                         <div className="bg-primary-custom text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 60, height: 60, fontSize: 24}}>
+                            <i className="fas fa-graduation-cap"></i>
+                        </div>
                         <h2 className="fw-bold text-primary-custom">EduCore</h2>
                         <p className="text-muted">Sign in to your account</p>
                     </div>
@@ -51,12 +63,13 @@ const LoginPage = () => {
                                 required
                             />
                         </Form.Group>
-                        <Button variant="primary" type="submit" className="w-100 btn-primary-custom py-2">
-                            Login
+                        <Button variant="primary" type="submit" className="w-100 btn-primary-custom py-2" disabled={loading}>
+                            {loading ? 'Logging in...' : 'Login'}
                         </Button>
                     </Form>
                     <div className="text-center mt-3">
                         <p className="text-muted small">Don't have an account? <Link to="/register" className="text-primary-custom fw-bold">Register</Link></p>
+                         <p className="text-muted small"><Link to="/forgot-password" className="text-muted">Forgot Password?</Link></p>
                     </div>
                 </Card.Body>
             </Card>

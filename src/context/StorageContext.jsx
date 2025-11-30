@@ -1,33 +1,15 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { v4 as uuidv4 } from 'uuid';
+import api from '../api/axios';
 
 const StorageContext = createContext();
 
-const STORAGE_KEYS = {
+export const STORAGE_KEYS = {
+    // Keep these for backward compatibility or future use if we need constants
     USERS: 'educore_users',
-    STUDENTS: 'educore_students', // Extended profiles
-    COURSES: 'educore_courses',
-    ENROLLMENTS: 'educore_enrollments',
-    ATTENDANCE: 'educore_attendance',
-    GRADES: 'educore_grades',
-    FINANCE: 'educore_finance',
-    LMS: 'educore_lms',
-    EVENTS: 'educore_events',
-    LIBRARY: 'educore_library',
-    CURRENT_USER: 'educore_current_user'
+    STUDENTS: 'educore_students',
 };
 
-const DEFAULT_ADMIN = {
-    id: '100001',
-    role: 'Admin',
-    firstName: 'Super',
-    lastName: 'Admin',
-    email: 'admin@educore.edu',
-    password: 'admin',
-    status: 'Active',
-    createdAt: new Date().toISOString()
-};
-
+// Keep academic data as static constants for now
 export const ACADEMIC_DATA = {
     departments: ['Preschool', 'Elementary', 'Junior High School', 'Senior High School', 'College'],
     programs: {
@@ -63,109 +45,102 @@ export const ACADEMIC_DATA = {
 };
 
 export const StorageProvider = ({ children }) => {
-    // State for all entities
-    const [users, setUsers] = useState([]);
-    const [currentUser, setCurrentUser] = useState(() => {
-        const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_USER);
-        return stored ? JSON.parse(stored) : null;
-    });
+    const [currentUser, setCurrentUser] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-    // Initialize Data
     useEffect(() => {
-        const storedUsers = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS) || '[]');
-        if (storedUsers.length === 0) {
-            storedUsers.push(DEFAULT_ADMIN);
-            localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(storedUsers));
+        const userInfo = localStorage.getItem('userInfo');
+        if (userInfo) {
+            setCurrentUser(JSON.parse(userInfo));
         }
-        setUsers(storedUsers);
+        setLoading(false);
     }, []);
 
-    // --- Authentication ---
-    const login = (email, password) => {
-        const user = users.find(u => u.email === email && u.password === password);
-        if (!user) return { success: false, message: 'Invalid credentials' };
-        if (user.status !== 'Active' && user.status !== 'Pending') return { success: false, message: 'Account not active' }; // Pending allowed for checking status? Maybe not login.
-
-        // If pending, usually can't login to dashboard, but maybe to a status page.
-        // For now, strict login.
-        if (user.status === 'Pending') return { success: false, message: 'Account pending approval' };
-
-        setCurrentUser(user);
-        localStorage.setItem(STORAGE_KEYS.CURRENT_USER, JSON.stringify(user));
-        return { success: true, user };
+    const login = async (email, password) => {
+        try {
+            const { data } = await api.post('/auth/login', { email, password });
+            setCurrentUser(data);
+            localStorage.setItem('userInfo', JSON.stringify(data));
+            return { success: true, user: data };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Login failed'
+            };
+        }
     };
 
     const logout = () => {
         setCurrentUser(null);
-        localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+        localStorage.removeItem('userInfo');
         window.location.href = '/login';
     };
 
-    const register = (userData) => {
-        if (users.some(u => u.email === userData.email)) {
-            return { success: false, message: 'Email already registered' };
+    const register = async (userData) => {
+        try {
+            const { data } = await api.post('/auth/register', userData);
+            // Don't auto-login, wait for verification
+            return { success: true, user: data };
+        } catch (error) {
+             return {
+                success: false,
+                message: error.response?.data?.message || 'Registration failed'
+            };
         }
-        const newUser = {
-            ...userData,
-            id: generateID(userData.role),
-            status: userData.role === 'Parent' ? 'Active' : 'Pending', // Auto-approve Parent
-            createdAt: new Date().toISOString()
-        };
-        const updatedUsers = [...users, newUser];
-        setUsers(updatedUsers);
-        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(updatedUsers));
-        return { success: true, user: newUser };
     };
 
-    // --- CRUD Helpers ---
+    const verify = async (email, code) => {
+         try {
+            const { data } = await api.post('/auth/verify', { email, code });
+            setCurrentUser(data);
+            localStorage.setItem('userInfo', JSON.stringify(data));
+            return { success: true, user: data };
+        } catch (error) {
+             return {
+                success: false,
+                message: error.response?.data?.message || 'Verification failed'
+            };
+        }
+    }
+
+    // --- Temporary Adapters for Existing Components ---
+    // We will eventually replace these with direct API calls in the components
+    const getItems = (key) => {
+        // Fallback to local storage for now while we migrate
+        return JSON.parse(localStorage.getItem(key) || '[]');
+    };
+
     const saveItem = (key, item) => {
-        const currentItems = JSON.parse(localStorage.getItem(key) || '[]');
+         const currentItems = JSON.parse(localStorage.getItem(key) || '[]');
         const updatedItems = [...currentItems, item];
         localStorage.setItem(key, JSON.stringify(updatedItems));
         return updatedItems;
     };
 
-    const getItems = (key) => {
-        return JSON.parse(localStorage.getItem(key) || '[]');
-    };
-
     const updateItem = (key, id, updates) => {
-        const items = getItems(key);
+         const items = getItems(key);
         const index = items.findIndex(i => i.id === id);
         if (index !== -1) {
             items[index] = { ...items[index], ...updates };
             localStorage.setItem(key, JSON.stringify(items));
-            // Sync users state if needed
-            if (key === STORAGE_KEYS.USERS) setUsers(items);
             return true;
         }
         return false;
     };
 
-    // --- ID Generator ---
-    const generateID = (role) => {
-        const year = new Date().getFullYear();
-        let prefix = '99';
-        if (role === 'Student') prefix = '20';
-        if (role === 'Teacher') prefix = '10';
-        if (role === 'Parent') prefix = '30';
-        const random = Math.floor(10000 + Math.random() * 90000);
-        return `${prefix}${year.toString().slice(-2)}${random}`;
-    };
-
     return (
         <StorageContext.Provider value={{
-            users,
             currentUser,
             login,
             logout,
             register,
-            saveItem,
-            getItems,
-            updateItem,
+            verify,
+            getItems, // Deprecated, but kept for compatibility
+            saveItem, // Deprecated, but kept for compatibility
+            updateItem, // Deprecated, but kept for compatibility
             STORAGE_KEYS
         }}>
-            {children}
+            {!loading && children}
         </StorageContext.Provider>
     );
 };

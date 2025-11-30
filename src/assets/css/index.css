@@ -1,0 +1,215 @@
+:root {
+    --primary: #0FB4A9;
+    --primary-dark: #0A7A87;
+    --primary-light: #A7ECE7;
+    --accent: #1A5F9E;
+    --bg-body: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text-dark: #0F2B46;
+    --text-muted: #6C7A89;
+    --border-color: #DDE3EA;
+    --success: #27C281;
+    --warning: #F8B400;
+    --danger: #E04343;
+    --font-family: 'Inter', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--bg-body);
+    color: var(--text-dark);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* Utilities */
+.text-primary-custom { color: var(--primary); }
+.bg-primary-custom { background-color: var(--primary) !important; }
+.text-muted-custom { color: var(--text-muted); }
+
+/* Card Styling */
+.card {
+    background-color: var(--card-bg);
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s ease-in-out;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+}
+
+.card-header {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    font-weight: 600;
+    padding: 1.25rem;
+}
+
+/* Buttons */
+.btn-primary-custom {
+    background-color: var(--primary);
+    border-color: var(--primary);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.btn-primary-custom:hover {
+    background-color: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: white;
+}
+
+.btn-outline-custom {
+    color: var(--primary);
+    border-color: var(--primary);
+    border-radius: 8px;
+}
+
+.btn-outline-custom:hover {
+    background-color: var(--primary);
+    color: white;
+}
+
+/* Form Controls */
+.form-control {
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem 1rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(15, 180, 169, 0.15);
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: #ffffff;
+    border-right: 1px solid var(--border-color);
+    height: 100vh;
+    overflow-y: auto;
+    width: 260px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    transition: all 0.3s;
+}
+
+.sidebar-header {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.sidebar-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    text-decoration: none;
+}
+
+.nav-link {
+    color: var(--text-muted);
+    font-weight: 500;
+    padding: 0.8rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-radius: 0 24px 24px 0;
+    margin-right: 1rem;
+    transition: all 0.2s;
+}
+
+.nav-link i {
+    width: 20px;
+    text-align: center;
+}
+
+.nav-link:hover, .nav-link.active {
+    background-color: rgba(15, 180, 169, 0.1);
+    color: var(--primary);
+}
+
+.nav-link.active {
+    border-right: 3px solid var(--primary);
+}
+
+/* Main Content */
+.main-content {
+    margin-left: 260px;
+    padding: 2rem;
+    transition: margin-left 0.3s;
+}
+
+/* Topbar */
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.search-bar input {
+    background-color: #f1f5f9;
+    border: none;
+    width: 300px;
+}
+
+.user-profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: var(--primary-light);
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+}
+
+/* Status Badges */
+.badge-custom {
+    padding: 0.5em 1em;
+    border-radius: 50rem;
+    font-weight: 500;
+    font-size: 0.85em;
+}
+
+.badge-success-soft { background-color: rgba(39, 194, 129, 0.15); color: #1e7e55; }
+.badge-warning-soft { background-color: rgba(248, 180, 0, 0.15); color: #b48300; }
+.badge-danger-soft { background-color: rgba(224, 67, 67, 0.15); color: #a32f2f; }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .sidebar {
+        margin-left: -260px;
+    }
+    .sidebar.active {
+        margin-left: 0;
+    }
+    .main-content {
+        margin-left: 0;
+    }
+    .main-content.active { /* Optional: Push content */ }
+}

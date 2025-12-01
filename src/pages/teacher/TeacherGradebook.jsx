@@ -1,0 +1,1 @@
+import React from 'react'; import PlaceholderPage from '../../components/common/PlaceholderPage'; const TeacherGradebook = () => <PlaceholderPage title="TeacherGradebook" />; export default TeacherGradebook;

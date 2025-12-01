@@ -5,6 +5,7 @@ import Book from '../models/Book.js';
 import Course from '../models/Course.js';
 import Finance from '../models/Finance.js';
 import Announcement from '../models/Announcement.js';
+import Enrollment from '../models/Enrollment.js';
 
 const seedData = async () => {
     try {
@@ -72,26 +73,78 @@ const seedData = async () => {
             });
         }
 
-        // 5. Seed Courses
-        const courseCount = await Course.countDocuments();
-        if (courseCount === 0 && teacherIds.length > 0) {
-            console.log('Seeding Courses...');
-            await Course.create({ code: 'MATH101', name: 'Mathematics', teacher: teacherIds[0], schedule: 'Mon/Wed 10:00 AM', room: 'Rm 101' });
-            await Course.create({ code: 'SCI101', name: 'Science', teacher: teacherIds[1], schedule: 'Tue/Thu 01:00 PM', room: 'Lab 3' });
-            await Course.create({ code: 'HIST101', name: 'History', teacher: teacherIds[0], schedule: 'Fri 09:00 AM', room: 'Rm 102' });
+        // 5. Seed Courses (Updated with Program/YearLevel/Section)
+        // We delete existing to force update if schema changed
+        await Course.deleteMany({});
+        console.log('Seeding Courses...');
+        if (teacherIds.length > 0) {
+            const commonProps = { program: 'BS Computer Science', yearLevel: '1st Year', section: 'A' };
+
+            await Course.create({
+                code: 'CS101',
+                name: 'Introduction to Computing',
+                teacher: teacherIds[0],
+                schedule: 'Mon/Wed 08:30 AM - 10:00 AM',
+                room: 'Lab 1',
+                ...commonProps
+            });
+            await Course.create({
+                code: 'CS102',
+                name: 'Computer Programming 1',
+                teacher: teacherIds[0],
+                schedule: 'Tue/Thu 10:30 AM - 12:00 PM',
+                room: 'Lab 2',
+                ...commonProps
+            });
+            await Course.create({
+                code: 'MATH101',
+                name: 'Mathematics in the Modern World',
+                teacher: teacherIds[1],
+                schedule: 'Fri 09:00 AM - 12:00 PM',
+                room: 'Rm 305',
+                ...commonProps
+            });
+            await Course.create({
+                code: 'ENG101',
+                name: 'Purposive Communication',
+                teacher: teacherIds[1],
+                schedule: 'Mon/Wed 01:00 PM - 02:30 PM',
+                room: 'Rm 201',
+                ...commonProps
+            });
+            await Course.create({
+                code: 'PE101',
+                name: 'Physical Education 1',
+                teacher: teacherIds[1],
+                schedule: 'Sat 08:00 AM - 10:00 AM',
+                room: 'Gym',
+                ...commonProps
+            });
         }
 
-        // 6. Seed Finance
-        const financeCount = await Finance.countDocuments();
-        if (financeCount === 0 && studentIds.length > 0) {
-            console.log('Seeding Finance...');
-            for (const sid of studentIds) {
-                await Finance.create({ student: sid, title: 'Tuition Fee - Sem 1', amount: 25000, type: 'Income', status: 'Pending', dueDate: new Date() });
-                await Finance.create({ student: sid, title: 'Misc Fee', amount: 5000, type: 'Income', status: 'Paid', dueDate: new Date() });
-            }
+        // 6. Seed Enrollments (CRITICAL: Link Students to Program/Section)
+        await Enrollment.deleteMany({});
+        console.log('Seeding Enrollments...');
+        for (const sid of studentIds) {
+            await Enrollment.create({
+                student: sid,
+                program: 'BS Computer Science',
+                yearLevel: '1st Year',
+                section: 'A',
+                status: 'Active',
+                paymentMethod: 'Full Payment'
+            });
         }
 
-        // 7. Seed Announcements
+        // 7. Seed Finance
+        await Finance.deleteMany({}); // Reset to avoid duplicates on re-seed
+        console.log('Seeding Finance...');
+        for (const sid of studentIds) {
+            await Finance.create({ student: sid, title: 'Tuition Fee - Sem 1', amount: 25000, type: 'Income', status: 'Pending', dueDate: new Date() });
+            await Finance.create({ student: sid, title: 'Misc Fee', amount: 5000, type: 'Income', status: 'Paid', dueDate: new Date() });
+        }
+
+        // 8. Seed Announcements
         const announcementCount = await Announcement.countDocuments();
         if (announcementCount === 0) {
             console.log('Seeding Announcements...');
@@ -100,7 +153,7 @@ const seedData = async () => {
             await Announcement.create({ title: 'Exam Schedule', content: 'Midterm exams start next week.', priority: 'High' });
         }
 
-        console.log('Seeding Complete (or Skipped if exists).');
+        console.log('Seeding Complete.');
 
     } catch (error) {
         console.error('Seeding Error:', error);

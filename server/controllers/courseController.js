@@ -6,10 +6,24 @@ import Course from '../models/Course.js';
 // @access  Private
 const getCourses = asyncHandler(async (req, res) => {
     let query = {};
+
+    // Role-based filtering
     if (req.user.role === 'Teacher') {
         query.teacher = req.user._id;
     }
-    const courses = await Course.find(query).populate('teacher', 'name');
+
+    // Query param filtering
+    if (req.query.program) {
+        query.program = req.query.program;
+    }
+    if (req.query.yearLevel) {
+        query.yearLevel = req.query.yearLevel;
+    }
+    if (req.query.section) {
+        query.section = req.query.section;
+    }
+
+    const courses = await Course.find(query).populate('teacher', 'name email');
     res.json(courses);
 });
 

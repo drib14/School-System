@@ -1,0 +1,1 @@
+import React from 'react'; import PlaceholderPage from '../../components/common/PlaceholderPage'; const AcademicManagement = () => <PlaceholderPage title="AcademicManagement" />; export default AcademicManagement;

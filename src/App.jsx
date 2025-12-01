@@ -21,43 +21,55 @@ import AdmissionsInfoPage from './pages/public/AdmissionsInfoPage';
 import ProgramsPage from './pages/public/ProgramsPage';
 import ContactPage from './pages/public/ContactPage';
 
-// New Modules
-import AttendancePage from './pages/operations/AttendancePage';
-import LibraryPage from './pages/operations/LibraryPage';
-import ClinicPage from './pages/operations/ClinicPage';
-import TransportPage from './pages/operations/TransportPage';
-import CanteenPage from './pages/operations/CanteenPage';
-import EventsPage from './pages/admin/EventsPage';
-import LMSPage from './pages/academic/LMSPage';
-import ExamsPage from './pages/academic/ExamsPage';
-import SchedulingPage from './pages/academic/SchedulingPage';
+// --- NEW MODULES ---
+// Student
+import StudentSchedule from './pages/student/StudentSchedule';
+import StudentLMS from './pages/student/StudentLMS';
+import StudentExams from './pages/student/StudentExams';
+import StudentRequests from './pages/student/StudentRequests';
+import StudentOrgs from './pages/student/StudentOrgs';
+import StudentNotifications from './pages/student/StudentNotifications';
+import StudentHelp from './pages/student/StudentHelp';
+
+// Teacher
+import ClassManagement from './pages/teacher/ClassManagement';
+import TeacherSchedule from './pages/teacher/TeacherSchedule';
+import TeacherGradebook from './pages/teacher/TeacherGradebook';
+import TeacherAttendance from './pages/teacher/TeacherAttendance';
+import TeacherLMS from './pages/teacher/TeacherLMS';
+import TeacherExams from './pages/teacher/TeacherExams';
+import TeacherAnalytics from './pages/teacher/TeacherAnalytics';
+import TeacherDocs from './pages/teacher/TeacherDocs';
+import TeacherCommunication from './pages/teacher/TeacherCommunication';
+import TeacherSupport from './pages/teacher/TeacherSupport';
+
+// Admin Modules
+import EnrollmentAdmin from './pages/admin-modules/EnrollmentAdmin';
+import AcademicManagement from './pages/admin-modules/AcademicManagement';
+import SchedulingAdmin from './pages/admin-modules/SchedulingAdmin';
+import GradesAdmin from './pages/admin-modules/GradesAdmin';
+import AttendanceAdmin from './pages/admin-modules/AttendanceAdmin';
+import TeacherLoad from './pages/admin-modules/TeacherLoad';
+import ExamsAdmin from './pages/admin-modules/ExamsAdmin';
+import HRManagement from './pages/admin-modules/HRManagement';
+import FinanceAdmin from './pages/admin-modules/FinanceAdmin';
+import LibraryAdmin from './pages/admin-modules/LibraryAdmin';
+import Clinic from './pages/admin-modules/Clinic';
+import Transport from './pages/admin-modules/Transport';
+import Canteen from './pages/admin-modules/Canteen';
+import EventsAdmin from './pages/admin-modules/EventsAdmin';
+import CommunicationAdmin from './pages/admin-modules/CommunicationAdmin';
+import SystemAdmin from './pages/admin-modules/SystemAdmin';
+
+// Existing Admin Pages that might need mapping or are redundant with new modules
 import SettingsPage from './pages/admin/SettingsPage';
 import ProfilePage from './pages/admin/ProfilePage';
 import UserManagementPage from './pages/admin/UserManagementPage';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-    const { currentUser, getItems, STORAGE_KEYS } = useStorage();
-    const location = useLocation();
-
+    const { currentUser } = useStorage();
     if (!currentUser) return <Navigate to="/login" />;
-
-    // Force Enrollment for Students
-    if (currentUser.role === 'Student') {
-         const enrollments = getItems(STORAGE_KEYS.ENROLLMENTS);
-         const isEnrolled = enrollments.some(e => e.studentId === currentUser.id && e.status === 'Active');
-         // If pending approval, we can treat as enrolled for now (accessing dashboard),
-         // OR restrict access until Active.
-         // Requirement: "enrollment must process payment... before being approved"
-         // If Pending Approval, maybe they can access dashboard but with limited view?
-         // For now, let's allow access if Pending Approval too, so they can see status.
-         const isPending = enrollments.some(e => e.studentId === currentUser.id && e.status === 'Pending Approval');
-
-         if (!isEnrolled && !isPending && location.pathname !== '/enrollment') {
-             return <Navigate to="/enrollment" />;
-         }
-    }
-
     return children;
 };
 
@@ -81,6 +93,56 @@ function AppRoutes() {
           </ProtectedRoute>
       }>
           <Route path="/dashboard" element={<DashboardHome />} />
+
+          {/* Common */}
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+
+          {/* Student Panel Routes */}
+          <Route path="/student/schedule" element={<StudentSchedule />} />
+          <Route path="/student/lms" element={<StudentLMS />} />
+          <Route path="/student/exams" element={<StudentExams />} />
+          <Route path="/student/enrollment" element={<EnrollmentPage />} />
+          <Route path="/student/grades" element={<GradesPage />} />
+          <Route path="/student/finance" element={<FinancePage />} />
+          <Route path="/student/requests" element={<StudentRequests />} />
+          <Route path="/student/orgs" element={<StudentOrgs />} />
+          <Route path="/student/notifications" element={<StudentNotifications />} />
+          <Route path="/student/help" element={<StudentHelp />} />
+
+          {/* Teacher Panel Routes */}
+          <Route path="/teacher/classes" element={<ClassManagement />} />
+          <Route path="/teacher/schedule" element={<TeacherSchedule />} />
+          <Route path="/teacher/gradebook" element={<TeacherGradebook />} />
+          <Route path="/teacher/attendance" element={<TeacherAttendance />} />
+          <Route path="/teacher/lms" element={<TeacherLMS />} />
+          <Route path="/teacher/exams" element={<TeacherExams />} />
+          <Route path="/teacher/analytics" element={<TeacherAnalytics />} />
+          <Route path="/teacher/documents" element={<TeacherDocs />} />
+          <Route path="/teacher/communication" element={<TeacherCommunication />} />
+          <Route path="/teacher/support" element={<TeacherSupport />} />
+
+          {/* Admin Routes - Standard Modules */}
+          <Route path="/admin/enrollment" element={<EnrollmentAdmin />} />
+          <Route path="/admin/students" element={<StudentList />} /> {/* Using existing polished list */}
+          <Route path="/admin/academic" element={<AcademicManagement />} />
+          <Route path="/admin/scheduling" element={<SchedulingAdmin />} />
+          <Route path="/admin/grades" element={<GradesAdmin />} />
+          <Route path="/admin/attendance" element={<AttendanceAdmin />} />
+          <Route path="/admin/teacher-load" element={<TeacherLoad />} />
+          <Route path="/admin/exams" element={<ExamsAdmin />} />
+          <Route path="/admin/hr" element={<HRManagement />} />
+          <Route path="/admin/finance" element={<FinanceAdmin />} />
+          <Route path="/admin/library" element={<LibraryAdmin />} />
+          <Route path="/admin/clinic" element={<Clinic />} />
+          <Route path="/admin/transport" element={<Transport />} />
+          <Route path="/admin/canteen" element={<Canteen />} />
+          <Route path="/admin/events" element={<EventsAdmin />} />
+          <Route path="/admin/communication" element={<CommunicationAdmin />} />
+          <Route path="/admin/users" element={<UserManagementPage />} />
+          <Route path="/admin/system" element={<SystemAdmin />} />
+
+          {/* Legacy/Other Routes (keeping for compatibility if needed, or mapping them) */}
           <Route path="/enrollment" element={<EnrollmentPage />} />
           <Route path="/students" element={<StudentList />} />
           <Route path="/admissions" element={<AdmissionsPage />} />
@@ -89,20 +151,6 @@ function AppRoutes() {
           <Route path="/finance" element={<FinancePage />} />
           <Route path="/staff" element={<StaffPage />} />
 
-          <Route path="/attendance" element={<AttendancePage />} />
-          <Route path="/library" element={<LibraryPage />} />
-          <Route path="/clinic" element={<ClinicPage />} />
-          <Route path="/transport" element={<TransportPage />} />
-          <Route path="/canteen" element={<CanteenPage />} />
-          <Route path="/events" element={<EventsPage />} />
-          <Route path="/lms" element={<LMSPage />} />
-          <Route path="/exams" element={<ExamsPage />} />
-          <Route path="/scheduling" element={<SchedulingPage />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/users" element={<UserManagementPage />} />
-
-          <Route path="/reports" element={<PlaceholderPage title="Reports & Analytics" />} />
       </Route>
     </Routes>
   );

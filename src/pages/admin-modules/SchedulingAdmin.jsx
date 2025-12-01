@@ -1,0 +1,1 @@
+import React from 'react'; import PlaceholderPage from '../../components/common/PlaceholderPage'; const SchedulingAdmin = () => <PlaceholderPage title="SchedulingAdmin" />; export default SchedulingAdmin;

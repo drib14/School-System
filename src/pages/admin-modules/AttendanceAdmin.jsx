@@ -1,0 +1,1 @@
+import React from 'react'; import PlaceholderPage from '../../components/common/PlaceholderPage'; const AttendanceAdmin = () => <PlaceholderPage title="AttendanceAdmin" />; export default AttendanceAdmin;

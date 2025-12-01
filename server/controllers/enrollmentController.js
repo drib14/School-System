@@ -5,11 +5,14 @@ import Enrollment from '../models/Enrollment.js';
 // @route   GET /api/enrollments
 // @access  Private
 const getEnrollments = asyncHandler(async (req, res) => {
-    const { status } = req.query;
+    const { status, program, yearLevel, section } = req.query;
     let query = {};
-    if (status) {
-        query.status = status;
-    }
+
+    if (status) query.status = status;
+    if (program) query.program = program;
+    if (yearLevel) query.yearLevel = yearLevel;
+    if (section) query.section = section;
+
     // If student, only see own
     if (req.user.role === 'Student') {
         query.student = req.user._id;

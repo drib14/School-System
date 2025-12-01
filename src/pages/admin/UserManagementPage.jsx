@@ -1,21 +1,35 @@
-import React, { useState } from 'react';
-import { Card, Table, Button, Badge, Form, InputGroup, Modal, Row, Col } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Card, Table, Button, Badge, Form, InputGroup, Modal, Row, Col, Alert } from 'react-bootstrap';
 import { useForm } from 'react-hook-form';
-import { useStorage } from '../../context/StorageContext';
+import api from '../../api/axios';
 
 const UserManagementPage = () => {
-    const { users, updateItem, register: registerUser, STORAGE_KEYS } = useStorage();
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [filterRole, setFilterRole] = useState('All');
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
 
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            const { data } = await api.get('/users');
+            setUsers(data);
+        } catch (error) {
+            console.error(error);
+        }
+        setLoading(false);
+    };
+
     const filteredUsers = users.filter(u => {
         const matchesSearch =
-            u.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            u.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             u.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            u.id.includes(searchTerm);
+            (u.idNumber && u.idNumber.includes(searchTerm));
         const matchesRole = filterRole === 'All' || u.role === filterRole;
         return matchesSearch && matchesRole;
     });
@@ -30,9 +44,12 @@ const UserManagementPage = () => {
         setShowModal(true);
     };
 
-    const handleStatusChange = (id, newStatus) => {
-        updateItem(STORAGE_KEYS.USERS, id, { status: newStatus });
+    const handleStatusChange = async (id, isActive) => {
+        // TODO: Implement status toggle API
+        console.log('Status change logic here');
     };
+
+    if (loading) return <div className="p-4 text-center">Loading Users...</div>;
 
     return (
         <div className="p-4">
@@ -83,29 +100,20 @@ const UserManagementPage = () => {
                     </thead>
                     <tbody>
                         {filteredUsers.map(u => (
-                            <tr key={u.id}>
-                                <td className="ps-4 fw-bold">{u.id}</td>
-                                <td>{u.firstName} {u.lastName}</td>
+                            <tr key={u._id}>
+                                <td className="ps-4 fw-bold">{u.idNumber || '-'}</td>
+                                <td>{u.name}</td>
                                 <td>{u.email}</td>
                                 <td><Badge bg="light" text="dark" className="border">{u.role}</Badge></td>
                                 <td>
-                                    <Badge bg={u.status === 'Active' ? 'success' : u.status === 'Pending' ? 'warning' : 'danger'}>
-                                        {u.status}
+                                    <Badge bg={u.isVerified ? 'success' : 'warning'}>
+                                        {u.isVerified ? 'Active' : 'Pending'}
                                     </Badge>
                                 </td>
                                 <td className="text-end pe-4">
                                     <Button size="sm" variant="light" className="me-2" onClick={() => handleEdit(u)}>
                                         <i className="fas fa-edit"></i>
                                     </Button>
-                                    {u.status === 'Active' ? (
-                                        <Button size="sm" variant="outline-danger" onClick={() => handleStatusChange(u.id, 'Deactivated')}>
-                                            <i className="fas fa-ban"></i>
-                                        </Button>
-                                    ) : (
-                                        <Button size="sm" variant="outline-success" onClick={() => handleStatusChange(u.id, 'Active')}>
-                                            <i className="fas fa-check"></i>
-                                        </Button>
-                                    )}
                                 </td>
                             </tr>
                         ))}
@@ -117,37 +125,44 @@ const UserManagementPage = () => {
                 show={showModal}
                 handleClose={() => setShowModal(false)}
                 user={editingUser}
-                registerUser={registerUser}
-                updateItem={updateItem}
-                STORAGE_KEYS={STORAGE_KEYS}
+                onRefresh={fetchUsers}
             />
         </div>
     );
 };
 
-const UserModal = ({ show, handleClose, user, registerUser, updateItem, STORAGE_KEYS }) => {
+const UserModal = ({ show, handleClose, user, onRefresh }) => {
     const { register, handleSubmit, reset, setValue } = useForm();
+    const [loading, setLoading] = useState(false);
 
     React.useEffect(() => {
         if (user) {
-            setValue('firstName', user.firstName);
-            setValue('lastName', user.lastName);
+            setValue('name', user.name);
             setValue('email', user.email);
             setValue('role', user.role);
             setValue('phone', user.phone || '');
         } else {
-            reset({ firstName: '', lastName: '', email: '', role: 'Student', phone: '' });
+            reset({ name: '', email: '', role: 'Student', phone: '' });
         }
     }, [user, show]);
 
-    const onSubmit = (data) => {
-        if (user) {
-            updateItem(STORAGE_KEYS.USERS, user.id, data);
-        } else {
-            registerUser({ ...data, password: 'password123' });
+    const onSubmit = async (data) => {
+        setLoading(true);
+        try {
+            if (user) {
+                // Update Logic
+                // await api.put(`/users/${user._id}`, data);
+            } else {
+                await api.post('/auth/register', { ...data, password: 'password123', isVerified: true });
+            }
+            onRefresh();
+            handleClose();
+            reset();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to save user');
         }
-        handleClose();
-        reset();
+        setLoading(false);
     };
 
     return (
@@ -158,16 +173,10 @@ const UserModal = ({ show, handleClose, user, registerUser, updateItem, STORAGE_
             <Form onSubmit={handleSubmit(onSubmit)}>
                 <Modal.Body>
                     <Row className="g-3">
-                        <Col md={6}>
+                        <Col md={12}>
                             <Form.Group>
-                                <Form.Label>First Name</Form.Label>
-                                <Form.Control {...register('firstName', { required: true })} />
-                            </Form.Group>
-                        </Col>
-                        <Col md={6}>
-                            <Form.Group>
-                                <Form.Label>Last Name</Form.Label>
-                                <Form.Control {...register('lastName', { required: true })} />
+                                <Form.Label>Full Name</Form.Label>
+                                <Form.Control {...register('name', { required: true })} />
                             </Form.Group>
                         </Col>
                         <Col md={12}>
@@ -197,7 +206,7 @@ const UserModal = ({ show, handleClose, user, registerUser, updateItem, STORAGE_
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="light" onClick={handleClose}>Cancel</Button>
-                    <Button type="submit" className="btn-primary-custom">Save</Button>
+                    <Button type="submit" className="btn-primary-custom" disabled={loading}>Save</Button>
                 </Modal.Footer>
             </Form>
         </Modal>

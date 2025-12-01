@@ -11,6 +11,7 @@ import dashboardRoutes from './routes/dashboard.js';
 import courseRoutes from './routes/courses.js';
 import financeRoutes from './routes/finance.js';
 import enrollmentRoutes from './routes/enrollments.js';
+import announcementRoutes from './routes/announcements.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import seedData from './utils/seeder.js';
 
@@ -44,6 +45,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/courses', courseRoutes);
 app.use('/api/finance', financeRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
+app.use('/api/announcements', announcementRoutes);
 
 app.get('/', (req, res) => {
     res.send('EduCore API is running...');

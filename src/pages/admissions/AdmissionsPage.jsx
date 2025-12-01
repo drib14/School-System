@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Button, Badge, Nav } from 'react-bootstrap';
+import { Card, Table, Button, Badge, Nav, Modal } from 'react-bootstrap';
 import api from '../../api/axios';
 
 const AdmissionsPage = () => {
     const [enrollments, setEnrollments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('enrollments');
+    const [showProofModal, setShowProofModal] = useState(false);
+    const [selectedProof, setSelectedProof] = useState(null);
 
     useEffect(() => {
         fetchEnrollments();
@@ -30,6 +32,11 @@ const AdmissionsPage = () => {
         }
     };
 
+    const handleViewProof = (url) => {
+        setSelectedProof(url || 'https://via.placeholder.com/400x600?text=No+Proof+Uploaded');
+        setShowProofModal(true);
+    };
+
     if (loading) return <div className="p-4 text-center">Loading Admissions...</div>;
 
     return (
@@ -44,7 +51,6 @@ const AdmissionsPage = () => {
                                 Enrollment Requests <Badge bg="info" className="ms-1">{enrollments.length}</Badge>
                             </Nav.Link>
                         </Nav.Item>
-                        {/* Removed User Applications tab as auth is now immediate */}
                     </Nav>
                 </Card.Header>
                 <Card.Body className="p-0">
@@ -75,7 +81,7 @@ const AdmissionsPage = () => {
                                             <td>{e.paymentMethod}</td>
                                             <td>{new Date(e.dateEnrolled).toLocaleDateString()}</td>
                                             <td className="text-end pe-4">
-                                                <Button size="sm" variant="info" className="me-2 text-white" onClick={() => alert('View Proof (Mock)')}>View Proof</Button>
+                                                <Button size="sm" variant="info" className="me-2 text-white" onClick={() => handleViewProof(e.proofUrl)}>View Proof</Button>
                                                 <Button size="sm" variant="success" onClick={() => handleApproveEnrollment(e._id)}>Validate & Approve</Button>
                                             </td>
                                         </tr>
@@ -86,6 +92,13 @@ const AdmissionsPage = () => {
                     )}
                 </Card.Body>
             </Card>
+
+            <Modal show={showProofModal} onHide={() => setShowProofModal(false)} size="lg" centered>
+                <Modal.Header closeButton><Modal.Title>Proof of Payment</Modal.Title></Modal.Header>
+                <Modal.Body className="text-center bg-light">
+                    <img src={selectedProof} alt="Proof" style={{ maxWidth: '100%', maxHeight: '70vh' }} />
+                </Modal.Body>
+            </Modal>
         </div>
     );
 };

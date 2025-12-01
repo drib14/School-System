@@ -1,9 +1,11 @@
 import express from 'express';
-import { getFinance } from '../controllers/financeController.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { getFinance, createFinance } from '../controllers/financeController.js';
+import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-router.get('/', protect, getFinance);
+router.route('/')
+    .get(protect, getFinance)
+    .post(protect, admin, createFinance);
 
 export default router;

@@ -16,6 +16,10 @@ import PlaceholderPage from './components/common/PlaceholderPage';
 
 // Public Pages
 import LandingPage from './pages/public/LandingPage';
+import AboutPage from './pages/public/AboutPage';
+import AdmissionsInfoPage from './pages/public/AdmissionsInfoPage';
+import ProgramsPage from './pages/public/ProgramsPage';
+import ContactPage from './pages/public/ContactPage';
 
 // New Modules
 import AttendancePage from './pages/operations/AttendancePage';
@@ -62,6 +66,10 @@ function AppRoutes() {
     <Routes>
       {/* Public Routes */}
       <Route path="/" element={<LandingPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/admissions-info" element={<AdmissionsInfoPage />} />
+      <Route path="/programs" element={<ProgramsPage />} />
+      <Route path="/contact" element={<ContactPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/register" element={<RegisterPage />} />
       <Route path="/verify" element={<VerificationPage />} />

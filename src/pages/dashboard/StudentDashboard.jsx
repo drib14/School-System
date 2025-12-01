@@ -7,6 +7,7 @@ const StudentDashboard = () => {
     const { currentUser } = useStorage();
     const [grades, setGrades] = useState([]);
     const [attendance, setAttendance] = useState([]);
+    const [announcements, setAnnouncements] = useState([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -19,6 +20,10 @@ const StudentDashboard = () => {
                 // Fetch real attendance
                 const attRes = await api.get('/attendance/my');
                 setAttendance(attRes.data);
+
+                // Fetch real announcements
+                const annRes = await api.get('/announcements');
+                setAnnouncements(annRes.data);
             } catch (error) {
                 console.error(error);
             }
@@ -105,14 +110,23 @@ const StudentDashboard = () => {
                         </Card.Body>
                     </Card>
 
-                    {/* Announcements Mock */}
+                    {/* Announcements */}
                     <Card className="shadow-sm border-0">
                         <Card.Header className="bg-white"><h6 className="mb-0 fw-bold">Announcements</h6></Card.Header>
                         <Card.Body>
-                            <div className="border-start border-3 border-primary ps-3 mb-3">
-                                <small className="text-muted d-block">System</small>
-                                <p className="mb-0 small fw-bold">Welcome to the new system!</p>
-                            </div>
+                            {announcements.length === 0 ? (
+                                <p className="text-muted text-center">No announcements.</p>
+                            ) : (
+                                announcements.slice(0, 3).map(a => (
+                                    <div key={a._id} className={`border-start border-3 ${a.priority === 'High' ? 'border-danger' : 'border-primary'} ps-3 mb-3`}>
+                                        <div className="d-flex justify-content-between">
+                                            <small className="text-muted">{new Date(a.createdAt).toLocaleDateString()}</small>
+                                            {a.priority === 'High' && <Badge bg="danger" style={{fontSize: '0.6rem'}}>High</Badge>}
+                                        </div>
+                                        <p className="mb-0 small fw-bold">{a.title}</p>
+                                    </div>
+                                ))
+                            )}
                         </Card.Body>
                     </Card>
                 </Col>

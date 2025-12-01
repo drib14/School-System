@@ -5,12 +5,14 @@ import api from '../../api/axios';
 
 const FinancePage = () => {
     const [finance, setFinance] = useState([]);
+    const [students, setStudents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const { register, handleSubmit, reset } = useForm();
 
     useEffect(() => {
         fetchFinance();
+        fetchStudents();
     }, []);
 
     const fetchFinance = async () => {
@@ -23,15 +25,30 @@ const FinancePage = () => {
         setLoading(false);
     };
 
-    const onSubmit = (data) => {
-        // Implement Create API call if needed, for now just UI mock on success
-        // Since we are "removing mock data", we should ideally implement POST /api/finance
-        // But the user said "replace with real data", which mainly implies fetching.
-        // For creation, I'll just close modal or log error since I didn't make a POST route yet for finance
-        // Wait, I should make the POST route if I want it complete.
-        // But for now, let's just focus on displaying the seeded data.
-        setShowModal(false);
-        reset();
+    const fetchStudents = async () => {
+        try {
+            const { data } = await api.get('/users?role=Student');
+            setStudents(data);
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
+    const onSubmit = async (data) => {
+        try {
+            await api.post('/finance', {
+                studentId: data.student,
+                title: 'Miscellaneous Invoice', // Or add field for title
+                amount: data.amount,
+                dueDate: new Date() // Or add field
+            });
+            setShowModal(false);
+            reset();
+            fetchFinance();
+        } catch (error) {
+            console.error(error);
+            alert('Failed to create invoice');
+        }
     };
 
     const totalRevenue = finance
@@ -92,7 +109,7 @@ const FinancePage = () => {
                         ) : (
                             finance.map(f => (
                                 <tr key={f._id}>
-                                    <td>{f.student?.name}</td>
+                                    <td>{f.student?.name || 'Unknown'}</td>
                                     <td>{f.title}</td>
                                     <td className="fw-bold">₱ {f.amount.toLocaleString()}</td>
                                     <td>{new Date(f.dueDate).toLocaleDateString()}</td>
@@ -112,13 +129,16 @@ const FinancePage = () => {
                 <Modal.Header closeButton><Modal.Title>Create Invoice</Modal.Title></Modal.Header>
                 <Form onSubmit={handleSubmit(onSubmit)}>
                     <Modal.Body>
-                        <p className="text-muted">Invoice creation coming soon.</p>
-                        {/*
                         <Row className="g-3">
                             <Col md={12}>
                                 <Form.Group>
                                     <Form.Label>Student Name</Form.Label>
-                                    <Form.Control {...register('student', {required:true})} />
+                                    <Form.Select {...register('student', {required:true})}>
+                                        <option value="">Select Student...</option>
+                                        {students.map(s => (
+                                            <option key={s._id} value={s._id}>{s.name} ({s.email})</option>
+                                        ))}
+                                    </Form.Select>
                                 </Form.Group>
                             </Col>
                             <Col md={12}>
@@ -128,11 +148,10 @@ const FinancePage = () => {
                                 </Form.Group>
                             </Col>
                         </Row>
-                        */}
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="light" onClick={() => setShowModal(false)}>Cancel</Button>
-                        {/* <Button type="submit" className="btn-primary-custom">Create</Button> */}
+                        <Button type="submit" className="btn-primary-custom">Create</Button>
                     </Modal.Footer>
                 </Form>
             </Modal>

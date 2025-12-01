@@ -4,6 +4,7 @@ import Grade from '../models/Grade.js';
 import Book from '../models/Book.js';
 import Course from '../models/Course.js';
 import Finance from '../models/Finance.js';
+import Announcement from '../models/Announcement.js';
 
 const seedData = async () => {
     try {
@@ -88,6 +89,15 @@ const seedData = async () => {
                 await Finance.create({ student: sid, title: 'Tuition Fee - Sem 1', amount: 25000, type: 'Income', status: 'Pending', dueDate: new Date() });
                 await Finance.create({ student: sid, title: 'Misc Fee', amount: 5000, type: 'Income', status: 'Paid', dueDate: new Date() });
             }
+        }
+
+        // 7. Seed Announcements
+        const announcementCount = await Announcement.countDocuments();
+        if (announcementCount === 0) {
+            console.log('Seeding Announcements...');
+            await Announcement.create({ title: 'Welcome to EduCore!', content: 'We are excited to have you on board.', priority: 'High' });
+            await Announcement.create({ title: 'System Maintenance', content: 'Scheduled maintenance on Sunday 2am.', priority: 'Normal' });
+            await Announcement.create({ title: 'Exam Schedule', content: 'Midterm exams start next week.', priority: 'High' });
         }
 
         console.log('Seeding Complete (or Skipped if exists).');

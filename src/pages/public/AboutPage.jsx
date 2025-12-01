@@ -1,0 +1,1 @@
+import React from 'react'; import { Container } from 'react-bootstrap'; const AboutPage = () => ( <Container className="py-5"> <h1 className="text-primary-custom fw-bold">About EduCore</h1> <p className="lead mt-4">EduCore University is a premier institution committed to providing quality education.</p> </Container> ); export default AboutPage;

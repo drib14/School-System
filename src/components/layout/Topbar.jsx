@@ -1,10 +1,12 @@
 import React from 'react';
 import { Button, Dropdown } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import { useStorage } from '../../context/StorageContext';
 import logo from '../../assets/img/logo.png';
 
 const Topbar = ({ toggleSidebar }) => {
     const { currentUser, logout } = useStorage();
+    const navigate = useNavigate();
 
     // Helper to get initials
     const getInitials = (name) => {
@@ -45,8 +47,8 @@ const Topbar = ({ toggleSidebar }) => {
                     </Dropdown.Toggle>
 
                     <Dropdown.Menu className="border-0 shadow">
-                        <Dropdown.Item href="#/profile">My Profile</Dropdown.Item>
-                        <Dropdown.Item href="#/settings">Settings</Dropdown.Item>
+                        <Dropdown.Item onClick={() => navigate('/profile')}>My Profile</Dropdown.Item>
+                        <Dropdown.Item onClick={() => navigate('/settings')}>Settings</Dropdown.Item>
                         <Dropdown.Divider />
                         <Dropdown.Item onClick={logout} className="text-danger">Logout</Dropdown.Item>
                     </Dropdown.Menu>

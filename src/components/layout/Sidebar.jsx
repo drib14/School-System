@@ -1,95 +1,160 @@
 import React from 'react';
-import { Nav } from 'react-bootstrap';
+import { Nav, Accordion } from 'react-bootstrap';
 import { Link, useLocation } from 'react-router-dom';
+import {
+    FiHome, FiUsers, FiBookOpen, FiCalendar, FiDollarSign, FiSettings,
+    FiFileText, FiCheckSquare, FiClipboard, FiClock, FiActivity, FiTruck,
+    FiCoffee, FiAward, FiMessageSquare, FiGrid, FiUser, FiHelpCircle, FiBell,
+    FiBriefcase, FiLayers, FiMonitor
+} from 'react-icons/fi';
 import { useStorage } from '../../context/StorageContext';
 import logo from '../../assets/img/logo.png';
 
 const Sidebar = ({ isOpen }) => {
-    const { currentUser, logout } = useStorage();
     const location = useLocation();
-    const role = currentUser?.role;
+    const { currentUser, logout } = useStorage();
+    const role = currentUser?.role || 'Guest';
 
     const isActive = (path) => location.pathname === path;
 
-    const menuGroups = [
-        {
-            title: 'Core',
-            items: [
-                { name: 'Dashboard', path: '/dashboard', icon: 'fa-th-large', roles: ['Admin', 'Teacher', 'Student', 'Parent'] },
-                { name: 'Enrollment', path: '/enrollment', icon: 'fa-file-signature', roles: ['Student'] },
-                { name: 'Admissions', path: '/admissions', icon: 'fa-file-import', roles: ['Admin'] },
-                { name: 'Students', path: '/students', icon: 'fa-user-graduate', roles: ['Admin', 'Teacher'] },
-            ]
-        },
-        {
-            title: 'Academic',
-            items: [
-                { name: 'Curriculum', path: '/courses', icon: 'fa-book', roles: ['Admin', 'Teacher'] },
-                { name: 'Scheduling', path: '/scheduling', icon: 'fa-calendar-alt', roles: ['Admin'] },
-                { name: 'Gradebook', path: '/grades', icon: 'fa-graduation-cap', roles: ['Admin', 'Teacher', 'Student', 'Parent'] },
-                { name: 'LMS', path: '/lms', icon: 'fa-laptop-code', roles: ['Admin', 'Teacher', 'Student'] },
-                { name: 'Examinations', path: '/exams', icon: 'fa-edit', roles: ['Admin', 'Teacher'] },
-            ]
-        },
-        {
-            title: 'Operations',
-            items: [
-                { name: 'Attendance', path: '/attendance', icon: 'fa-clock', roles: ['Admin', 'Teacher', 'Student', 'Parent'] },
-                { name: 'Library', path: '/library', icon: 'fa-book-reader', roles: ['Admin', 'Teacher', 'Student'] },
-                { name: 'Clinic', path: '/clinic', icon: 'fa-medkit', roles: ['Admin', 'Teacher'] },
-                { name: 'Transport', path: '/transport', icon: 'fa-bus', roles: ['Admin', 'Parent'] },
-                { name: 'Canteen', path: '/canteen', icon: 'fa-utensils', roles: ['Admin', 'Student'] },
-            ]
-        },
-        {
-            title: 'Administration',
-            items: [
-                { name: 'Users', path: '/users', icon: 'fa-users-cog', roles: ['Admin'] },
-                { name: 'Finance', path: '/finance', icon: 'fa-file-invoice-dollar', roles: ['Admin', 'Parent'] },
-                { name: 'HR & Staff', path: '/staff', icon: 'fa-chalkboard-teacher', roles: ['Admin'] },
-                { name: 'Events', path: '/events', icon: 'fa-calendar-day', roles: ['Admin', 'Teacher', 'Student'] },
-                { name: 'Reports', path: '/reports', icon: 'fa-chart-bar', roles: ['Admin'] },
-                { name: 'Settings', path: '/settings', icon: 'fa-cogs', roles: ['Admin'] },
-            ]
-        }
-    ];
+    const renderLink = (to, icon, label) => (
+        <Nav.Link
+            as={Link}
+            to={to}
+            className={`d-flex align-items-center px-3 py-2 text-decoration-none ${isActive(to) ? 'bg-primary text-white' : 'text-dark'}`}
+            style={{
+                borderRadius: '8px',
+                marginBottom: '4px',
+                transition: 'all 0.2s',
+                backgroundColor: isActive(to) ? 'var(--bs-primary)' : 'transparent',
+                color: isActive(to) ? '#fff' : 'inherit'
+            }}
+        >
+            <span style={{ fontSize: '1.2rem', marginRight: '12px' }}>{icon}</span>
+            <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>{label}</span>
+        </Nav.Link>
+    );
+
+    const renderSectionHeader = (title) => (
+        <div className="px-3 py-2 mt-3 mb-1 text-uppercase text-muted" style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.5px' }}>
+            {title}
+        </div>
+    );
 
     return (
-        <div className={`sidebar ${isOpen ? 'active' : ''}`}>
-            <div className="sidebar-header">
-                <img src={logo} alt="EduCore" width="32" height="32" className="me-2" />
-                <Link to="/dashboard" className="sidebar-brand text-decoration-none">EduCore</Link>
-            </div>
+        <div
+            className={`bg-white shadow-sm border-end h-100 d-flex flex-column ${isOpen ? 'sidebar-open' : 'sidebar-closed'}`}
+            style={{
+                width: isOpen ? '260px' : '0',
+                minWidth: isOpen ? '260px' : '0',
+                transition: 'width 0.3s ease',
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                position: 'fixed',
+                zIndex: 1000,
+                top: '60px', // Below topbar
+                bottom: 0
+            }}
+        >
+            <div className="flex-grow-1 py-3">
+                <Nav className="flex-column px-2">
+                    {renderLink('/dashboard', <FiHome />, 'Dashboard')}
 
-            <div className="sidebar-menu mt-3">
-                {menuGroups.map((group, gIdx) => {
-                    const visibleItems = group.items.filter(i => i.roles.includes(role));
-                    if (visibleItems.length === 0) return null;
+                    {/* --- STUDENT MENU --- */}
+                    {role === 'Student' && (
+                        <>
+                            {renderSectionHeader('Academic')}
+                            {renderLink('/student/schedule', <FiCalendar />, 'My Schedule')}
+                            {renderLink('/student/lms', <FiBookOpen />, 'LMS / Classes')}
+                            {renderLink('/student/exams', <FiFileText />, 'Exams & Results')}
+                            {renderLink('/student/grades', <FiActivity />, 'Grades & Report Card')}
 
-                    return (
-                        <div key={gIdx} className="mb-4">
-                            <small className="text-muted text-uppercase fw-bold px-4 mb-2 d-block" style={{fontSize: '0.7rem', letterSpacing: '1px'}}>
-                                {group.title}
-                            </small>
-                            <Nav className="flex-column">
-                                {visibleItems.map((link, idx) => (
-                                    <Nav.Link
-                                        key={idx}
-                                        as={Link}
-                                        to={link.path}
-                                        className={isActive(link.path) ? 'active' : ''}
-                                    >
-                                        <i className={`fas ${link.icon}`}></i> {link.name}
-                                    </Nav.Link>
-                                ))}
-                            </Nav>
-                        </div>
-                    );
-                })}
+                            {renderSectionHeader('Administrative')}
+                            {renderLink('/student/enrollment', <FiCheckSquare />, 'Enrollment')}
+                            {renderLink('/student/finance', <FiDollarSign />, 'Financials / Fees')}
+                            {renderLink('/student/requests', <FiClipboard />, 'Document Requests')}
 
-                <Nav className="flex-column">
-                    <Nav.Link onClick={logout} className="text-danger mt-2">
-                        <i className="fas fa-sign-out-alt"></i> Logout
+                            {renderSectionHeader('Campus Life')}
+                            {renderLink('/student/attendance', <FiClock />, 'Attendance Log')}
+                            {renderLink('/student/library', <FiBookOpen />, 'Library')}
+                            {renderLink('/student/canteen', <FiCoffee />, 'Canteen Menu')}
+                            {renderLink('/student/events', <FiAward />, 'Events')}
+                            {renderLink('/student/orgs', <FiUsers />, 'Organizations')}
+
+                            {renderSectionHeader('Support')}
+                            {renderLink('/student/notifications', <FiBell />, 'Notifications')}
+                            {renderLink('/student/help', <FiHelpCircle />, 'Help & Support')}
+                        </>
+                    )}
+
+                    {/* --- TEACHER MENU --- */}
+                    {role === 'Teacher' && (
+                        <>
+                            {renderSectionHeader('Teaching')}
+                            {renderLink('/teacher/classes', <FiUsers />, 'Class Management')}
+                            {renderLink('/teacher/schedule', <FiCalendar />, 'My Schedule')}
+                            {renderLink('/teacher/gradebook', <FiActivity />, 'Gradebook')}
+                            {renderLink('/teacher/attendance', <FiCheckSquare />, 'Attendance')}
+                            {renderLink('/teacher/lms', <FiBookOpen />, 'LMS (Modules/Assignments)')}
+
+                            {renderSectionHeader('Performance')}
+                            {renderLink('/teacher/exams', <FiFileText />, 'Exams & Grading')}
+                            {renderLink('/teacher/analytics', <FiActivity />, 'Class Analytics')}
+
+                            {renderSectionHeader('Admin & Support')}
+                            {renderLink('/teacher/documents', <FiClipboard />, 'Documents & Forms')}
+                            {renderLink('/teacher/communication', <FiMessageSquare />, 'Communication')}
+                            {renderLink('/teacher/support', <FiHelpCircle />, 'IT Support')}
+                        </>
+                    )}
+
+                    {/* --- ADMIN MENU --- */}
+                    {role === 'Admin' && (
+                        <>
+                            {renderSectionHeader('Core Operations')}
+                            {renderLink('/admin/enrollment', <FiCheckSquare />, 'Enrollment')}
+                            {renderLink('/admin/students', <FiUsers />, 'Student Information')}
+                            {renderLink('/admin/academic', <FiBookOpen />, 'Academic Management')}
+                            {renderLink('/admin/scheduling', <FiCalendar />, 'Scheduling')}
+                            {renderLink('/admin/grades', <FiActivity />, 'Grades & Assessment')}
+                            {renderLink('/admin/attendance', <FiClock />, 'Attendance Tracking')}
+
+                            {renderSectionHeader('Staff & HR')}
+                            {renderLink('/admin/teacher-load', <FiBriefcase />, 'Teacher Load')}
+                            {renderLink('/admin/hr', <FiUsers />, 'HR Management')}
+
+                            {renderSectionHeader('Facilities & Services')}
+                            {renderLink('/admin/finance', <FiDollarSign />, 'Finance & Billing')}
+                            {renderLink('/admin/library', <FiBookOpen />, 'Library System')}
+                            {renderLink('/admin/clinic', <FiActivity />, 'Clinic/Health')}
+                            {renderLink('/admin/transport', <FiTruck />, 'Transport')}
+                            {renderLink('/admin/canteen', <FiCoffee />, 'Canteen')}
+
+                            {renderSectionHeader('System')}
+                            {renderLink('/admin/events', <FiAward />, 'Events & Calendar')}
+                            {renderLink('/admin/reports', <FiActivity />, 'Reports & Analytics')}
+                            {renderLink('/admin/communication', <FiMessageSquare />, 'Communication')}
+                            {renderLink('/admin/users', <FiUser />, 'User Management')}
+                            {renderLink('/admin/system', <FiSettings />, 'System Settings')}
+                        </>
+                    )}
+
+                    {/* --- PARENT MENU --- */}
+                    {role === 'Parent' && (
+                         <>
+                            {renderSectionHeader('Children')}
+                            {renderLink('/dashboard', <FiHome />, 'Overview')}
+                            {renderLink('/student/grades', <FiActivity />, 'Grades')}
+                            {renderLink('/finance', <FiDollarSign />, 'Fees')}
+                         </>
+                    )}
+
+                    <div className="my-4 border-top"></div>
+                    {renderLink('/profile', <FiUser />, 'My Profile')}
+                    {renderLink('/settings', <FiSettings />, 'Settings')}
+                    <Nav.Link onClick={logout} className="d-flex align-items-center px-3 py-2 text-decoration-none text-danger" style={{cursor: 'pointer'}}>
+                        <span style={{ fontSize: '1.2rem', marginRight: '12px' }}><FiMonitor/></span>
+                        <span style={{ fontSize: '0.95rem', fontWeight: 500 }}>Logout</span>
                     </Nav.Link>
                 </Nav>
             </div>

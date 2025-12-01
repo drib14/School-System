@@ -1,49 +1,84 @@
-import React from 'react';
-import { Card, Row, Col, Button } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Row, Col, Card, Form, Button, Switch } from 'react-bootstrap';
+import { FiMonitor, FiDatabase, FiLock, FiGlobe, FiSave } from 'react-icons/fi';
 
 const SettingsPage = () => {
     return (
-        <div className="p-4">
-            <h4 className="mb-4">Settings</h4>
-            <Row className="g-4">
-                <Col md={4}>
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body className="text-center p-4">
-                            <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 60, height: 60}}>
-                                <i className="fas fa-lock fs-4 text-primary"></i>
-                            </div>
-                            <h5 className="fw-bold">Security</h5>
-                            <p className="text-muted small">Change password and security questions.</p>
-                            <Button variant="outline-primary" className="w-100 mt-2">Manage</Button>
+        <Container fluid className="p-4">
+            <h2 className="fw-bold text-primary mb-4">System Settings</h2>
+
+            <Row>
+                <Col lg={4} md={6} className="mb-4">
+                    <Card className="h-100 shadow-sm border-0">
+                        <Card.Header className="bg-white fw-bold d-flex align-items-center">
+                            <FiMonitor className="me-2 text-primary" /> School Information
+                        </Card.Header>
+                        <Card.Body>
+                            <Form>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>School Name</Form.Label>
+                                    <Form.Control defaultValue="EduCore University" />
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Contact Email</Form.Label>
+                                    <Form.Control defaultValue="admin@educore.edu" />
+                                </Form.Group>
+                                <Button variant="primary" size="sm" className="w-100">Update Profile</Button>
+                            </Form>
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={4}>
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body className="text-center p-4">
-                            <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 60, height: 60}}>
-                                <i className="fas fa-bell fs-4 text-warning"></i>
-                            </div>
-                            <h5 className="fw-bold">Notifications</h5>
-                            <p className="text-muted small">Manage email and push notifications.</p>
-                            <Button variant="outline-primary" className="w-100 mt-2">Configure</Button>
+
+                <Col lg={4} md={6} className="mb-4">
+                    <Card className="h-100 shadow-sm border-0">
+                        <Card.Header className="bg-white fw-bold d-flex align-items-center">
+                            <FiGlobe className="me-2 text-info" /> Academic Configuration
+                        </Card.Header>
+                        <Card.Body>
+                            <Form>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Current Academic Year</Form.Label>
+                                    <Form.Select>
+                                        <option>2024-2025</option>
+                                        <option>2023-2024</option>
+                                    </Form.Select>
+                                </Form.Group>
+                                <Form.Group className="mb-3">
+                                    <Form.Label>Current Semester</Form.Label>
+                                    <Form.Select>
+                                        <option>1st Semester</option>
+                                        <option>2nd Semester</option>
+                                        <option>Summer</option>
+                                    </Form.Select>
+                                </Form.Group>
+                                <Button variant="info" text="white" size="sm" className="w-100 text-white">Save Configuration</Button>
+                            </Form>
                         </Card.Body>
                     </Card>
                 </Col>
-                <Col md={4}>
-                    <Card className="shadow-sm border-0 h-100">
-                        <Card.Body className="text-center p-4">
-                            <div className="bg-light rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style={{width: 60, height: 60}}>
-                                <i className="fas fa-palette fs-4 text-success"></i>
+
+                <Col lg={4} md={6} className="mb-4">
+                    <Card className="h-100 shadow-sm border-0">
+                        <Card.Header className="bg-white fw-bold d-flex align-items-center">
+                            <FiLock className="me-2 text-danger" /> System Maintenance
+                        </Card.Header>
+                        <Card.Body>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <span>Maintenance Mode</span>
+                                <Form.Check type="switch" />
                             </div>
-                            <h5 className="fw-bold">Appearance</h5>
-                            <p className="text-muted small">Customize theme and layout preferences.</p>
-                            <Button variant="outline-primary" className="w-100 mt-2">Customize</Button>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <span>Allow Student Registrations</span>
+                                <Form.Check type="switch" defaultChecked />
+                            </div>
+                            <hr />
+                            <Button variant="outline-danger" size="sm" className="w-100 mb-2">Clear System Cache</Button>
+                            <Button variant="danger" size="sm" className="w-100">Perform Backup</Button>
                         </Card.Body>
                     </Card>
                 </Col>
             </Row>
-        </div>
+        </Container>
     );
 };
 

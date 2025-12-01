@@ -39,4 +39,18 @@ const createFinance = asyncHandler(async (req, res) => {
     res.status(201).json(finance);
 });
 
-export { getFinance, createFinance };
+// @desc    Update finance record
+// @route   PUT /api/finance/:id
+// @access  Private (Admin)
+const updateFinance = asyncHandler(async (req, res) => {
+    const finance = await Finance.findById(req.params.id);
+    if (!finance) {
+        res.status(404);
+        throw new Error('Record not found');
+    }
+    finance.status = req.body.status || finance.status;
+    const updated = await finance.save();
+    res.json(updated);
+});
+
+export { getFinance, createFinance, updateFinance };

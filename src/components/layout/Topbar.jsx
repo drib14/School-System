@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, Dropdown } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
+import { FiMenu, FiBell, FiUser } from 'react-icons/fi';
 import { useStorage } from '../../context/StorageContext';
 import logo from '../../assets/img/logo.png';
 
@@ -19,19 +20,18 @@ const Topbar = ({ toggleSidebar }) => {
     return (
         <div className="topbar">
             <div className="d-flex align-items-center">
-                <Button variant="outline-secondary" className="d-lg-none me-3" onClick={toggleSidebar}>
-                    <i className="fas fa-bars"></i>
+                <Button variant="link" className="text-dark me-3 p-0" onClick={toggleSidebar}>
+                    <FiMenu size={24} />
                 </Button>
-                {/* <img src={logo} alt="Logo" width="30" height="30" className="me-2 d-none d-lg-block" /> */}
                  <div className="bg-primary-custom text-white rounded-circle d-none d-lg-inline-flex align-items-center justify-content-center me-2" style={{width: 30, height: 30, fontSize: 14}}>
-                    <i className="fas fa-graduation-cap"></i>
+                    <FiUser />
                 </div>
-                <h4 className="mb-0 fw-bold">EduCore University</h4>
+                <h4 className="mb-0 fw-bold" style={{ color: 'var(--bs-primary)' }}>EduCore University</h4>
             </div>
 
             <div className="d-flex align-items-center gap-4">
                 <div className="position-relative d-none d-md-block">
-                    <i className="fas fa-bell fs-5 text-muted" style={{cursor: 'pointer'}}></i>
+                    <FiBell size={20} className="text-secondary" style={{cursor: 'pointer'}} />
                     <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{fontSize: '0.5rem'}}>3</span>
                 </div>
 

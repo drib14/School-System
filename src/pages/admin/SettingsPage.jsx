@@ -1,6 +1,6 @@
-import React from "react";
-import { Container, Row, Col, Card, Form, Button } from "react-bootstrap";
-import { FiMonitor, FiLock, FiGlobe } from "react-icons/fi";
+import React, { useState } from 'react';
+import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+import { FiMonitor, FiDatabase, FiLock, FiGlobe, FiSave } from 'react-icons/fi';
 
 const SettingsPage = () => {
   return (

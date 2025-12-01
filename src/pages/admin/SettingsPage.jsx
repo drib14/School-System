@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button, Switch } from 'react-bootstrap';
+import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
 import { FiMonitor, FiDatabase, FiLock, FiGlobe, FiSave } from 'react-icons/fi';
 
 const SettingsPage = () => {

@@ -143,7 +143,7 @@ const Sidebar = ({ isOpen }) => {
                     {role === 'Parent' && (
                          <>
                             {renderSectionHeader('Children')}
-                            {renderLink('/dashboard', <FiHome />, 'Overview')}
+                            {/* Dashboard is already in Core group */}
                             {renderLink('/student/grades', <FiActivity />, 'Grades')}
                             {renderLink('/finance', <FiDollarSign />, 'Fees')}
                          </>

@@ -14,6 +14,8 @@ import enrollmentRoutes from './routes/enrollments.js';
 import announcementRoutes from './routes/announcements.js';
 import lmsRoutes from './routes/lms.js';
 import examRoutes from './routes/exams.js';
+import academicRoutes from './routes/academic.js';
+import settingsRoutes from './routes/settings.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 import seedData from './utils/seeder.js';
 
@@ -50,6 +52,8 @@ app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/announcements', announcementRoutes);
 app.use('/api/lms', lmsRoutes);
 app.use('/api/exams', examRoutes);
+app.use('/api/academic', academicRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.get('/', (req, res) => {
     res.send('EduCore API is running...');

@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import Enrollment from '../models/Enrollment.js';
+import Section from '../models/Section.js';
 
 // @desc    Get Enrollments
 // @route   GET /api/enrollments
@@ -26,6 +27,21 @@ const getEnrollments = asyncHandler(async (req, res) => {
 // @route   POST /api/enrollments
 // @access  Private
 const createEnrollment = asyncHandler(async (req, res) => {
+    const { sectionRef } = req.body;
+
+    // Check slots
+    if (sectionRef) {
+        const section = await Section.findById(sectionRef);
+        if (section) {
+            if (section.enrolledCount >= section.capacity) {
+                res.status(400);
+                throw new Error('Section is full');
+            }
+            section.enrolledCount += 1;
+            await section.save();
+        }
+    }
+
     const enrollment = await Enrollment.create({
         student: req.user._id,
         ...req.body

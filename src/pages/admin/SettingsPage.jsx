@@ -1,8 +1,43 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Card, Form, Button } from 'react-bootstrap';
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Card, Form, Button, Spinner } from 'react-bootstrap';
 import { FiMonitor, FiDatabase, FiLock, FiGlobe, FiSave } from 'react-icons/fi';
+import api from '../../api/axios';
 
 const SettingsPage = () => {
+    const [settings, setSettings] = useState({
+        schoolName: '',
+        currentTerm: '',
+        enrollmentOpen: true
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        fetchSettings();
+    }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const { data } = await api.get('/settings');
+            setSettings(data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        try {
+            await api.put('/settings', settings);
+            alert('Settings Saved');
+        } catch (error) {
+            alert('Failed to save settings');
+        }
+    };
+
+    if (loading) return <Spinner animation="border" />;
+
     return (
         <Container fluid className="p-4">
             <h2 className="fw-bold text-primary mb-4">System Settings</h2>
@@ -14,16 +49,15 @@ const SettingsPage = () => {
                             <FiMonitor className="me-2 text-primary" /> School Information
                         </Card.Header>
                         <Card.Body>
-                            <Form>
+                            <Form onSubmit={handleSave}>
                                 <Form.Group className="mb-3">
                                     <Form.Label>School Name</Form.Label>
-                                    <Form.Control defaultValue="EduCore University" />
+                                    <Form.Control
+                                        value={settings.schoolName}
+                                        onChange={e => setSettings({...settings, schoolName: e.target.value})}
+                                    />
                                 </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Contact Email</Form.Label>
-                                    <Form.Control defaultValue="admin@educore.edu" />
-                                </Form.Group>
-                                <Button variant="primary" size="sm" className="w-100">Update Profile</Button>
+                                <Button variant="primary" size="sm" className="w-100" type="submit">Update Profile</Button>
                             </Form>
                         </Card.Body>
                     </Card>
@@ -35,23 +69,19 @@ const SettingsPage = () => {
                             <FiGlobe className="me-2 text-info" /> Academic Configuration
                         </Card.Header>
                         <Card.Body>
-                            <Form>
+                            <Form onSubmit={handleSave}>
                                 <Form.Group className="mb-3">
-                                    <Form.Label>Current Academic Year</Form.Label>
-                                    <Form.Select>
-                                        <option>2024-2025</option>
-                                        <option>2023-2024</option>
-                                    </Form.Select>
-                                </Form.Group>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Current Semester</Form.Label>
-                                    <Form.Select>
+                                    <Form.Label>Current Semester/Term</Form.Label>
+                                    <Form.Select
+                                        value={settings.currentTerm}
+                                        onChange={e => setSettings({...settings, currentTerm: e.target.value})}
+                                    >
                                         <option>1st Semester</option>
                                         <option>2nd Semester</option>
                                         <option>Summer</option>
                                     </Form.Select>
                                 </Form.Group>
-                                <Button variant="info" text="white" size="sm" className="w-100 text-white">Save Configuration</Button>
+                                <Button variant="info" size="sm" className="w-100 text-white" type="submit">Save Configuration</Button>
                             </Form>
                         </Card.Body>
                     </Card>
@@ -64,15 +94,19 @@ const SettingsPage = () => {
                         </Card.Header>
                         <Card.Body>
                             <div className="d-flex justify-content-between align-items-center mb-3">
-                                <span>Maintenance Mode</span>
-                                <Form.Check type="switch" />
-                            </div>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <span>Allow Student Registrations</span>
-                                <Form.Check type="switch" defaultChecked />
+                                <span>Allow Enrollment</span>
+                                <Form.Check
+                                    type="switch"
+                                    checked={settings.enrollmentOpen}
+                                    onChange={e => {
+                                        const newVal = e.target.checked;
+                                        setSettings(prev => ({...prev, enrollmentOpen: newVal}));
+                                        // Save immediately
+                                        api.put('/settings', { ...settings, enrollmentOpen: newVal });
+                                    }}
+                                />
                             </div>
                             <hr />
-                            <Button variant="outline-danger" size="sm" className="w-100 mb-2">Clear System Cache</Button>
                             <Button variant="danger" size="sm" className="w-100">Perform Backup</Button>
                         </Card.Body>
                     </Card>

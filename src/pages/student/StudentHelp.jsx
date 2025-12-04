@@ -14,11 +14,11 @@ const StudentHelp = () => {
                             <Accordion flush>
                                 <Accordion.Item eventKey="0">
                                     <Accordion.Header>How do I reset my password?</Accordion.Header>
-                                    <Accordion.Body>Go to Settings > Security to change your password. If lost, contact Admin.</Accordion.Body>
+                                    <Accordion.Body>Go to Settings &gt; Security to change your password. If lost, contact Admin.</Accordion.Body>
                                 </Accordion.Item>
                                 <Accordion.Item eventKey="1">
                                     <Accordion.Header>Where can I see my grades?</Accordion.Header>
-                                    <Accordion.Body>Navigate to Academic > Grades & Report Card.</Accordion.Body>
+                                    <Accordion.Body>Navigate to Academic &gt; Grades & Report Card.</Accordion.Body>
                                 </Accordion.Item>
                             </Accordion>
                         </Card.Body>

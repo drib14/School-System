@@ -5,6 +5,7 @@ const enrollmentSchema = mongoose.Schema({
     program: { type: String, required: true },
     yearLevel: { type: String, required: true },
     section: { type: String },
+    sectionRef: { type: mongoose.Schema.Types.ObjectId, ref: 'Section' },
     paymentMethod: { type: String },
     status: { type: String, enum: ['Pending Approval', 'Active', 'Rejected', 'Graduated', 'Dropped'], default: 'Pending Approval' },
     dateEnrolled: { type: Date, default: Date.now }

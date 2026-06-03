@@ -28,7 +28,7 @@ const seed = async () => {
   // Create Super Admin
   const superAdmin = await User.findOneAndUpdate({ email: 'superadmin@iscp.edu.ph' }, {
     firstName: 'Super', lastName: 'Admin', email: 'superadmin@iscp.edu.ph',
-    password: 'Admin@12345', role: 'super_admin', isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash('Admin@12345', 12), role: 'super_admin', isActive: true, isEmailVerified: true,
     schoolId: school._id,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Super Admin created: superadmin@iscp.edu.ph / Admin@12345');
@@ -36,28 +36,28 @@ const seed = async () => {
   // Create Principal
   await User.findOneAndUpdate({ email: 'principal@iscp.edu.ph' }, {
     firstName: 'Maria', middleName: 'Santos', lastName: 'Cruz', email: 'principal@iscp.edu.ph',
-    password: 'Principal@123', role: 'principal', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash('Principal@123', 12), role: 'principal', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Principal created: principal@iscp.edu.ph / Principal@123');
 
   // Create Registrar
   await User.findOneAndUpdate({ email: 'registrar@iscp.edu.ph' }, {
     firstName: 'Ana', lastName: 'Reyes', email: 'registrar@iscp.edu.ph',
-    password: 'Registrar@123', role: 'registrar', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash('Registrar@123', 12), role: 'registrar', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Registrar created: registrar@iscp.edu.ph / Registrar@123');
 
   // Create Teacher
   const teacher = await User.findOneAndUpdate({ email: 'teacher@iscp.edu.ph' }, {
     firstName: 'Juan', middleName: 'dela', lastName: 'Cruz', email: 'teacher@iscp.edu.ph',
-    password: 'Teacher@123', role: 'teacher', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash('Teacher@123', 12), role: 'teacher', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Teacher created: teacher@iscp.edu.ph / Teacher@123');
 
   // Create Student
   await User.findOneAndUpdate({ email: 'student@iscp.edu.ph' }, {
     firstName: 'Jose', lastName: 'Rizal', email: 'student@iscp.edu.ph',
-    password: 'Student@123', role: 'student', schoolId: school._id,
+    password: await bcrypt.hash('Student@123', 12), role: 'student', schoolId: school._id,
     studentId: '25-00001', isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Student created: student@iscp.edu.ph / Student@123');
@@ -65,7 +65,7 @@ const seed = async () => {
   // Create Cashier
   await User.findOneAndUpdate({ email: 'cashier@iscp.edu.ph' }, {
     firstName: 'Rosa', lastName: 'Garcia', email: 'cashier@iscp.edu.ph',
-    password: 'Cashier@123', role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash('Cashier@123', 12), role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
   // Create sample programs

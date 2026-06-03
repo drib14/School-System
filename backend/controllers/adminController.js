@@ -1,0 +1,188 @@
+const { asyncHandler } = require('../middleware/errorHandler');
+const User = require('../models/User');
+const StudentProfile = require('../models/StudentProfile');
+const { EmployeeProfile, AuditLog } = require('../models/Campus');
+const School = require('../models/School');
+const Enrollment = require('../models/Enrollment');
+const Grade = require('../models/Grade');
+const { Attendance } = require('../models/Attendance');
+const { Fee, Assessment, Payment } = require('../models/Financial');
+
+// ---- USERS ----
+const getUsers = asyncHandler(async (req, res) => {
+  const { role, schoolId, search, page = 1, limit = 20, isActive } = req.query;
+  const filter = {};
+  if (role) filter.role = role;
+  if (schoolId) filter.schoolId = schoolId;
+  if (isActive !== undefined) filter.isActive = isActive === 'true';
+  if (req.user.role !== 'super_admin') filter.schoolId = req.user.schoolId;
+  if (search) filter.$or = [
+    { firstName: { $regex: search, $options: 'i' } },
+    { lastName: { $regex: search, $options: 'i' } },
+    { email: { $regex: search, $options: 'i' } },
+    { studentId: { $regex: search, $options: 'i' } },
+    { employeeId: { $regex: search, $options: 'i' } },
+  ];
+
+  const total = await User.countDocuments(filter);
+  const users = await User.find(filter)
+    .select('-password -refreshTokens -twoFactorSecret')
+    .skip((page - 1) * limit).limit(Number(limit)).sort({ createdAt: -1 });
+
+  res.json({ success: true, total, page: Number(page), pages: Math.ceil(total / limit), users });
+});
+
+const getUser = asyncHandler(async (req, res) => {
+  const user = await User.findById(req.params.id)
+    .select('-password -refreshTokens -twoFactorSecret')
+    .populate('schoolId', 'name abbreviation');
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+  res.json({ success: true, user });
+});
+
+const createUser = asyncHandler(async (req, res) => {
+  const user = await User.create({ ...req.body, createdBy: req.user._id, schoolId: req.body.schoolId || req.user.schoolId });
+  res.status(201).json({ success: true, message: 'User created.', user });
+});
+
+const updateUser = asyncHandler(async (req, res) => {
+  const forbidden = ['password', 'refreshTokens', 'twoFactorSecret'];
+  forbidden.forEach(f => delete req.body[f]);
+  const user = await User.findByIdAndUpdate(req.params.id, { ...req.body, updatedBy: req.user._id }, { new: true, runValidators: true });
+  if (!user) return res.status(404).json({ success: false, message: 'User not found.' });
+  res.json({ success: true, user });
+});
+
+const toggleUserStatus = asyncHandler(async (req, res) => {
+  const user = await User.findByIdAndUpdate(req.params.id, [{ $set: { isActive: { $not: '$isActive' } } }], { new: true });
+  res.json({ success: true, message: `User ${user.isActive ? 'activated' : 'deactivated'}.`, user });
+});
+
+const deleteUser = asyncHandler(async (req, res) => {
+  await User.findByIdAndDelete(req.params.id);
+  res.json({ success: true, message: 'User deleted.' });
+});
+
+// ---- STUDENTS ----
+const getStudents = asyncHandler(async (req, res) => {
+  const { search, page = 1, limit = 20, academicStatus, gradeLevel, program } = req.query;
+  const filter = { schoolId: req.user.schoolId };
+  if (academicStatus) filter.academicStatus = academicStatus;
+  if (gradeLevel) filter.gradeLevel = gradeLevel;
+  if (program) filter.program = program;
+  if (search) {
+    const users = await User.find({ role: 'student', $or: [
+      { firstName: { $regex: search, $options: 'i' } },
+      { lastName: { $regex: search, $options: 'i' } },
+      { studentId: { $regex: search, $options: 'i' } },
+    ]}).select('_id');
+    filter.userId = { $in: users.map(u => u._id) };
+  }
+
+  const total = await StudentProfile.countDocuments(filter);
+  const profiles = await StudentProfile.find(filter)
+    .populate('userId', 'firstName middleName lastName email phone avatar studentId')
+    .populate('program', 'name code')
+    .skip((page - 1) * limit).limit(Number(limit)).sort({ createdAt: -1 });
+
+  res.json({ success: true, total, page: Number(page), pages: Math.ceil(total / limit), students: profiles });
+});
+
+const getStudentById = asyncHandler(async (req, res) => {
+  const profile = await StudentProfile.findById(req.params.id)
+    .populate('userId', '-password -refreshTokens')
+    .populate('program', 'name code')
+    .populate('scholarships');
+  if (!profile) return res.status(404).json({ success: false, message: 'Student not found.' });
+  res.json({ success: true, student: profile });
+});
+
+const createStudent = asyncHandler(async (req, res) => {
+  const { firstName, middleName, lastName, email, password = 'iscp@1234', ...profileData } = req.body;
+
+  // Generate Student ID
+  const count = await User.countDocuments({ role: 'student', schoolId: req.user.schoolId });
+  const year = new Date().getFullYear().toString().slice(-2);
+  const studentId = `${year}-${String(count + 1).padStart(5, '0')}`;
+
+  const user = await User.create({
+    firstName, middleName, lastName, email, password, role: 'student',
+    schoolId: req.user.schoolId, studentId, createdBy: req.user._id,
+  });
+
+  const profile = await StudentProfile.create({
+    userId: user._id, schoolId: req.user.schoolId, studentId, ...profileData, createdBy: req.user._id,
+  });
+
+  res.status(201).json({ success: true, message: 'Student created.', student: profile, user });
+});
+
+const updateStudent = asyncHandler(async (req, res) => {
+  const profile = await StudentProfile.findByIdAndUpdate(
+    req.params.id, { ...req.body, updatedBy: req.user._id }, { new: true }
+  ).populate('userId', '-password');
+  if (!profile) return res.status(404).json({ success: false, message: 'Student not found.' });
+  res.json({ success: true, student: profile });
+});
+
+const transferStudent = asyncHandler(async (req, res) => {
+  const { newSchoolId, reason } = req.body;
+  const profile = await StudentProfile.findByIdAndUpdate(
+    req.params.id, { academicStatus: 'transferee', schoolId: newSchoolId, updatedBy: req.user._id }, { new: true }
+  );
+  res.json({ success: true, message: 'Student transferred.', student: profile });
+});
+
+const dropStudent = asyncHandler(async (req, res) => {
+  await StudentProfile.findByIdAndUpdate(req.params.id, { academicStatus: 'dropped', updatedBy: req.user._id });
+  res.json({ success: true, message: 'Student dropped.' });
+});
+
+const graduateStudent = asyncHandler(async (req, res) => {
+  await StudentProfile.findByIdAndUpdate(req.params.id, { academicStatus: 'graduated', updatedBy: req.user._id });
+  res.json({ success: true, message: 'Student graduated.' });
+});
+
+// ---- DASHBOARD ----
+const getDashboardStats = asyncHandler(async (req, res) => {
+  const schoolId = req.user.role === 'super_admin' ? req.query.schoolId : req.user.schoolId;
+  const filter = schoolId ? { schoolId } : {};
+
+  const [
+    totalStudents, totalTeachers, totalStaff,
+    enrolledThisSem, totalPayments, pendingEnrollments,
+    recentEnrollments, recentPayments
+  ] = await Promise.all([
+    StudentProfile.countDocuments({ ...filter, academicStatus: 'active' }),
+    User.countDocuments({ ...filter, role: 'teacher', isActive: true }),
+    User.countDocuments({ ...filter, role: { $nin: ['student', 'teacher', 'parent'] }, isActive: true }),
+    Enrollment.countDocuments({ ...filter, status: 'enrolled' }),
+    Payment.aggregate([{ $match: { ...filter, status: 'completed' } }, { $group: { _id: null, total: { $sum: '$amount' } } }]),
+    Enrollment.countDocuments({ ...filter, status: 'pending' }),
+    Enrollment.find({ ...filter }).sort({ createdAt: -1 }).limit(5)
+      .populate('student', 'firstName lastName').populate('program', 'name'),
+    Payment.find({ ...filter, status: 'completed' }).sort({ createdAt: -1 }).limit(5)
+      .populate('student', 'firstName lastName'),
+  ]);
+
+  res.json({
+    success: true, stats: {
+      totalStudents, totalTeachers, totalStaff, enrolledThisSem,
+      totalRevenue: totalPayments[0]?.total || 0, pendingEnrollments,
+    },
+    recentEnrollments, recentPayments,
+  });
+});
+
+const getSuperAdminStats = asyncHandler(async (req, res) => {
+  const [schools, totalUsers, activeSubscriptions, totalRevenue] = await Promise.all([
+    School.countDocuments(),
+    User.countDocuments(),
+    School.countDocuments({ 'subscription.status': 'active' }),
+    Payment.aggregate([{ $group: { _id: null, total: { $sum: '$amount' } } }]),
+  ]);
+  const schoolList = await School.find().select('name abbreviation subscription isActive createdAt').sort({ createdAt: -1 }).limit(10);
+  res.json({ success: true, stats: { schools, totalUsers, activeSubscriptions, totalRevenue: totalRevenue[0]?.total || 0 }, schoolList });
+});
+
+module.exports = { getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, getStudents, getStudentById, createStudent, updateStudent, transferStudent, dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats };

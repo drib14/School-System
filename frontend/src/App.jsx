@@ -53,6 +53,15 @@ const ProfilePage = lazy(() => import('./pages/settings/ProfilePage'));
 // Super Admin
 const SuperDashboardPage = lazy(() => import('./pages/super/SuperDashboardPage'));
 
+// New pages
+const HRPage = lazy(() => import('./pages/hr/HRPage'));
+const ClinicPage = lazy(() => import('./pages/clinic/ClinicPage'));
+const GuidancePage = lazy(() => import('./pages/guidance/GuidancePage'));
+const VisitorsPage = lazy(() => import('./pages/security/VisitorsPage'));
+const ClearancePage = lazy(() => import('./pages/services/ClearancePage'));
+const LMSPage = lazy(() => import('./pages/lms/LMSPage'));
+const AdmissionPage = lazy(() => import('./pages/admission/AdmissionPage'));
+
 // Loading spinner
 function PageLoader() {
   return (
@@ -167,18 +176,31 @@ export default function App() {
             <Route path="parent/*" element={<DashboardPage />} />
 
             {/* HR */}
-            <Route path="hr/*" element={<DashboardPage />} />
+            <Route path="hr" element={<HRPage />} />
+            <Route path="hr/*" element={<HRPage />} />
 
-            {/* Guidance / Clinic */}
-            <Route path="guidance" element={<DashboardPage />} />
-            <Route path="clinic" element={<DashboardPage />} />
-            <Route path="visitors" element={<DashboardPage />} />
-            <Route path="incidents" element={<DashboardPage />} />
+            {/* Guidance / Clinic / Security */}
+            <Route path="guidance" element={<GuidancePage />} />
+            <Route path="clinic" element={<ClinicPage />} />
+            <Route path="visitors" element={<VisitorsPage />} />
+            <Route path="incidents" element={<VisitorsPage />} />
+            <Route path="security" element={<VisitorsPage />} />
+            <Route path="gate-pass" element={<VisitorsPage />} />
 
-            {/* Clearance / Documents */}
-            <Route path="clearance" element={<DashboardPage />} />
+            {/* Clearance / Documents / Services */}
+            <Route path="clearance" element={<ClearancePage />} />
             <Route path="documents" element={<DashboardPage />} />
+            <Route path="organizations" element={<DashboardPage />} />
+            <Route path="ojt" element={<DashboardPage />} />
             <Route path="qr-system" element={<DashboardPage />} />
+
+            {/* LMS */}
+            <Route path="lms" element={<LMSPage />} />
+            <Route path="lms/*" element={<LMSPage />} />
+
+            {/* Admission */}
+            <Route path="admission" element={<AdmissionPage />} />
+            <Route path="admission/*" element={<AdmissionPage />} />
 
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />

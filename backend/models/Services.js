@@ -164,6 +164,182 @@ const alumniSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
 }, { timestamps: true });
 
+// ---- CLEARANCE ----
+const clearanceRequestSchema = new mongoose.Schema({
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  requestNumber: { type: String, unique: true },
+  type: { type: String, enum: ['semester', 'graduation', 'transfer', 'withdrawal', 'other'], required: true },
+  academicYear: { type: String, required: true },
+  semester: String,
+  purpose: String,
+  steps: [{
+    office: { type: String, enum: ['registrar', 'accounting', 'library', 'clinic', 'guidance', 'department', 'principal', 'property'], required: true },
+    label: String,
+    status: { type: String, enum: ['pending', 'cleared', 'with_concern', 'rejected'], default: 'pending' },
+    concern: String,
+    clearedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    clearedAt: Date,
+    remarks: String,
+  }],
+  overallStatus: { type: String, enum: ['pending', 'in_progress', 'cleared', 'rejected'], default: 'pending' },
+  completedAt: Date,
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}, { timestamps: true });
+
+clearanceRequestSchema.pre('save', async function (next) {
+  if (!this.requestNumber) {
+    const count = await this.constructor.countDocuments({ schoolId: this.schoolId });
+    const year = new Date().getFullYear().toString().slice(-2);
+    this.requestNumber = `CLR-${year}-${String(count + 1).padStart(5, '0')}`;
+  }
+  next();
+});
+
+// ---- DOCUMENT REQUESTS ----
+const documentRequestSchema = new mongoose.Schema({
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  requestNumber: { type: String, unique: true },
+  requester: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  documentType: { type: String, enum: ['tor', 'form137', 'good_moral', 'enrollment_cert', 'graduation_cert', 'diploma', 'cor', 'honorable_dismissal', 'other'], required: true },
+  copies: { type: Number, default: 1 },
+  purpose: { type: String, required: true },
+  deliveryMode: { type: String, enum: ['pickup', 'mail', 'email'], default: 'pickup' },
+  status: { type: String, enum: ['pending', 'processing', 'ready', 'released', 'cancelled'], default: 'pending' },
+  processingFee: { type: Number, default: 0 },
+  isPaid: { type: Boolean, default: false },
+  urgency: { type: String, enum: ['regular', 'rush', 'same_day'], default: 'regular' },
+  releasedAt: Date,
+  releasedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  notes: String,
+  attachments: [{ name: String, url: String }],
+  esignatureRequired: { type: Boolean, default: false },
+  esignedBy: [{ user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, signedAt: Date }],
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}, { timestamps: true });
+
+documentRequestSchema.pre('save', async function (next) {
+  if (!this.requestNumber) {
+    const count = await this.constructor.countDocuments({ schoolId: this.schoolId });
+    const year = new Date().getFullYear().toString().slice(-2);
+    this.requestNumber = `DOC-${year}-${String(count + 1).padStart(5, '0')}`;
+  }
+  next();
+});
+
+// ---- STUDENT ORGANIZATIONS ----
+const studentOrgSchema = new mongoose.Schema({
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  name: { type: String, required: true },
+  abbreviation: String,
+  type: { type: String, enum: ['academic', 'civic', 'sports', 'religious', 'cultural', 'government', 'other'] },
+  description: String,
+  logoUrl: String,
+  adviser: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  officers: [{
+    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    position: String,
+    academicYear: String,
+  }],
+  members: [{
+    student: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    joinDate: Date,
+    status: { type: String, enum: ['active', 'inactive', 'resigned'], default: 'active' },
+  }],
+  academicYear: String,
+  isActive: { type: Boolean, default: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}, { timestamps: true });
+
+// ---- OJT / INTERNSHIP ----
+const ojtRecordSchema = new mongoose.Schema({
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  companyName: { type: String, required: true },
+  companyAddress: String,
+  supervisorName: String,
+  supervisorEmail: String,
+  supervisorPhone: String,
+  department: String,
+  startDate: Date,
+  endDate: Date,
+  requiredHours: { type: Number, default: 600 },
+  completedHours: { type: Number, default: 0 },
+  dtrLogs: [{
+    date: Date,
+    timeIn: Date,
+    timeOut: Date,
+    hoursRendered: Number,
+    task: String,
+    supervisorInitials: String,
+  }],
+  weeklyReports: [{
+    weekNumber: Number,
+    from: Date,
+    to: Date,
+    narrative: String,
+    attachmentUrl: String,
+    submittedAt: Date,
+    grade: Number,
+    feedback: String,
+    gradedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  }],
+  companyEvaluation: {
+    performanceRating: Number,
+    attitude: Number,
+    attendance: Number,
+    overallRating: Number,
+    comments: String,
+    submittedAt: Date,
+    evaluationUrl: String,
+  },
+  finalGrade: Number,
+  status: { type: String, enum: ['pending', 'active', 'completed', 'failed', 'withdrawn'], default: 'pending' },
+  certificateUrl: String,
+  academicYear: String,
+  semester: String,
+  approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}, { timestamps: true });
+
+// ---- GUIDANCE SESSIONS ----
+const guidanceCaseSchema = new mongoose.Schema({
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  caseNumber: { type: String, unique: true },
+  student: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  counselor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  caseType: { type: String, enum: ['academic', 'behavioral', 'personal', 'career', 'family', 'crisis', 'other'] },
+  concern: { type: String, required: true },
+  background: String,
+  status: { type: String, enum: ['open', 'in_progress', 'closed', 'referred'], default: 'open' },
+  priority: { type: String, enum: ['low', 'medium', 'high', 'critical'], default: 'medium' },
+  sessions: [{
+    date: Date,
+    duration: Number, // minutes
+    notes: String,
+    interventions: [String],
+    nextSession: Date,
+    conductedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+  }],
+  interventions: [{ type: String, description: String, date: Date, outcome: String }],
+  referrals: [{ referredTo: String, reason: String, date: Date, outcome: String }],
+  closedAt: Date,
+  closingNotes: String,
+  parentNotified: { type: Boolean, default: false },
+  parentNotifiedAt: Date,
+  isConfidential: { type: Boolean, default: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}, { timestamps: true });
+
+guidanceCaseSchema.pre('save', async function (next) {
+  if (!this.caseNumber) {
+    const count = await this.constructor.countDocuments({ schoolId: this.schoolId });
+    const year = new Date().getFullYear().toString().slice(-2);
+    this.caseNumber = `GC-${year}-${String(count + 1).padStart(4, '0')}`;
+  }
+  next();
+});
+
 const Book = mongoose.model('Book', bookSchema);
 const BorrowRecord = mongoose.model('BorrowRecord', borrowRecordSchema);
 const Visitor = mongoose.model('Visitor', visitorSchema);
@@ -173,5 +349,14 @@ const HealthRecord = mongoose.model('HealthRecord', healthRecordSchema);
 const Scholarship = mongoose.model('Scholarship', scholarshipSchema);
 const ScholarshipApplication = mongoose.model('ScholarshipApplication', scholarshipApplicationSchema);
 const Alumni = mongoose.model('Alumni', alumniSchema);
+const ClearanceRequest = mongoose.model('ClearanceRequest', clearanceRequestSchema);
+const DocumentRequest = mongoose.model('DocumentRequest', documentRequestSchema);
+const StudentOrg = mongoose.model('StudentOrg', studentOrgSchema);
+const OJTRecord = mongoose.model('OJTRecord', ojtRecordSchema);
+const GuidanceCase = mongoose.model('GuidanceCase', guidanceCaseSchema);
 
-module.exports = { Book, BorrowRecord, Visitor, GatePass, IncidentReport, HealthRecord, Scholarship, ScholarshipApplication, Alumni };
+module.exports = {
+  Book, BorrowRecord, Visitor, GatePass, IncidentReport, HealthRecord,
+  Scholarship, ScholarshipApplication, Alumni,
+  ClearanceRequest, DocumentRequest, StudentOrg, OJTRecord, GuidanceCase,
+};

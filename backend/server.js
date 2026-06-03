@@ -21,6 +21,18 @@ const attendanceRoutes = require('./routes/attendance');
 const academicRoutes = require('./routes/academics');
 const financialRoutes = require('./routes/financial');
 const communicationRoutes = require('./routes/communication');
+// New routes
+const hrRoutes = require('./routes/hr');
+const lmsRoutes = require('./routes/lms');
+const securityRoutes = require('./routes/security');
+const clinicRoutes = require('./routes/clinic');
+const guidanceRoutes = require('./routes/guidance');
+const parentRoutes = require('./routes/parent');
+const analyticsRoutes = require('./routes/analytics');
+const campusRoutes = require('./routes/campus');
+const servicesRoutes = require('./routes/services');
+const admissionRoutes = require('./routes/admission');
+
 
 const app = express();
 const server = http.createServer(app);
@@ -60,6 +72,18 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/academics', academicRoutes);
 app.use('/api/financial', financialRoutes);
 app.use('/api/communication', communicationRoutes);
+// New route registrations
+app.use('/api/hr', hrRoutes);
+app.use('/api/lms', lmsRoutes);
+app.use('/api/security', securityRoutes);
+app.use('/api/clinic', clinicRoutes);
+app.use('/api/guidance', guidanceRoutes);
+app.use('/api/parent', parentRoutes);
+app.use('/api/analytics', analyticsRoutes);
+app.use('/api/campus', campusRoutes);
+app.use('/api/services', servicesRoutes);
+app.use('/api/admission', admissionRoutes);
+
 
 // Health check
 app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString(), env: process.env.NODE_ENV }));

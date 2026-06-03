@@ -10,7 +10,7 @@ import {
   AlertTriangle, TrendingUp, Users2, Globe, Lock
 } from 'lucide-react';
 
-const ISCP_LOGO = '/iscp-logo.png';
+const ISCP_LOGO = '/iscp-logo.jpg';
 
 const navConfig = {
   super_admin: [

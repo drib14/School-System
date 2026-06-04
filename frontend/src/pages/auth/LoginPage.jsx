@@ -115,7 +115,7 @@ export default function LoginPage() {
                     <input
                       className="form-input"
                       style={{ paddingLeft: 38 }}
-                      type="email" placeholder="email@iscp.edu.ph"
+                      type="text" placeholder="email@iscp.edu.ph"
                       value={form.email}
                       onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                       required

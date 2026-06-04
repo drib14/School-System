@@ -72,9 +72,11 @@ const register = asyncHandler(async (req, res) => {
 const login = asyncHandler(async (req, res) => {
   const { email, password, twoFactorCode } = req.body;
 
-  if (!email || !password) return res.status(400).json({ success: false, message: 'Email and password required.' });
+  if (!email || !password) return res.status(400).json({ success: false, message: 'Email/ID and password required.' });
 
-  const user = await User.findOne({ email }).select('+password +twoFactorSecret +refreshTokens +loginAttempts +lockUntil');
+  const user = await User.findOne({
+    $or: [{ email }, { studentId: email }, { employeeId: email }, { systemId: email }]
+  }).select('+password +twoFactorSecret +refreshTokens +loginAttempts +lockUntil');
   if (!user) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
   if (!user.isActive) return res.status(403).json({ success: false, message: 'Account is deactivated.' });
   if (user.isLocked()) return res.status(403).json({ success: false, message: 'Account temporarily locked. Try again later.' });

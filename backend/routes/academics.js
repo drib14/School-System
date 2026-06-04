@@ -153,9 +153,14 @@ router.get('/my-grades', protect, authorize('student'), asyncHandler(async (req,
   const enrollments = await Enrollment.find({ student: req.user._id, status: 'enrolled', isActive: true })
     .populate('program', 'name code')
     .populate('subjects.subject', 'name code units')
+    .populate({
+      path: 'subjects.schedule',
+      populate: { path: 'teacher', select: 'firstName lastName' }
+    })
     .sort({ academicYear: -1, semester: -1 })
     .lean();
   res.json({ success: true, enrollments });
 }));
+
 
 module.exports = router;

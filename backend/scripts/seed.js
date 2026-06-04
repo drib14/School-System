@@ -19,7 +19,7 @@ const { Visitor, GatePass, IncidentReport } = require('../models/Services');
 
 const seed = async () => {
   await connectDB();
-  console.log('🌱 Connected to database. Preparing to reseed...');
+  console.log('🌱 Connected to database. Preparing to reseed with complete academic structures...');
 
   const collections = [
     'users', 'schools', 'campuslocations', 'subjects', 'programs',
@@ -104,77 +104,66 @@ const seed = async () => {
   const defaultPass = process.env.SEED_DEFAULT_PASS || 'Passw0rd123!';
   const defaultHash = await bcrypt.hash(defaultPass, 12);
 
-  // Super Admin
   const superAdmin = await User.create({
     firstName: 'Super', lastName: 'Admin', email: 'superadmin@iscp.edu.ph',
     password: defaultPass, role: 'super_admin', isActive: true, isEmailVerified: true,
     schoolId: school._id, phone: '+639170000000'
   });
 
-  // Principal
   const principal = await User.create({
     firstName: 'Maria', lastName: 'Cruz', email: 'principal@iscp.edu.ph',
     password: defaultPass, role: 'principal', isActive: true, isEmailVerified: true,
     schoolId: school._id
   });
 
-  // Registrar
   const registrar = await User.create({
     firstName: 'Ana', lastName: 'Reyes', email: 'registrar@iscp.edu.ph',
     password: defaultPass, role: 'registrar', isActive: true, isEmailVerified: true,
     schoolId: school._id
   });
 
-  // Teacher
   const teacher = await User.create({
     firstName: 'Juan', lastName: 'dela Cruz', email: 'teacher@iscp.edu.ph',
     password: defaultPass, role: 'teacher', isActive: true, isEmailVerified: true,
     schoolId: school._id
   });
 
-  // Cashier
   const cashier = await User.create({
     firstName: 'Rosa', lastName: 'Garcia', email: 'cashier@iscp.edu.ph',
     password: defaultPass, role: 'cashier', isActive: true, isEmailVerified: true,
     schoolId: school._id
   });
 
-  // Librarian
   const librarian = await User.create({
     firstName: 'Leonor', lastName: 'Orosa', email: 'librarian@iscp.edu.ph',
     password: defaultPass, role: 'librarian', isActive: true, isEmailVerified: true,
     schoolId: school._id
   });
 
-  // Nurse
   const nurse = await User.create({
     firstName: 'Clara', lastName: 'Barton', email: 'nurse@iscp.edu.ph',
     password: defaultPass, role: 'nurse', isActive: true, isEmailVerified: true,
     schoolId: school._id
   });
 
-  // HR
   const hr = await User.create({
     firstName: 'Michael', lastName: 'Scott', email: 'hr@iscp.edu.ph',
     password: defaultPass, role: 'hr_staff', isActive: true, isEmailVerified: true,
     schoolId: school._id
   });
 
-  // Student (Jose Rizal)
   const student = await User.create({
     firstName: 'Jose', lastName: 'Rizal', email: 'student@iscp.edu.ph',
     password: defaultPass, role: 'student', isActive: true, isEmailVerified: true,
     schoolId: school._id, studentId: '26060401'
   });
 
-  // Parent (Francisco Rizal)
   const parent = await User.create({
     firstName: 'Francisco', lastName: 'Rizal', email: 'parent@iscp.edu.ph',
     password: defaultPass, role: 'parent', isActive: true, isEmailVerified: true,
     schoolId: school._id, children: [student._id]
   });
 
-  // Link student back to parent
   student.parentOf = [parent._id];
   await student.save();
 
@@ -185,14 +174,7 @@ const seed = async () => {
     { code: 'ELEM', name: 'Elementary Education', type: 'k12', level: 'elementary', duration: 6 },
     { code: 'JHS', name: 'Junior High School', type: 'k12', level: 'junior_high', duration: 4 },
     { code: 'STEM', name: 'Science, Technology, Engineering, and Mathematics', type: 'k12', level: 'senior_high', duration: 2, strand: 'STEM', track: 'Academic' },
-    { code: 'ABM', name: 'Accountancy, Business and Management', type: 'k12', level: 'senior_high', duration: 2, strand: 'ABM', track: 'Academic' },
-    { code: 'HUMSS', name: 'Humanities and Social Sciences', type: 'k12', level: 'senior_high', duration: 2, strand: 'HUMSS', track: 'Academic' },
-    { code: 'BSCS', name: 'Bachelor of Science in Computer Science', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'BSIT', name: 'Bachelor of Science in Information Technology', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'BSED', name: 'Bachelor of Secondary Education', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'BSN', name: 'Bachelor of Science in Nursing', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'ALS', name: 'Alternative Learning System (ALS)', type: 'vocational', level: 'junior_high', duration: 1 },
-    { code: 'SPED', name: 'Special Education (SPED)', type: 'vocational', level: 'elementary', duration: 1 }
+    { code: 'BSCS', name: 'Bachelor of Science in Computer Science', type: 'college', level: 'bachelor', duration: 4 }
   ];
 
   const createdPrograms = {};
@@ -203,29 +185,144 @@ const seed = async () => {
   console.log(`✅ Programs created (${programsData.length})`);
 
   // 5. Create Subjects
-  const collegeSubjects = [
-    { code: 'GE101', name: 'Understanding the Self', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSN] },
-    { code: 'MATH101', name: 'College Algebra', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
-    { code: 'ENG101', name: 'Purposive Communication', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSN] },
-    { code: 'CS101', name: 'Introduction to Computing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] },
-    { code: 'CS102', name: 'Programming Fundamentals', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] }, // prereq: CS101
-    { code: 'CS201', name: 'Data Structures and Algorithms', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] }, // prereq: CS102
-    { code: 'NUR101', name: 'Theoretical Foundations in Nursing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSN] }
+  
+  // 5.1 Elementary Subjects (Exactly 8 subjects)
+  const elemSubjectsData = [
+    { code: 'ELEM-ENG1', name: 'English Language Arts 1', units: 1, level: 'k12', gradeLevel: ['1'], category: 'core', program: [createdPrograms.ELEM] },
+    { code: 'ELEM-MATH1', name: 'Mathematics 1', units: 1, level: 'k12', gradeLevel: ['1'], category: 'core', program: [createdPrograms.ELEM] },
+    { code: 'ELEM-SCI1', name: 'Science and Health 1', units: 1, level: 'k12', gradeLevel: ['1'], category: 'core', program: [createdPrograms.ELEM] },
+    { code: 'ELEM-FIL1', name: 'Filipino 1 (Wika at Pagbasa)', units: 1, level: 'k12', gradeLevel: ['1'], category: 'core', program: [createdPrograms.ELEM] },
+    { code: 'ELEM-AP1', name: 'Araling Panlipunan 1', units: 1, level: 'k12', gradeLevel: ['1'], category: 'core', program: [createdPrograms.ELEM] },
+    { code: 'ELEM-MAPEH1', name: 'MAPEH 1 (Music, Art, PE, Health)', units: 1, level: 'k12', gradeLevel: ['1'], category: 'core', program: [createdPrograms.ELEM] },
+    { code: 'ELEM-ESP1', name: 'Edukasyon sa Pagpapakatao 1', units: 1, level: 'k12', gradeLevel: ['1'], category: 'core', program: [createdPrograms.ELEM] },
+    { code: 'ELEM-COMP1', name: 'Computer Literacy 1', units: 1, level: 'k12', gradeLevel: ['1'], category: 'elective', program: [createdPrograms.ELEM] }
   ];
 
-  const createdSubjects = {};
-  for (const s of collegeSubjects) {
+  const elemSubjects = [];
+  for (const s of elemSubjectsData) {
     const subj = await Subject.create({ ...s, schoolId: school._id, createdBy: superAdmin._id });
-    createdSubjects[s.code] = subj._id;
+    elemSubjects.push(subj);
+  }
+  console.log('✅ Seeding 8 Elementary Subjects complete');
+
+  // 5.2 Junior High School Subjects (Exactly 8 subjects)
+  const jhsSubjectsData = [
+    { code: 'JHS-ENG7', name: 'English 7 (Introduction to Literature)', units: 1, level: 'k12', gradeLevel: ['7'], category: 'core', program: [createdPrograms.JHS] },
+    { code: 'JHS-MATH7', name: 'Mathematics 7 (Intermediate Algebra)', units: 1, level: 'k12', gradeLevel: ['7'], category: 'core', program: [createdPrograms.JHS] },
+    { code: 'JHS-SCI7', name: 'Integrated Science 7', units: 1, level: 'k12', gradeLevel: ['7'], category: 'core', program: [createdPrograms.JHS] },
+    { code: 'JHS-FIL7', name: 'Filipino 7 (Panitikang Pilipino)', units: 1, level: 'k12', gradeLevel: ['7'], category: 'core', program: [createdPrograms.JHS] },
+    { code: 'JHS-AP7', name: 'Araling Panlipunan 7 (Kasaysayan ng Asya)', units: 1, level: 'k12', gradeLevel: ['7'], category: 'core', program: [createdPrograms.JHS] },
+    { code: 'JHS-MAPEH7', name: 'MAPEH 7 (Physical Education and Health Focus)', units: 1, level: 'k12', gradeLevel: ['7'], category: 'core', program: [createdPrograms.JHS] },
+    { code: 'JHS-ESP7', name: 'Edukasyon sa Pagpapakatao 7', units: 1, level: 'k12', gradeLevel: ['7'], category: 'core', program: [createdPrograms.JHS] },
+    { code: 'JHS-TLE7', name: 'Technology and Livelihood Education 7', units: 1, level: 'k12', gradeLevel: ['7'], category: 'major', program: [createdPrograms.JHS] }
+  ];
+
+  const jhsSubjects = [];
+  for (const s of jhsSubjectsData) {
+    const subj = await Subject.create({ ...s, schoolId: school._id, createdBy: superAdmin._id });
+    jhsSubjects.push(subj);
+  }
+  console.log('✅ Seeding 8 Junior High School Subjects complete');
+
+  // 5.3 Senior High School (STEM) Subjects (10 subjects: 8-12 requirement)
+  const shsSubjectsData = [
+    { code: 'STEM-GENMATH', name: 'General Mathematics', units: 4, level: 'k12', gradeLevel: ['11'], category: 'core', program: [createdPrograms.STEM] },
+    { code: 'STEM-PRECAL', name: 'Pre-Calculus', units: 4, level: 'k12', gradeLevel: ['11'], category: 'major', program: [createdPrograms.STEM] },
+    { code: 'STEM-CHEM1', name: 'General Chemistry 1', units: 4, level: 'k12', gradeLevel: ['11'], category: 'major', program: [createdPrograms.STEM] },
+    { code: 'STEM-BIO1', name: 'General Biology 1', units: 4, level: 'k12', gradeLevel: ['11'], category: 'major', program: [createdPrograms.STEM] },
+    { code: 'STEM-ORALCOM', name: 'Oral Communication in Context', units: 3, level: 'k12', gradeLevel: ['11'], category: 'core', program: [createdPrograms.STEM] },
+    { code: 'STEM-KOM', name: 'Komunikasyon at Pananaliksik sa Wika', units: 3, level: 'k12', gradeLevel: ['11'], category: 'core', program: [createdPrograms.STEM] },
+    { code: 'STEM-PE1', name: 'Physical Education and Health 1', units: 2, level: 'k12', gradeLevel: ['11'], category: 'core', program: [createdPrograms.STEM] },
+    { code: 'STEM-PHYS1', name: 'General Physics 1', units: 4, level: 'k12', gradeLevel: ['11'], category: 'major', program: [createdPrograms.STEM] },
+    { code: 'STEM-EMPTECH', name: 'Empowerment Technologies', units: 3, level: 'k12', gradeLevel: ['11'], category: 'core', program: [createdPrograms.STEM] },
+    { code: 'STEM-PERDEV', name: 'Personal Development', units: 3, level: 'k12', gradeLevel: ['11'], category: 'core', program: [createdPrograms.STEM] }
+  ];
+
+  const shsSubjects = [];
+  for (const s of shsSubjectsData) {
+    const subj = await Subject.create({ ...s, schoolId: school._id, createdBy: superAdmin._id });
+    shsSubjects.push(subj);
+  }
+  console.log('✅ Seeding 10 Senior High STEM Subjects complete');
+
+  // 5.4 College BSCS Subjects (Regular load of 8 subjects for 1st Year, 1st Semester)
+  const collegeSubjectsData = [
+    // 1st Year, 1st Semester (8 Subjects, 23 Units)
+    { code: 'CS-101', name: 'Introduction to Computing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] },
+    { code: 'CS-102', name: 'Computer Programming 1', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] },
+    { code: 'GE-101', name: 'Understanding the Self', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
+    { code: 'GE-102', name: 'Readings in Philippine History', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
+    { code: 'GE-103', name: 'The Contemporary World', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
+    { code: 'ENG-101', name: 'Purposive Communication', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
+    { code: 'NSTP-1', name: 'National Service Training Program 1', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
+    { code: 'PE-1', name: 'Physical Education 1: Physical Fitness', units: 2, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
+
+    // 1st Year, 2nd Semester (Prerequisites targets)
+    { code: 'CS-103', name: 'Computer Programming 2', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] },
+    { code: 'CS-104', name: 'Discrete Structures', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] },
+
+    // 2nd Year, 1st Semester
+    { code: 'CS-201', name: 'Data Structures and Algorithms', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] }
+  ];
+
+  const collegeSubjects = {};
+  for (const s of collegeSubjectsData) {
+    const subj = await Subject.create({ ...s, schoolId: school._id, createdBy: superAdmin._id });
+    collegeSubjects[s.code] = subj;
   }
 
-  // Link prerequisites
-  await Subject.findByIdAndUpdate(createdSubjects['CS102'], { prerequisites: [createdSubjects['CS101']] });
-  await Subject.findByIdAndUpdate(createdSubjects['CS201'], { prerequisites: [createdSubjects['CS102']] });
+  // Link college prerequisites
+  await Subject.findByIdAndUpdate(collegeSubjects['CS-103']._id, { prerequisites: [collegeSubjects['CS-102']._id] });
+  await Subject.findByIdAndUpdate(collegeSubjects['CS-104']._id, { prerequisites: [collegeSubjects['CS-102']._id] });
+  await Subject.findByIdAndUpdate(collegeSubjects['CS-201']._id, { prerequisites: [collegeSubjects['CS-103']._id] });
 
-  console.log('✅ College Subjects created with prerequisite linkages');
+  console.log('✅ College Subjects created with correct prerequisite linkages');
 
   // 6. Create Curriculums
+  
+  // 6.1 Elementary Curriculum
+  await Curriculum.create({
+    program: createdPrograms.ELEM,
+    schoolId: school._id,
+    code: 'ELEM-CURR',
+    name: 'Elementary K-12 Curriculum',
+    version: '1.0',
+    effectiveYear: '2025',
+    status: 'active',
+    subjects: elemSubjects.map((s, idx) => ({ subject: s._id, yearLevel: 1, semester: '1st', isRequired: true, order: idx + 1 })),
+    totalUnits: elemSubjects.length,
+    createdBy: superAdmin._id
+  });
+
+  // 6.2 JHS Curriculum
+  await Curriculum.create({
+    program: createdPrograms.JHS,
+    schoolId: school._id,
+    code: 'JHS-CURR',
+    name: 'Junior High K-12 Curriculum',
+    version: '1.0',
+    effectiveYear: '2025',
+    status: 'active',
+    subjects: jhsSubjects.map((s, idx) => ({ subject: s._id, yearLevel: 7, semester: '1st', isRequired: true, order: idx + 1 })),
+    totalUnits: jhsSubjects.length,
+    createdBy: superAdmin._id
+  });
+
+  // 6.3 STEM Curriculum
+  await Curriculum.create({
+    program: createdPrograms.STEM,
+    schoolId: school._id,
+    code: 'STEM-CURR',
+    name: 'SHS STEM Curriculum',
+    version: '1.0',
+    effectiveYear: '2025',
+    status: 'active',
+    subjects: shsSubjects.map((s, idx) => ({ subject: s._id, yearLevel: 11, semester: '1st', isRequired: true, order: idx + 1 })),
+    totalUnits: shsSubjects.length,
+    createdBy: superAdmin._id
+  });
+
+  // 6.4 College BSCS Curriculum
   const bscsCurriculum = await Curriculum.create({
     program: createdPrograms.BSCS,
     schoolId: school._id,
@@ -235,67 +332,58 @@ const seed = async () => {
     effectiveYear: '2025',
     status: 'active',
     subjects: [
-      { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
-      { subject: createdSubjects['MATH101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
-      { subject: createdSubjects['CS101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
-      { subject: createdSubjects['CS102'], yearLevel: 1, semester: '2nd', isRequired: true, order: 1 },
-      { subject: createdSubjects['CS201'], yearLevel: 2, semester: '1st', isRequired: true, order: 1 }
+      { subject: collegeSubjects['CS-101']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
+      { subject: collegeSubjects['CS-102']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
+      { subject: collegeSubjects['GE-101']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
+      { subject: collegeSubjects['GE-102']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 4 },
+      { subject: collegeSubjects['GE-103']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 5 },
+      { subject: collegeSubjects['ENG-101']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 6 },
+      { subject: collegeSubjects['NSTP-1']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 7 },
+      { subject: collegeSubjects['PE-1']._id, yearLevel: 1, semester: '1st', isRequired: true, order: 8 },
+
+      { subject: collegeSubjects['CS-103']._id, yearLevel: 1, semester: '2nd', isRequired: true, order: 1 },
+      { subject: collegeSubjects['CS-104']._id, yearLevel: 1, semester: '2nd', isRequired: true, order: 2 },
+
+      { subject: collegeSubjects['CS-201']._id, yearLevel: 2, semester: '1st', isRequired: true, order: 1 }
     ],
-    totalUnits: 15,
+    totalUnits: 29,
     createdBy: superAdmin._id
   });
 
-  const bsnCurriculum = await Curriculum.create({
-    program: createdPrograms.BSN,
-    schoolId: school._id,
-    code: 'BSN-2025',
-    name: 'BSN New Curriculum',
-    version: '1.0',
-    effectiveYear: '2025',
-    status: 'active',
-    subjects: [
-      { subject: createdSubjects['NUR101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
-      { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
-      { subject: createdSubjects['ENG101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 }
-    ],
-    totalUnits: 9,
-    createdBy: superAdmin._id
-  });
+  console.log('✅ Curriculums created (ELEM, JHS, STEM, BSCS)');
 
-  console.log('✅ Curriculums created (BSCS, BSN)');
+  // 7. Create Class Schedules for all 8 College Subjects in 1st Semester
+  const schedulesList = [
+    { subject: 'CS-101', section: 'CS-1A', day: 'Monday', startTime: '07:30', endTime: '09:00', room: 'Lab 101' },
+    { subject: 'CS-102', section: 'CS-1A', day: 'Monday', startTime: '09:00', endTime: '10:30', room: 'Lab 101' },
+    { subject: 'GE-101', section: 'CS-1A', day: 'Tuesday', startTime: '07:30', endTime: '09:00', room: 'Room 301' },
+    { subject: 'GE-102', section: 'CS-1A', day: 'Tuesday', startTime: '09:00', endTime: '10:30', room: 'Room 301' },
+    { subject: 'GE-103', section: 'CS-1A', day: 'Wednesday', startTime: '10:30', endTime: '12:00', room: 'Room 301' },
+    { subject: 'ENG-101', section: 'CS-1A', day: 'Wednesday', startTime: '13:00', endTime: '14:30', room: 'Room 302' },
+    { subject: 'NSTP-1', section: 'CS-1A', day: 'Saturday', startTime: '08:00', endTime: '11:00', room: 'Grand Field' },
+    { subject: 'PE-1', section: 'CS-1A', day: 'Friday', startTime: '10:00', endTime: '12:00', room: 'Gymnasium' }
+  ];
 
-  // 7. Create Class Schedules
-  const scheduleCS101 = await ClassSchedule.create({
-    schoolId: school._id,
-    subject: createdSubjects['CS101'],
-    teacher: teacher._id,
-    academicYear: '2025-2026',
-    semester: '1st',
-    section: 'CS1-A',
-    schedule: [
-      { day: 'Monday', startTime: '09:00', endTime: '10:30', room: 'Lab 101' },
-      { day: 'Wednesday', startTime: '09:00', endTime: '10:30', room: 'Lab 101' }
-    ],
-    maxStudents: 40,
-    status: 'open'
-  });
+  const createdSchedules = {};
+  for (const s of schedulesList) {
+    const targetSubject = collegeSubjects[s.subject];
+    const sched = await ClassSchedule.create({
+      schoolId: school._id,
+      subject: targetSubject._id,
+      teacher: teacher._id,
+      academicYear: '2025-2026',
+      semester: '1st',
+      section: s.section,
+      schedule: [
+        { day: s.day, startTime: s.startTime, endTime: s.endTime, room: s.room }
+      ],
+      maxStudents: 45,
+      status: 'open'
+    });
+    createdSchedules[s.subject] = sched;
+  }
 
-  const scheduleMATH101 = await ClassSchedule.create({
-    schoolId: school._id,
-    subject: createdSubjects['MATH101'],
-    teacher: teacher._id,
-    academicYear: '2025-2026',
-    semester: '1st',
-    section: 'CS1-A',
-    schedule: [
-      { day: 'Tuesday', startTime: '10:30', endTime: '12:00', room: 'Room 302' },
-      { day: 'Thursday', startTime: '10:30', endTime: '12:00', room: 'Room 302' }
-    ],
-    maxStudents: 40,
-    status: 'open'
-  });
-
-  console.log('✅ Class Schedules created');
+  console.log('✅ Class Schedules created for all 8 core semester subjects');
 
   // 8. Create Student Profile
   const studentProfile = await StudentProfile.create({
@@ -323,7 +411,7 @@ const seed = async () => {
     createdBy: superAdmin._id
   });
 
-  // 9. Create Enrollment
+  // 9. Create Enrollment with all 8 subjects loaded
   const enrollment = await Enrollment.create({
     schoolId: school._id,
     student: student._id,
@@ -338,10 +426,16 @@ const seed = async () => {
     yearLevel: 1,
     status: 'enrolled',
     subjects: [
-      { subject: createdSubjects['CS101'], schedule: scheduleCS101._id, units: 3, status: 'enrolled' },
-      { subject: createdSubjects['MATH101'], schedule: scheduleMATH101._id, units: 3, status: 'enrolled' }
+      { subject: collegeSubjects['CS-101']._id, schedule: createdSchedules['CS-101']._id, units: 3, status: 'enrolled' },
+      { subject: collegeSubjects['CS-102']._id, schedule: createdSchedules['CS-102']._id, units: 3, status: 'enrolled' },
+      { subject: collegeSubjects['GE-101']._id, schedule: createdSchedules['GE-101']._id, units: 3, status: 'enrolled' },
+      { subject: collegeSubjects['GE-102']._id, schedule: createdSchedules['GE-102']._id, units: 3, status: 'enrolled' },
+      { subject: collegeSubjects['GE-103']._id, schedule: createdSchedules['GE-103']._id, units: 3, status: 'enrolled' },
+      { subject: collegeSubjects['ENG-101']._id, schedule: createdSchedules['ENG-101']._id, units: 3, status: 'enrolled' },
+      { subject: collegeSubjects['NSTP-1']._id, schedule: createdSchedules['NSTP-1']._id, units: 3, status: 'enrolled' },
+      { subject: collegeSubjects['PE-1']._id, schedule: createdSchedules['PE-1']._id, units: 2, status: 'enrolled' }
     ],
-    totalUnits: 6,
+    totalUnits: 23,
     steps: [
       { step: 'application', status: 'completed', completedAt: new Date() },
       { step: 'verification', status: 'completed', completedAt: new Date() },
@@ -353,24 +447,24 @@ const seed = async () => {
     createdBy: superAdmin._id
   });
 
-  // 10. Create Grades
+  // 10. Create Grades for some subjects
   await Grade.create({
-    schoolId: school._id, student: student._id, subject: createdSubjects['CS101'],
-    teacher: teacher._id, schedule: scheduleCS101._id, enrollment: enrollment._id,
+    schoolId: school._id, student: student._id, subject: collegeSubjects['CS-101']._id,
+    teacher: teacher._id, schedule: createdSchedules['CS-101']._id, enrollment: enrollment._id,
     academicYear: '2025-2026', semester: '1st',
     quizAverage: 95, activityAverage: 92, projectAverage: 96, finalRating: 94.5,
     remarks: 'Passed', status: 'released', releasedAt: new Date()
   });
 
   await Grade.create({
-    schoolId: school._id, student: student._id, subject: createdSubjects['MATH101'],
-    teacher: teacher._id, schedule: scheduleMATH101._id, enrollment: enrollment._id,
+    schoolId: school._id, student: student._id, subject: collegeSubjects['GE-101']._id,
+    teacher: teacher._id, schedule: createdSchedules['GE-101']._id, enrollment: enrollment._id,
     academicYear: '2025-2026', semester: '1st',
     quizAverage: 88, activityAverage: 85, projectAverage: 90, finalRating: 87.6,
     remarks: 'Passed', status: 'released', releasedAt: new Date()
   });
 
-  console.log('✅ Student Profile, Enrollment, and Grades created');
+  console.log('✅ Student Profile, Enrollment with 8 subjects, and initial Grades created');
 
   // 11. Create Fees, Assessment, and Payments
   const tuitionFee = await Fee.create({ name: 'Tuition Fee (Per Unit)', category: 'tuition', amount: 1500, frequency: 'per_unit', schoolId: school._id });
@@ -383,13 +477,13 @@ const seed = async () => {
     academicYear: '2025-2026',
     semester: '1st',
     fees: [
-      { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 9000, units: 6 },
+      { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 34500, units: 23 },
       { fee: miscFee._id, feeName: miscFee.name, category: miscFee.category, amount: 5000 }
     ],
-    totalAmount: 14000,
-    netAmount: 14000,
-    totalPaid: 10000,
-    balance: 4000,
+    totalAmount: 39500,
+    netAmount: 39500,
+    totalPaid: 35000,
+    balance: 4500,
     status: 'partial',
     createdBy: superAdmin._id
   });
@@ -399,7 +493,7 @@ const seed = async () => {
     student: student._id,
     assessment: assessment._id,
     referenceNumber: 'PAY-25-000001',
-    amount: 10000,
+    amount: 35000,
     method: 'cash',
     status: 'completed',
     processedBy: cashier._id,
@@ -415,8 +509,8 @@ const seed = async () => {
     { action: 'CREATE', module: 'School', description: 'Main School tenant created: ISCP', ip: '192.168.1.1', status: 'success' },
     { action: 'CREATE', module: 'Campus', description: 'ISCP Manila Campus registered', ip: '192.168.1.1', status: 'success' },
     { action: 'CREATE', module: 'User', description: 'Created student account: student@iscp.edu.ph', ip: '192.168.1.20', status: 'success' },
-    { action: 'ENROLL', module: 'Enrollment', description: 'Enrolled student in BSCS', ip: '192.168.1.30', status: 'success' },
-    { action: 'PAY', module: 'Financial', description: 'Seeded initial payment of 10,000 PHP', ip: '192.168.1.5', status: 'success' }
+    { action: 'ENROLL', module: 'Enrollment', description: 'Enrolled student in BSCS (regular load 8 subjects)', ip: '192.168.1.30', status: 'success' },
+    { action: 'PAY', module: 'Financial', description: 'Seeded initial payment of 35,000 PHP', ip: '192.168.1.5', status: 'success' }
   ];
 
   for (const log of auditLogsData) {

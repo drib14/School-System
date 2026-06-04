@@ -43,6 +43,8 @@ const io = new Server(server, {
 });
 
 app.set('io', io);
+global.io = io;
+
 
 // Connect DB
 connectDB();
@@ -108,6 +110,10 @@ io.on('connection', (socket) => {
 
   socket.on('join-user', (userId) => {
     socket.join(`user-${userId}`);
+  });
+
+  socket.on('join-school', (schoolId) => {
+    socket.join(`school-${schoolId}`);
   });
 
   socket.on('typing', ({ conversationId, userId, isTyping }) => {

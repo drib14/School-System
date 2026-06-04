@@ -65,7 +65,22 @@ const conversationSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
+notificationSchema.post('save', function(doc) {
+  if (global.io) {
+    global.io.to(`user-${doc.recipient.toString()}`).emit('new-notification', doc);
+  }
+});
+
+notificationSchema.post('insertMany', function(docs) {
+  if (global.io) {
+    docs.forEach(doc => {
+      global.io.to(`user-${doc.recipient.toString()}`).emit('new-notification', doc);
+    });
+  }
+});
+
 const Notification = mongoose.model('Notification', notificationSchema);
+
 const Announcement = mongoose.model('Announcement', announcementSchema);
 const Message = mongoose.model('Message', messageSchema);
 const Conversation = mongoose.model('Conversation', conversationSchema);

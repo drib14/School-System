@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
+import { SocketProvider } from '../context/SocketContext';
 
 const PAGE_TITLES = {
+
   '/dashboard': 'Dashboard',
   '/admin/students': 'Student Management',
   '/admin/users': 'User Management',
@@ -60,14 +62,17 @@ export default function DashboardLayout() {
   }, [title]);
 
   return (
-    <div className="app-layout">
-      <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} />
-      <div className={`main-content ${collapsed ? 'collapsed' : ''}`}>
-        <Topbar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} title={title} />
-        <main className="page-content animate-fade">
-          <Outlet />
-        </main>
+    <SocketProvider>
+      <div className="app-layout">
+        <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} />
+        <div className={`main-content ${collapsed ? 'collapsed' : ''}`}>
+          <Topbar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} title={title} />
+          <main className="page-content animate-fade">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </SocketProvider>
   );
+
 }

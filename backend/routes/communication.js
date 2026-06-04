@@ -68,9 +68,24 @@ router.post('/announcements', protect, authorize('principal','registrar','teache
       type: 'announcement', link: `/announcements/${ann._id}`,
     }));
     await Notification.insertMany(notifs);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`school-${req.user.schoolId}`).emit('new-announcement', {
+        ...ann.toObject(),
+        createdBy: {
+          _id: req.user._id,
+          firstName: req.user.firstName,
+          lastName: req.user.lastName,
+          role: req.user.role,
+          avatar: req.user.avatar,
+        }
+      });
+    }
   }
 
   res.status(201).json({ success: true, announcement: ann });
+
 }));
 
 router.put('/announcements/:id', protect, asyncHandler(async (req, res) => {
@@ -126,16 +141,36 @@ router.post('/conversations/:conversationId/messages', protect, asyncHandler(asy
     sender: req.user._id, content, attachments, messageType, replyTo,
   });
 
-  await Conversation.findOneAndUpdate(
+  const conversation = await Conversation.findOneAndUpdate(
     { conversationId: req.params.conversationId },
-    { lastMessage: { content: content?.substring(0, 100), sender: req.user._id, sentAt: new Date() }, updatedAt: new Date() }
+    { lastMessage: { content: content?.substring(0, 100), sender: req.user._id, sentAt: new Date() }, updatedAt: new Date() },
+    { new: true }
   );
 
   // Emit via socket (handled in server.js)
   const io = req.app.get('io');
-  if (io) io.to(req.params.conversationId).emit('new-message', { ...msg.toObject(), sender: req.user });
+  if (io) {
+    io.to(req.params.conversationId).emit('new-message', { ...msg.toObject(), sender: req.user });
+
+    if (conversation) {
+      const otherParticipants = conversation.participants.filter(
+        p => p.toString() !== req.user._id.toString()
+      );
+      otherParticipants.forEach(userId => {
+        io.to(`user-${userId}`).emit('message-notification', {
+          conversationId: req.params.conversationId,
+          senderName: `${req.user.firstName} ${req.user.lastName}`,
+          content: content?.substring(0, 100) || 'Sent an attachment',
+          conversationType: conversation.type,
+          name: conversation.name,
+          message: { ...msg.toObject(), sender: req.user }
+        });
+      });
+    }
+  }
 
   res.status(201).json({ success: true, message: msg });
+
 }));
 
 module.exports = router;

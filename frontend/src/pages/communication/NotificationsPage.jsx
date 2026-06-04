@@ -4,6 +4,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import CustomSelect from '../../components/forms/CustomSelect';
+import { useSocket } from '../../context/SocketContext';
 
 const TYPE_ICON = {
   grade: BookOpen,
@@ -26,6 +27,7 @@ const TYPE_COLOR = {
 const PRIORITY_COLOR = { low: 'badge-gray', normal: 'badge-blue', high: 'badge-yellow', urgent: 'badge-red' };
 
 export default function NotificationsPage() {
+  const { socket } = useSocket();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all'); // all, unread, read
@@ -49,6 +51,29 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => { fetchNotifications(); }, [filter, typeFilter, page]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewNotif = (notif) => {
+      const matchesType = !typeFilter || notif.type === typeFilter;
+      const matchesRead = filter === 'all' || (filter === 'unread' && !notif.isRead);
+
+      if (page === 1 && matchesType && matchesRead) {
+        setNotifications(prev => {
+          if (prev.some(n => n._id === notif._id)) return prev;
+          return [notif, ...prev];
+        });
+      }
+      setTotal(t => t + 1);
+    };
+
+    socket.on('new-notification', handleNewNotif);
+    return () => {
+      socket.off('new-notification', handleNewNotif);
+    };
+  }, [socket, filter, typeFilter, page]);
+
 
   const markRead = async (id) => {
     try {

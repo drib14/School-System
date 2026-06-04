@@ -4,30 +4,67 @@ import api from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import { formatDistanceToNow } from 'date-fns';
 import toast from 'react-hot-toast';
-import { io } from 'socket.io-client';
-
-let socket;
+import { useSocket } from '../../context/SocketContext';
 
 export default function MessagesPage() {
   const { user } = useAuthStore();
+  const { socket } = useSocket();
   const [conversations, setConversations] = useState([]);
   const [selectedConv, setSelectedConv] = useState(null);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const selectedConvRef = useRef(null);
 
+  // Keep ref updated for cleanup
+  useEffect(() => {
+    selectedConvRef.current = selectedConv;
+    if (selectedConv) {
+      document.body.setAttribute('data-active-conversation', selectedConv.conversationId);
+    } else {
+      document.body.removeAttribute('data-active-conversation');
+    }
+    return () => {
+      document.body.removeAttribute('data-active-conversation');
+    };
+  }, [selectedConv]);
+
+  // Load conversations on mount
   useEffect(() => {
     fetchConversations();
-    socket = io(import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000', {
-      auth: { token: localStorage.getItem('accessToken') },
-    });
-    socket.emit('join-user', user?._id);
-    socket.on('new-message', (msg) => {
-      setMessages(prev => [...prev, msg]);
-    });
-    return () => socket.disconnect();
   }, []);
+
+  // Listen to socket events
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewMessage = (msg) => {
+      if (selectedConvRef.current && msg.conversationId === selectedConvRef.current.conversationId) {
+        setMessages(prev => {
+          if (prev.some(m => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
+      }
+    };
+
+    const handleMsgNotification = () => {
+      fetchConversations();
+    };
+
+    socket.on('new-message', handleNewMessage);
+    socket.on('message-notification', handleMsgNotification);
+
+    return () => {
+      socket.off('new-message', handleNewMessage);
+      socket.off('message-notification', handleMsgNotification);
+      
+      // Leave the conversation room if we unmount
+      if (selectedConvRef.current) {
+        socket.emit('leave-conversation', selectedConvRef.current.conversationId);
+      }
+    };
+  }, [socket]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -41,14 +78,20 @@ export default function MessagesPage() {
   };
 
   const openConversation = async (conv) => {
+    if (selectedConv && socket) {
+      socket.emit('leave-conversation', selectedConv.conversationId);
+    }
     setSelectedConv(conv);
-    socket.emit('join-conversation', conv.conversationId);
+    if (socket) {
+      socket.emit('join-conversation', conv.conversationId);
+    }
     setLoading(true);
     try {
       const { data } = await api.get(`/communication/conversations/${conv.conversationId}/messages`);
       setMessages(data.messages || []);
     } catch { } finally { setLoading(false); }
   };
+
 
   const sendMessage = async (e) => {
     e.preventDefault();

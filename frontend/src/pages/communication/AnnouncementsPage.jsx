@@ -6,6 +6,7 @@ import { format, formatDistanceToNow } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
 import CustomSelect from '../../components/forms/CustomSelect';
 import CustomCheckbox from '../../components/forms/CustomCheckbox';
+import { useSocket } from '../../context/SocketContext';
 
 const PRIORITY_COLOR = { normal: 'badge-gray', important: 'badge-yellow', urgent: 'badge-red' };
 
@@ -139,6 +140,7 @@ function CreateAnnouncementModal({ onClose, onSuccess }) {
 
 export default function AnnouncementsPage() {
   const { user } = useAuthStore();
+  const { socket } = useSocket();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -154,6 +156,34 @@ export default function AnnouncementsPage() {
   };
 
   useEffect(() => { fetchAnnouncements(); }, []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleNewAnn = (ann) => {
+      setAnnouncements(prev => {
+        if (prev.some(a => a._id === ann._id)) return prev;
+
+        const roleMap = {
+          teacher: 'teachers',
+          student: 'students',
+          parent: 'parents',
+        };
+        const mappedRole = roleMap[user?.role] || 'staff';
+        const fitsAudience = ann.audience.includes('all') || ann.audience.includes(mappedRole);
+
+        if (fitsAudience) {
+          return [ann, ...prev];
+        }
+        return prev;
+      });
+    };
+
+    socket.on('new-announcement', handleNewAnn);
+    return () => {
+      socket.off('new-announcement', handleNewAnn);
+    };
+  }, [socket, user]);
 
   return (
     <div>

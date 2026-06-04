@@ -58,9 +58,12 @@ export default function AcademicsPage() {
         {loading ? (
           <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><div className="spinner" /></div>
         ) : data.length === 0 ? (
-          <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
-            <Calendar size={48} style={{ opacity: 0.2, marginBottom: 16 }} />
-            <div>No enrolled subjects found for this semester.</div>
+          <div className="card" style={{ textAlign: 'center', padding: 60, background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', marginBottom: 16 }}>
+              <Calendar size={28} style={{ color: 'var(--blue-400)' }} />
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 16 }}>No Enrolled Subjects</div>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>You don't have any subjects scheduled for this semester yet.</p>
           </div>
         ) : (
           <div className="card">

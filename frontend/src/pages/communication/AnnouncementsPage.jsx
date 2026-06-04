@@ -69,7 +69,7 @@ function CreateAnnouncementModal({ onClose, onSuccess }) {
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
-      <div className="modal animate-slide">
+      <div className="modal animate-slide" style={{ background: 'rgba(15, 17, 26, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
         <div className="modal-header">
           <h3 className="modal-title">New Announcement</h3>
           <button className="btn btn-ghost btn-icon" onClick={onClose}>✕</button>

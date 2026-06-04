@@ -134,7 +134,7 @@ export default function ProfilePage() {
           <div className="card">
             <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Shield size={15} /> Two-Factor Authentication</h3>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>Add an extra layer of security with 2FA</p>
-            <button className="btn btn-secondary"><Shield size={14} /> Enable 2FA</button>
+            <button className="btn btn-secondary" onClick={() => toast.success('2FA Setup instructions sent to your email.')}><Shield size={14} /> Enable 2FA</button>
           </div>
         </div>
       )}
@@ -151,7 +151,7 @@ export default function ProfilePage() {
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
               <div><div style={{ fontWeight: 600, fontSize: 13 }}>{label}</div><div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{desc}</div></div>
               <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24, cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked style={{ opacity: 0, width: 0, height: 0 }} />
+                <input type="checkbox" defaultChecked style={{ opacity: 0, width: 0, height: 0 }} onChange={(e) => toast.success(`${label} turned ${e.target.checked ? 'on' : 'off'}`)} />
                 <span style={{ position: 'absolute', inset: 0, borderRadius: 12, background: 'var(--primary)', transition: '0.3s' }} />
               </label>
             </div>

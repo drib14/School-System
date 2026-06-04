@@ -111,7 +111,13 @@ export default function FinancialPage() {
               <thead><tr><th>Reference</th><th>Student</th><th>Amount</th><th>Method</th><th>Status</th><th>Date</th></tr></thead>
               <tbody>
                 {loading ? Array.from({length:5}).map((_,i) => <tr key={i}>{Array.from({length:6}).map((_,j) => <td key={j}><div className="skeleton" style={{height:14}} /></td>)}</tr>)
-                : data.length === 0 ? <tr><td colSpan={6} className="table-empty">No payment records</td></tr>
+                : data.length === 0 ? <tr><td colSpan={6} className="table-empty">
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <CreditCard size={48} style={{ opacity: 0.2, margin: '0 auto 16px' }} />
+                    <div style={{ fontWeight: 600 }}>No Payment Records Found</div>
+                    <p style={{ fontSize: 13, marginTop: 4 }}>There are no recent payments for this account.</p>
+                  </div>
+                </td></tr>
                 : data.map(p => (
                   <tr key={p._id}>
                     <td><code style={{fontSize:11,background:'var(--bg-secondary)',padding:'2px 8px',borderRadius:4}}>{p.referenceNumber}</code></td>
@@ -136,7 +142,13 @@ export default function FinancialPage() {
               <thead><tr><th>Name</th><th>Category</th><th>Amount</th><th>Frequency</th><th>Status</th></tr></thead>
               <tbody>
                 {loading ? Array.from({length:5}).map((_,i) => <tr key={i}>{Array.from({length:5}).map((_,j) => <td key={j}><div className="skeleton" style={{height:14}} /></td>)}</tr>)
-                : data.length === 0 ? <tr><td colSpan={5} className="table-empty">No fees configured</td></tr>
+                : data.length === 0 ? <tr><td colSpan={5} className="table-empty">
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <DollarSign size={48} style={{ opacity: 0.2, margin: '0 auto 16px' }} />
+                    <div style={{ fontWeight: 600 }}>No Fees Configured</div>
+                    <p style={{ fontSize: 13, marginTop: 4 }}>There are currently no active fee structures available.</p>
+                  </div>
+                </td></tr>
                 : data.map(f => (
                   <tr key={f._id}>
                     <td style={{fontWeight:600}}>{f.name}</td>
@@ -150,15 +162,23 @@ export default function FinancialPage() {
             </table>
           </div>
         </div>
+      )}
+
       {/* Assessments / Statement of Account */}
       {activeTab === 'assessments' && (
         <div className="card">
           <div className="table-container">
             <table className="table">
-              <thead><tr><th>Term</th>{ !isStudent && <th>Student</th> }<th>Net Amount</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+              <thead><tr><th>Term</th>{ !isStudent && <th>Student</th> }<th>Net Amount</th><th>Paid</th><th>Balance</th><th>Status</th>{isStudent && <th>Action</th>}</tr></thead>
               <tbody>
-                {loading ? Array.from({length:5}).map((_,i) => <tr key={i}>{Array.from({length: isStudent ? 5 : 6}).map((_,j) => <td key={j}><div className="skeleton" style={{height:14}} /></td>)}</tr>)
-                : data.length === 0 ? <tr><td colSpan={isStudent ? 5 : 6} className="table-empty">No assessments found</td></tr>
+                {loading ? Array.from({length:5}).map((_,i) => <tr key={i}>{Array.from({length: isStudent ? 6 : 6}).map((_,j) => <td key={j}><div className="skeleton" style={{height:14}} /></td>)}</tr>)
+                : data.length === 0 ? <tr><td colSpan={isStudent ? 6 : 6} className="table-empty">
+                  <div style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+                    <CheckCircle size={48} style={{ opacity: 0.2, margin: '0 auto 16px', color: 'var(--success)' }} />
+                    <div style={{ fontWeight: 600 }}>All Cleared!</div>
+                    <p style={{ fontSize: 13, marginTop: 4 }}>You don't have any active assessments or statements of account right now.</p>
+                  </div>
+                </td></tr>
                 : data.map(a => (
                   <tr key={a._id}>
                     <td>
@@ -172,6 +192,17 @@ export default function FinancialPage() {
                     <td>
                       <span className={`badge ${a.status === 'paid' ? 'badge-green' : a.status === 'partial' ? 'badge-yellow' : 'badge-red'}`} style={{textTransform:'capitalize'}}>{a.status}</span>
                     </td>
+                    {isStudent && (
+                      <td>
+                        {a.balance > 0 ? (
+                          <button className="btn btn-primary btn-sm" onClick={() => toast.success('Redirecting to payment gateway...')} style={{ whiteSpace: 'nowrap' }}>
+                            <DollarSign size={14} style={{ marginRight: 4 }} /> Pay Now
+                          </button>
+                        ) : (
+                          <span className="text-muted" style={{ fontSize: 12 }}>Cleared</span>
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

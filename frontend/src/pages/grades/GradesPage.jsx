@@ -184,6 +184,17 @@ export default function GradesPage() {
         </div>
         <div className="grid-3">
           {loading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="card skeleton" style={{ height: 100 }} />) :
+          grades.length === 0 ? (
+            <div style={{ gridColumn: '1 / -1' }}>
+              <div className="card" style={{ textAlign: 'center', padding: 60, background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', marginBottom: 16 }}>
+                  <span style={{ fontSize: 24 }}>🎓</span>
+                </div>
+                <div style={{ fontWeight: 600, fontSize: 16 }}>No Grades Available</div>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>Your grades for this semester have not been posted yet.</p>
+              </div>
+            </div>
+          ) :
           grades.map(g => {
             const rating = g.finalRating || 0;
             let transmuted = rating;

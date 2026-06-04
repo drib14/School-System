@@ -7,14 +7,14 @@ export default function LibraryPage() {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [category, setCategory] = useState('education');
   const [activeTab, setActiveTab] = useState('catalog');
 
   useEffect(() => {
     const fetchBooks = async () => {
       setLoading(true);
       try {
-        const defaultQuery = user?.profile?.program?.name || 'education';
-        const query = search ? search : defaultQuery;
+        const query = search ? search : `subject:${category}`;
         const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12`);
         const data = await res.json();
 
@@ -39,7 +39,7 @@ export default function LibraryPage() {
 
     const timeoutId = setTimeout(fetchBooks, 500);
     return () => clearTimeout(timeoutId);
-  }, [search]);
+  }, [search, category]);
 
   const displayed = books;
 
@@ -58,26 +58,44 @@ export default function LibraryPage() {
 
       {activeTab === 'catalog' && (
         <>
-          <div className="filter-bar">
-            <div className="search-box" style={{ flex: 1 }}>
+          <div className="filter-bar" style={{ flexWrap: 'wrap' }}>
+            <div className="search-box" style={{ flex: '1 1 300px' }}>
               <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <input placeholder="Search title, author, ISBN..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
+            <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
+              {['education', 'history', 'science', 'mathematics', 'technology', 'literature'].map(cat => (
+                <button 
+                  key={cat} 
+                  className={`badge ${category === cat ? 'badge-blue' : 'badge-gray'}`}
+                  style={{ cursor: 'pointer', border: 'none', textTransform: 'capitalize', padding: '6px 12px' }}
+                  onClick={() => { setCategory(cat); setSearch(''); }}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="grid-3">
-            {displayed.map(book => (
-              <div key={book._id} className="card" style={{ transition: 'all 0.2s' }}
+            {displayed.length === 0 && !loading ? (
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No books found.</div>
+            ) : displayed.map(book => (
+              <div key={book._id} className="card" style={{ transition: 'all 0.2s', background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)' }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
-                <div style={{ width: '100%', height: 140, background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', borderRadius: 'var(--radius-md)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Book size={40} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                <div style={{ width: '100%', height: 160, background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', borderRadius: 'var(--radius-md)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  {book.coverUrl ? (
+                    <img src={book.coverUrl} alt="Cover" style={{ width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 }} />
+                  ) : (
+                    <Book size={40} style={{ color: 'rgba(255,255,255,0.5)' }} />
+                  )}
                 </div>
-                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, lineHeight: 1.3 }}>{book.title}</div>
-                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8 }}>{book.author}</div>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 4, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{book.title}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 8, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{book.author}</div>
                 <div style={{ display: 'flex', gap: 6, marginBottom: 10 }}>
                   <span className="badge badge-blue">{book.category}</span>
                 </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                   <div>
                     <span style={{ fontWeight: 700, fontSize: 15, color: book.available > 0 ? 'var(--success)' : 'var(--danger)' }}>{book.available}</span>
                     <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/{book.total} available</span>

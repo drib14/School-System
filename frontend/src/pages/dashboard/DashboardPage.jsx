@@ -30,13 +30,20 @@ function StudentEnrollmentTracker() {
   const { user } = useAuthStore();
   const [enrollment, setEnrollment] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [financials, setFinancials] = useState(null);
 
   useEffect(() => {
-    api.get('/academics/my-grades')
-      .then(res => {
-        if (res.data.enrollments?.length > 0) {
-          // Get the most recent enrollment
-          setEnrollment(res.data.enrollments[res.data.enrollments.length - 1]);
+    Promise.all([
+      api.get('/academics/my-grades'),
+      api.get('/financial/assessments')
+    ])
+      .then(([gradesRes, finRes]) => {
+        if (gradesRes.data.enrollments?.length > 0) {
+          setEnrollment(gradesRes.data.enrollments[gradesRes.data.enrollments.length - 1]);
+        }
+        if (finRes.data.assessments?.length > 0) {
+          setFinancials(finRes.data.assessments[0]); // latest assessment
         }
       })
       .catch(console.error)
@@ -49,119 +56,197 @@ function StudentEnrollmentTracker() {
 
   if (!isEnrolled) {
     return (
-      <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid #f59e0b' }}>
-        <div className="card-header">
-          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <ClipboardList size={20} style={{ color: '#f59e0b' }} />
-            Admission Checklist
-          </div>
-          <div className="card-sub" style={{ color: '#f59e0b' }}>Your enrollment is currently pending. Please submit the following legal requirements to the Admission Office for approval:</div>
-        </div>
-        <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
-          {[
-            'Original Form 138 (Report Card)',
-            'Certificate of Good Moral Character',
-            'PSA / NSO Birth Certificate (Photocopy)',
-            '2x2 ID Pictures (2 pieces with white background)'
-          ].map((req, idx) => (
-            <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 16, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 12 }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', marginTop: 6, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, color: '#f1f5f9', lineHeight: 1.5 }}>{req}</span>
+      <>
+        <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid #f59e0b' }}>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <ClipboardList size={20} style={{ color: '#f59e0b' }} />
+                Admission Checklist
+              </div>
+              <div className="card-sub" style={{ color: '#f59e0b' }}>Your enrollment is currently pending. Please submit the following legal requirements to the Admission Office for approval.</div>
             </div>
-          ))}
+            <button className="btn btn-primary btn-sm" onClick={() => setShowSubmitModal(true)}>
+              Submit Requirements
+            </button>
+          </div>
+          <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+            {[
+              'Original Form 138 (Report Card)',
+              'Certificate of Good Moral Character',
+              'PSA / NSO Birth Certificate (Photocopy)',
+              '2x2 ID Pictures (2 pieces with white background)'
+            ].map((req, idx) => (
+              <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 16, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 12 }}>
+                <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', marginTop: 6, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#f1f5f9', lineHeight: 1.5 }}>{req}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+
+        {showSubmitModal && (
+          <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowSubmitModal(false)}>
+            <div className="modal animate-slide" style={{ background: 'rgba(15, 17, 26, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="modal-header">
+                <h3 className="modal-title">Submit Requirements</h3>
+                <button className="btn btn-ghost btn-icon" onClick={() => setShowSubmitModal(false)}>✕</button>
+              </div>
+              <div style={{ padding: '0 0 20px 0' }}>
+                <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>Upload your scanned documents below. Allowed formats: PDF, JPG, PNG.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {['Form 138', 'Good Moral', 'Birth Certificate', 'ID Picture'].map(doc => (
+                    <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.1)' }}>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{doc}</span>
+                      <button className="btn btn-secondary btn-sm">Choose File</button>
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
+                  <button className="btn btn-primary" onClick={() => setShowSubmitModal(false)}>Submit All</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
     );
   }
 
   return (
-    <div className="card" style={{ 
-      marginBottom: 24, 
-      position: 'relative', 
-      overflow: 'hidden',
-      background: 'linear-gradient(to right, rgba(23, 27, 43, 0.95), rgba(23, 27, 43, 0.85)), url("/seal-bg.jpg") center/cover no-repeat'
-    }}>
-      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 2 }}>
-        <div>
-          <div className="card-title">Current Study Load</div>
-          <div className="card-sub">{enrollment?.academicYear} · {enrollment?.semester} Semester</div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 24 }}>
+      {/* Financial Summary */}
+      <div className="grid-3">
+        <div className="card" style={{ background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <DollarSign size={20} style={{ color: '#ef4444' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Remaining Balance</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#ef4444' }}>₱{(financials?.balance || 0).toLocaleString()}</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+            <a href="/financial/payments" className="btn btn-primary btn-sm" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>Pay Now</a>
+          </div>
         </div>
-        <button className="btn btn-primary btn-sm" onClick={() => {
-          const printWindow = window.open('', '_blank');
-          printWindow.document.write(`
-            <html><head><title>Study Load</title></head><body style="font-family: Arial, sans-serif; padding: 40px; position: relative;">
-              <img src="/seal-bg.jpg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; width: 400px; pointerEvents: none;" />
-              <div style="position: relative; z-index: 1;">
-                <h1 style="text-align: center; margin-bottom: 5px;">International State Colleges of the Philippines</h1>
-                <h3 style="text-align: center; margin-top: 0; color: #555;">Official Study Load</h3>
-                <p><strong>Student:</strong> ${user?.firstName || 'Student'} ${user?.lastName || ''} <br/> <strong>Program:</strong> ${enrollment?.program?.name || 'N/A'}</p>
-                <hr style="margin: 20px 0;" />
-                <table style="width: 100%; border-collapse: collapse;">
-                  <tr style="background: #f3f4f6;">
-                    <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: left;">Code</th>
-                    <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: left;">Description</th>
-                    <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: center;">Units</th>
-                    <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: left;">Schedule</th>
-                  </tr>
-                  ${enrollment?.subjects?.map(s => `
-                    <tr>
-                      <td style="padding: 10px; border: 1px solid #e5e7eb;">${s.subject?.code}</td>
-                      <td style="padding: 10px; border: 1px solid #e5e7eb;">${s.subject?.name}</td>
-                      <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center;">${s.units}</td>
-                      <td style="padding: 10px; border: 1px solid #e5e7eb;">
-                        ${s.schedule?.schedule?.map(sch => `${sch.day} ${sch.startTime}-${sch.endTime}`).join('<br/>') || 'TBA'}
-                      </td>
-                    </tr>
-                  `).join('') || '<tr><td colspan="4" style="text-align: center; padding: 20px;">No subjects enrolled</td></tr>'}
-                  <tr style="background: #f9fafb; font-weight: bold;">
-                    <td colspan="2" style="padding: 10px; border: 1px solid #e5e7eb; text-align: right;">Total Units</td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center;">${enrollment?.totalUnits || 0}</td>
-                    <td style="padding: 10px; border: 1px solid #e5e7eb;"></td>
-                  </tr>
-                </table>
-              </div>
-            </body></html>
-          `);
-          printWindow.document.close();
-          printWindow.focus();
-          setTimeout(() => { printWindow.print(); }, 250);
-        }}>
-          Download Study Load
-        </button>
+
+        <div className="card" style={{ background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <TrendingUp size={20} style={{ color: '#10b981' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Total Paid</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#10b981' }}>₱{(financials?.totalPaid || 0).toLocaleString()}</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+            <a href="/financial/payments" className="btn btn-secondary btn-sm" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>Billing History</a>
+          </div>
+        </div>
+        
+        <div className="card" style={{ background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <div style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 8 }}>Term Details</div>
+          <div style={{ fontWeight: 600, fontSize: 15, marginBottom: 4 }}>{financials?.academicYear || enrollment?.academicYear || '2025-2026'}</div>
+          <div style={{ fontSize: 13, color: 'var(--text-secondary)' }}>{financials?.semester || enrollment?.semester || '1st'} Semester</div>
+          <div style={{ marginTop: 12 }}>
+            <span className={`badge ${financials?.status === 'paid' ? 'badge-green' : 'badge-red'}`} style={{ textTransform: 'capitalize' }}>
+              {financials?.status || 'Active'}
+            </span>
+          </div>
+        </div>
       </div>
-      
-      <div className="table-container" style={{ position: 'relative', zIndex: 2, background: 'rgba(23, 27, 43, 0.6)', borderRadius: 12 }}>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Description</th>
-              <th>Units</th>
-              <th>Schedule</th>
-              <th>Instructor</th>
-            </tr>
-          </thead>
-          <tbody>
-            {enrollment?.subjects?.map(s => (
-              <tr key={s._id}>
-                <td><span className="badge badge-gray">{s.subject?.code}</span></td>
-                <td style={{ fontWeight: 600 }}>{s.subject?.name}</td>
-                <td>{s.units}</td>
-                <td style={{ fontSize: 13 }}>
-                  {s.schedule?.schedule?.map((sch, i) => (
-                    <div key={i} style={{ marginBottom: 2 }}>{sch.day} • {sch.startTime} - {sch.endTime}</div>
-                  )) || <span className="text-muted">TBA</span>}
-                </td>
-                <td style={{ fontSize: 13 }}>
-                  {s.schedule?.teacher ? `${s.schedule.teacher.firstName} ${s.schedule.teacher.lastName}` : <span className="text-muted">TBA</span>}
-                </td>
+
+      {/* Study Load */}
+      <div className="card" style={{ 
+        position: 'relative', 
+        overflow: 'hidden',
+        background: 'linear-gradient(to right, rgba(23, 27, 43, 0.95), rgba(23, 27, 43, 0.85)), url("/seal-bg.jpg") center/cover no-repeat'
+      }}>
+        <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 2 }}>
+          <div>
+            <div className="card-title">Current Study Load</div>
+            <div className="card-sub">{enrollment?.academicYear} · {enrollment?.semester} Semester</div>
+          </div>
+          <button className="btn btn-primary btn-sm" onClick={() => {
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+              <html><head><title>Study Load</title></head><body style="font-family: Arial, sans-serif; padding: 40px; position: relative;">
+                <img src="/seal-bg.jpg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; width: 400px; pointerEvents: none;" />
+                <div style="position: relative; z-index: 1;">
+                  <h1 style="text-align: center; margin-bottom: 5px;">International State Colleges of the Philippines</h1>
+                  <h3 style="text-align: center; margin-top: 0; color: #555;">Official Study Load</h3>
+                  <p><strong>Student:</strong> ${user?.firstName || 'Student'} ${user?.lastName || ''} <br/> <strong>Program:</strong> ${enrollment?.program?.name || 'N/A'}</p>
+                  <hr style="margin: 20px 0;" />
+                  <table style="width: 100%; border-collapse: collapse;">
+                    <tr style="background: #f3f4f6;">
+                      <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: left;">Code</th>
+                      <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: left;">Description</th>
+                      <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: center;">Units</th>
+                      <th style="padding: 10px; border: 1px solid #e5e7eb; text-align: left;">Schedule</th>
+                    </tr>
+                    ${enrollment?.subjects?.map(s => `
+                      <tr>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">${s.subject?.code}</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">${s.subject?.name}</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center;">${s.units}</td>
+                        <td style="padding: 10px; border: 1px solid #e5e7eb;">
+                          ${s.schedule?.schedule?.map(sch => `${sch.day} ${sch.startTime}-${sch.endTime}`).join('<br/>') || 'TBA'}
+                        </td>
+                      </tr>
+                    `).join('') || '<tr><td colspan="4" style="text-align: center; padding: 20px;">No subjects enrolled</td></tr>'}
+                    <tr style="background: #f9fafb; font-weight: bold;">
+                      <td colspan="2" style="padding: 10px; border: 1px solid #e5e7eb; text-align: right;">Total Units</td>
+                      <td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center;">${enrollment?.totalUnits || 0}</td>
+                      <td style="padding: 10px; border: 1px solid #e5e7eb;"></td>
+                    </tr>
+                  </table>
+                </div>
+              </body></html>
+            `);
+            printWindow.document.close();
+            printWindow.focus();
+            setTimeout(() => { printWindow.print(); }, 250);
+          }}>
+            Download Study Load
+          </button>
+        </div>
+        
+        <div className="table-container" style={{ position: 'relative', zIndex: 2, background: 'rgba(23, 27, 43, 0.6)', borderRadius: 12 }}>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Description</th>
+                <th>Units</th>
+                <th>Schedule</th>
+                <th>Instructor</th>
               </tr>
-            ))}
-            {!enrollment?.subjects?.length && (
-              <tr><td colSpan={5} className="table-empty">No subjects enrolled</td></tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {enrollment?.subjects?.map(s => (
+                <tr key={s._id}>
+                  <td><span className="badge badge-gray">{s.subject?.code}</span></td>
+                  <td style={{ fontWeight: 600 }}>{s.subject?.name}</td>
+                  <td>{s.units}</td>
+                  <td style={{ fontSize: 13 }}>
+                    {s.schedule?.schedule?.map((sch, i) => (
+                      <div key={i} style={{ marginBottom: 2 }}>{sch.day} • {sch.startTime} - {sch.endTime}</div>
+                    )) || <span className="text-muted">TBA</span>}
+                  </td>
+                  <td style={{ fontSize: 13 }}>
+                    {s.schedule?.teacher ? `${s.schedule.teacher.firstName} ${s.schedule.teacher.lastName}` : <span className="text-muted">TBA</span>}
+                  </td>
+                </tr>
+              ))}
+              {!enrollment?.subjects?.length && (
+                <tr><td colSpan={5} className="table-empty">No subjects enrolled</td></tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

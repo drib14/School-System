@@ -102,6 +102,7 @@ const navConfig = {
     { section: 'Campus & Communication', items: [
       { to: '/announcements', icon: Megaphone, label: 'Announcements' },
       { to: '/messages', icon: MessageSquare, label: 'Messages' },
+      { to: '/library', icon: Library, label: 'Library Catalog' },
     ]},
   ],
   parent: [

@@ -201,7 +201,7 @@ export default function EnrollmentPage() {
   const fetchEnrollments = async () => {
     setLoading(true);
     try {
-      const endpoint = isStudent ? '/enrollment/my' : '/enrollment';
+      const endpoint = isStudent ? '/enrollment/me' : '/enrollment';
       const params = new URLSearchParams({ limit: 30, ...filter });
       const { data } = await api.get(`${endpoint}?${params}`);
       setEnrollments(data.enrollments || data);

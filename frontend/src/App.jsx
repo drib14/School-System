@@ -62,6 +62,11 @@ const ClearancePage = lazy(() => import('./pages/services/ClearancePage'));
 const LMSPage = lazy(() => import('./pages/lms/LMSPage'));
 const AdmissionPage = lazy(() => import('./pages/admission/AdmissionPage'));
 
+// Landing / Public Pages
+const LandingPage = lazy(() => import('./pages/landing/LandingPage'));
+const JobApplicationPage = lazy(() => import('./pages/landing/JobApplicationPage'));
+const PublicEnrollmentPage = lazy(() => import('./pages/landing/PublicEnrollmentPage'));
+
 // Loading spinner
 function PageLoader() {
   return (
@@ -79,7 +84,7 @@ function ProtectedRoute({ children, roles }) {
   const { isAuthenticated, user, isLoading } = useAuthStore();
   if (isLoading) return <PageLoader />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user?.role)) return <Navigate to="/dashboard" replace />;
+  if (roles && !roles.includes(user?.role)) return <Navigate to="/app/dashboard" replace />;
   return children;
 }
 
@@ -88,6 +93,14 @@ function AuthRoute({ children }) {
   const { isAuthenticated } = useAuthStore();
   if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return children;
+}
+
+// Landing guard: if logged in, show dashboard; else show landing page
+function LandingRoute() {
+  const { isAuthenticated, isLoading } = useAuthStore();
+  if (isLoading) return <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}><div className="spinner" /></div>;
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+  return <LandingPage />;
 }
 
 export default function App() {
@@ -116,16 +129,20 @@ export default function App() {
 
       <Suspense fallback={<div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh' }}><div className="spinner" /></div>}>
         <Routes>
+          {/* ── PUBLIC LANDING & APPLICATION ROUTES ── */}
+          <Route path="/" element={<LandingRoute />} />
+          <Route path="/apply-job" element={<JobApplicationPage />} />
+          <Route path="/enroll/new" element={<PublicEnrollmentPage />} />
+
           {/* Public Auth Routes */}
           <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
           <Route path="/register" element={<AuthRoute><RegisterPage /></AuthRoute>} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
-          {/* Protected Dashboard Routes */}
-          <Route path="/" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
+          {/* Protected Dashboard Routes — same paths as before */}
+          <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<DashboardPage />} />
 
             {/* Admin */}
             <Route path="admin/students" element={<StudentsPage />} />
@@ -199,14 +216,12 @@ export default function App() {
             <Route path="lms/*" element={<LMSPage />} />
 
             {/* Admission */}
-            <Route path="admission" element={<AdmissionPage />} />
-            <Route path="admission/*" element={<AdmissionPage />} />
-
-            {/* Fallback */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/admission" element={<AdmissionPage />} />
+            <Route path="/admission/*" element={<AdmissionPage />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/login" replace />} />
+          {/* Top-level fallback: redirect unknown to landing */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
     </BrowserRouter>

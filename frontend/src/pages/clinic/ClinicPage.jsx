@@ -7,6 +7,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const DISPOSITION_COLOR = {
   monitored: 'badge-blue',
@@ -82,9 +83,11 @@ function ClinicVisitModal({ onClose, onSave }) {
               </div>
               <div className="form-group">
                 <label className="form-label">Disposition *</label>
-                <select className="form-input" value={form.disposition} onChange={e => setForm(f => ({ ...f, disposition: e.target.value }))}>
-                  {['monitored', 'medication_given', 'sent_home', 'hospitalized', 'referred', 'released'].map(d => <option key={d} value={d}>{d.replace(/_/g, ' ')}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.disposition}
+                  onChange={val => setForm(f => ({ ...f, disposition: val }))}
+                  options={['monitored', 'medication_given', 'sent_home', 'hospitalized', 'referred', 'released'].map(d => ({ value: d, label: d.replace(/_/g, ' ') }))}
+                />
               </div>
             </div>
             <div className="form-group">
@@ -209,10 +212,15 @@ export default function ClinicPage() {
             <input className="search-input" placeholder="Search by patient, complaint..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <input className="filter-select" type="date" value={filterDate} onChange={e => setFilterDate(e.target.value)} />
-          <select className="filter-select" value={filterDisp} onChange={e => setFilterDisp(e.target.value)}>
-            <option value="">All Dispositions</option>
-            {['monitored', 'medication_given', 'sent_home', 'hospitalized', 'referred', 'released'].map(d => <option key={d} value={d}>{d.replace(/_/g, ' ')}</option>)}
-          </select>
+          <div style={{ minWidth: 180 }}>
+            <CustomSelect
+              className="filter-cs"
+              value={filterDisp}
+              onChange={val => setFilterDisp(val)}
+              placeholder="All Dispositions"
+              options={[{ value: '', label: 'All Dispositions' }, ...['monitored', 'medication_given', 'sent_home', 'hospitalized', 'referred', 'released'].map(d => ({ value: d, label: d.replace(/_/g, ' ') }))]}
+            />
+          </div>
           <button className="btn btn-secondary btn-sm btn-icon" onClick={fetchData}><RefreshCw size={14} /></button>
         </div>
       )}

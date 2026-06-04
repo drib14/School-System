@@ -4,6 +4,7 @@ import { AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { useAuthStore } from '../../store/authStore';
 import api from '../../services/api';
 import { format } from 'date-fns';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
@@ -29,6 +30,9 @@ export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [revenueData, setRevenueData] = useState([]);
+  const [enrollmentByProgram, setEnrollmentByProgram] = useState([]);
+  const [attendanceData, setAttendanceData] = useState([]);
+  const [gradeDistribution, setGradeDistribution] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -36,11 +40,35 @@ export default function DashboardPage() {
         const { data } = await api.get('/admin/dashboard');
         setStats(data.stats);
 
-        // Fetch financial data
-        try {
-          const { data: fin } = await api.get('/financial/summary');
-          setRevenueData(fin.dailyRevenue?.map(d => ({ date: d._id, amount: d.total })) || []);
-        } catch (_) {}
+        // Fetch additional analytics in parallel
+        const [finRes, enrollRes, attRes, perfRes] = await Promise.allSettled([
+          api.get('/financial/summary'),
+          api.get('/analytics/enrollment-by-program'),
+          api.get('/analytics/attendance'),
+          api.get('/analytics/student-performance'),
+        ]);
+
+        if (finRes.status === 'fulfilled') {
+          setRevenueData(finRes.value.data.dailyRevenue?.map(d => ({ date: d._id, amount: d.total })) || []);
+        }
+        if (enrollRes.status === 'fulfilled') {
+          setEnrollmentByProgram(enrollRes.value.data.data || []);
+        }
+        if (attRes.status === 'fulfilled' && attRes.value.data?.byDate) {
+          const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+          const rawDays = attRes.value.data.byDate.slice(-5);
+          setAttendanceData(rawDays.map((d, i) => ({
+            day: days[i] || d._id,
+            present: d.present || 0,
+            absent: d.absent || 0,
+            late: d.late || 0,
+          })));
+        }
+        if (perfRes.status === 'fulfilled' && perfRes.value.data?.gpaDistribution) {
+          setGradeDistribution(
+            perfRes.value.data.gpaDistribution.map(d => ({ grade: `${d._id}+`, count: d.count }))
+          );
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -50,28 +78,29 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  const enrollmentData = [
-    { name: 'New', value: 120, color: '#3b82f6' },
-    { name: 'Returning', value: 380, color: '#10b981' },
-    { name: 'Transferees', value: 45, color: '#f59e0b' },
-    { name: 'Others', value: 20, color: '#8b5cf6' },
+  // Fallback placeholder enrollment data if API returns nothing
+  const enrollData = enrollmentByProgram.length > 0
+    ? enrollmentByProgram.slice(0, 4).map((p, i) => ({ name: p.code || p._id || 'Unknown', value: p.count || 0, color: ['#3b82f6','#10b981','#f59e0b','#8b5cf6'][i % 4] }))
+    : [
+        { name: 'New', value: 0, color: '#3b82f6' },
+        { name: 'Returning', value: 0, color: '#10b981' },
+      ];
+
+  // Fallback placeholder attendance
+  const attData = attendanceData.length > 0 ? attendanceData : [
+    { day: 'Mon', present: 0, absent: 0, late: 0 },
+    { day: 'Tue', present: 0, absent: 0, late: 0 },
+    { day: 'Wed', present: 0, absent: 0, late: 0 },
+    { day: 'Thu', present: 0, absent: 0, late: 0 },
+    { day: 'Fri', present: 0, absent: 0, late: 0 },
   ];
 
-  const attendanceData = [
-    { day: 'Mon', present: 95, absent: 5, late: 8 },
-    { day: 'Tue', present: 88, absent: 12, late: 6 },
-    { day: 'Wed', present: 92, absent: 8, late: 10 },
-    { day: 'Thu', present: 90, absent: 10, late: 7 },
-    { day: 'Fri', present: 85, absent: 15, late: 9 },
-  ];
-
-  const gradeDistribution = [
-    { grade: '1.0-1.5', count: 45 },
-    { grade: '1.5-2.0', count: 120 },
-    { grade: '2.0-2.5', count: 180 },
-    { grade: '2.5-3.0', count: 95 },
-    { grade: '3.0+', count: 60 },
-    { grade: 'Failed', count: 30 },
+  // Fallback grade distribution
+  const gradeData = gradeDistribution.length > 0 ? gradeDistribution : [
+    { grade: '90+', count: 0 },
+    { grade: '80+', count: 0 },
+    { grade: '75+', count: 0 },
+    { grade: '<75', count: 0 },
   ];
 
   if (loading) return (
@@ -149,25 +178,25 @@ export default function DashboardPage() {
         <div className="card">
           <div className="card-header">
             <div>
-              <div className="card-title">Enrollment Types</div>
+              <div className="card-title">Enrollment by Program</div>
               <div className="card-sub">Current semester</div>
             </div>
           </div>
           <div className="chart-container" style={{ display: 'flex', alignItems: 'center' }}>
             <ResponsiveContainer width="50%">
               <PieChart>
-                <Pie data={enrollmentData} innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value">
-                  {enrollmentData.map((entry, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
+                <Pie data={enrollData} innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value">
+                  {enrollData.map((entry, i) => (
+                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip />
               </PieChart>
             </ResponsiveContainer>
             <div style={{ flex: 1 }}>
-              {enrollmentData.map((e, i) => (
+              {enrollData.map((e, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: 3, background: COLORS[i] }} />
+                  <div style={{ width: 12, height: 12, borderRadius: 3, background: COLORS[i % COLORS.length] }} />
                   <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{e.name}</span>
                   <span style={{ marginLeft: 'auto', fontWeight: 700, fontSize: 13 }}>{e.value}</span>
                 </div>
@@ -186,7 +215,7 @@ export default function DashboardPage() {
           </div>
           <div className="chart-container">
             <ResponsiveContainer>
-              <BarChart data={attendanceData}>
+              <BarChart data={attData}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="day" />
                 <YAxis />
@@ -207,13 +236,13 @@ export default function DashboardPage() {
           </div>
           <div className="chart-container">
             <ResponsiveContainer>
-              <BarChart data={gradeDistribution} layout="vertical">
+              <BarChart data={gradeData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis type="category" dataKey="grade" width={50} />
                 <Tooltip />
                 <Bar dataKey="count" fill="#8b5cf6" name="Students" radius={[0,4,4,0]}>
-                  {gradeDistribution.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  {gradeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>

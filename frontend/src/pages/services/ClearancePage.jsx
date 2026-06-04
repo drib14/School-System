@@ -4,6 +4,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const OFFICES = [
   { id: 'registrar', label: 'Registrar', icon: FileCheck },
@@ -235,9 +236,11 @@ export default function ClearancePage() {
                 <div className="grid-2" style={{ gap: 16 }}>
                   <div className="form-group">
                     <label className="form-label">Type *</label>
-                    <select className="form-input" value={requestForm.type} onChange={e => setRequestForm(f => ({ ...f, type: e.target.value }))}>
-                      {['semester', 'graduation', 'transfer', 'withdrawal', 'other'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                    </select>
+                    <CustomSelect
+                      value={requestForm.type}
+                      onChange={val => setRequestForm(f => ({ ...f, type: val }))}
+                      options={['semester', 'graduation', 'transfer', 'withdrawal', 'other'].map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                    />
                   </div>
                   <div className="form-group">
                     <label className="form-label">Academic Year *</label>
@@ -245,11 +248,11 @@ export default function ClearancePage() {
                   </div>
                   <div className="form-group">
                     <label className="form-label">Semester</label>
-                    <select className="form-input" value={requestForm.semester} onChange={e => setRequestForm(f => ({ ...f, semester: e.target.value }))}>
-                      <option value="1st">1st Semester</option>
-                      <option value="2nd">2nd Semester</option>
-                      <option value="Summer">Summer</option>
-                    </select>
+                    <CustomSelect
+                      value={requestForm.semester}
+                      onChange={val => setRequestForm(f => ({ ...f, semester: val }))}
+                      options={[{ value: '1st', label: '1st Semester' }, { value: '2nd', label: '2nd Semester' }, { value: 'Summer', label: 'Summer' }]}
+                    />
                   </div>
                 </div>
                 <div className="form-group">

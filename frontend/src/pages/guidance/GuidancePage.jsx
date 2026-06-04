@@ -4,6 +4,8 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
+import CustomCheckbox from '../../components/forms/CustomCheckbox';
 
 const STATUS_COLOR = { open: 'badge-yellow', in_progress: 'badge-blue', closed: 'badge-green', referred: 'badge-gray' };
 const PRIORITY_COLOR = { low: 'badge-gray', medium: 'badge-blue', high: 'badge-yellow', critical: 'badge-red' };
@@ -36,15 +38,19 @@ function CaseModal({ onClose, onSave }) {
             <div className="grid-2" style={{ gap: 16 }}>
               <div className="form-group">
                 <label className="form-label">Case Type *</label>
-                <select className="form-input" value={form.caseType} onChange={e => setForm(f => ({ ...f, caseType: e.target.value }))}>
-                  {['academic', 'behavioral', 'personal', 'career', 'family', 'crisis', 'other'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.caseType}
+                  onChange={val => setForm(f => ({ ...f, caseType: val }))}
+                  options={['academic', 'behavioral', 'personal', 'career', 'family', 'crisis', 'other'].map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Priority</label>
-                <select className="form-input" value={form.priority} onChange={e => setForm(f => ({ ...f, priority: e.target.value }))}>
-                  {['low', 'medium', 'high', 'critical'].map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.priority}
+                  onChange={val => setForm(f => ({ ...f, priority: val }))}
+                  options={['low', 'medium', 'high', 'critical'].map(p => ({ value: p, label: p.charAt(0).toUpperCase() + p.slice(1) }))}
+                />
               </div>
             </div>
             <div className="form-group">
@@ -60,10 +66,11 @@ function CaseModal({ onClose, onSave }) {
               <textarea className="form-input" rows={3} value={form.background} onChange={e => setForm(f => ({ ...f, background: e.target.value }))} />
             </div>
             <div className="form-group">
-              <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontSize: 13 }}>
-                <input type="checkbox" checked={form.isConfidential} onChange={e => setForm(f => ({ ...f, isConfidential: e.target.checked }))} />
-                Confidential Case (student will not be notified)
-              </label>
+              <CustomCheckbox
+                checked={form.isConfidential}
+                onChange={e => setForm(f => ({ ...f, isConfidential: e.target.checked }))}
+                label="Confidential Case (student will not be notified)"
+              />
             </div>
           </div>
           <div className="modal-footer">
@@ -249,14 +256,24 @@ export default function GuidancePage() {
               <Search size={14} className="search-icon" />
               <input className="search-input" placeholder="Search case #, student name..." value={search} onChange={e => setSearch(e.target.value)} />
             </div>
-            <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-              <option value="">All Status</option>
-              {['open', 'in_progress', 'closed', 'referred'].map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-            </select>
-            <select className="filter-select" value={filterPriority} onChange={e => setFilterPriority(e.target.value)}>
-              <option value="">All Priority</option>
-              {['low', 'medium', 'high', 'critical'].map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
+            <div style={{ minWidth: 160 }}>
+              <CustomSelect
+                className="filter-cs"
+                value={filterStatus}
+                onChange={val => setFilterStatus(val)}
+                placeholder="All Status"
+                options={[{ value: '', label: 'All Status' }, ...['open', 'in_progress', 'closed', 'referred'].map(s => ({ value: s, label: s.replace(/_/g, ' ') }))]}
+              />
+            </div>
+            <div style={{ minWidth: 150 }}>
+              <CustomSelect
+                className="filter-cs"
+                value={filterPriority}
+                onChange={val => setFilterPriority(val)}
+                placeholder="All Priority"
+                options={[{ value: '', label: 'All Priority' }, ...['low', 'medium', 'high', 'critical'].map(p => ({ value: p, label: p }))]}
+              />
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {loading ? Array.from({ length: 5 }).map((_, i) => (

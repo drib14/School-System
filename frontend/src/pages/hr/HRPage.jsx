@@ -4,6 +4,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const LEAVE_TYPE_COLOR = { vacation: 'badge-blue', sick: 'badge-yellow', emergency: 'badge-red', maternity: 'badge-green', paternity: 'badge-blue', special: 'badge-gray', without_pay: 'badge-gray' };
 const LEAVE_STATUS_COLOR = { pending: 'badge-yellow', approved: 'badge-green', rejected: 'badge-red', cancelled: 'badge-gray' };
@@ -211,12 +212,15 @@ export default function HRPage() {
             <input className="search-input" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           {activeTab === 'leave' && (
-            <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="approved">Approved</option>
-              <option value="rejected">Rejected</option>
-            </select>
+            <div style={{ minWidth: 160 }}>
+              <CustomSelect
+                className="filter-cs"
+                value={filterStatus}
+                onChange={val => setFilterStatus(val)}
+                placeholder="All Status"
+                options={[{ value: '', label: 'All Status' }, { value: 'pending', label: 'Pending' }, { value: 'approved', label: 'Approved' }, { value: 'rejected', label: 'Rejected' }]}
+              />
+            </div>
           )}
           <button className="btn btn-secondary btn-sm btn-icon" onClick={fetchData}><RefreshCw size={14} /></button>
         </div>
@@ -425,9 +429,11 @@ export default function HRPage() {
               <div className="modal-body">
                 <div className="form-group">
                   <label className="form-label">Leave Type *</label>
-                  <select className="form-input" value={leaveForm.leaveType} onChange={e => setLeaveForm(f => ({ ...f, leaveType: e.target.value }))}>
-                    {['vacation', 'sick', 'emergency', 'maternity', 'paternity', 'special', 'without_pay'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                  </select>
+                  <CustomSelect
+                    value={leaveForm.leaveType}
+                    onChange={val => setLeaveForm(f => ({ ...f, leaveType: val }))}
+                    options={['vacation', 'sick', 'emergency', 'maternity', 'paternity', 'special', 'without_pay'].map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                  />
                 </div>
                 <div className="grid-2" style={{ gap: 16 }}>
                   <div className="form-group">

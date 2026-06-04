@@ -61,8 +61,10 @@ router.post('/applications', asyncHandler(async (req, res) => {
   if (!existingUser) {
     // Generate ID and password
     const count = await User.countDocuments({ role: 'student', schoolId: application.schoolId });
-    const year = new Date().getFullYear().toString();
-    const studentId = `${year}-${String(count + 1).padStart(4, '0')}`;
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(-2);
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const studentId = `${year}${month}04${String(count + 1).padStart(2, '0')}`;
 
     const lastInitial = application.lastName.charAt(0).toUpperCase();
     const defaultPassword = `${studentId}${lastInitial}`;

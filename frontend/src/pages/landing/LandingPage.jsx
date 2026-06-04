@@ -107,9 +107,9 @@ export default function LandingPage() {
           </div>
           <div>
             <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 16, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              ISCP School System
+              ISCP
             </div>
-            <div style={{ fontSize: 10, color: '#64748b' }}>Integrated School Cloud Platform</div>
+            <div style={{ fontSize: 10, color: '#64748b' }}>International State Colleges of the Philippines</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -150,18 +150,24 @@ export default function LandingPage() {
         </div>
 
         <div style={{ position: 'relative', zIndex: 1, maxWidth: 800 }}>
+          <img src="/iscp-logo.jpg" alt="ISCP Logo" style={{ width: 120, height: 120, borderRadius: '50%', border: '4px solid rgba(59,130,246,0.3)', margin: '0 auto 24px', display: 'block', objectFit: 'cover' }} />
+
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', marginBottom: 28 }}>
             <Sparkles size={13} style={{ color: '#60a5fa' }} />
-            <span style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600 }}>Philippines' Leading School Management Platform</span>
+            <span style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600 }}>Admissions for A.Y. 2025–2026 are now open!</span>
           </div>
 
           <h1 style={{ fontSize: 'clamp(36px, 6vw, 68px)', fontFamily: 'Outfit, sans-serif', fontWeight: 900, lineHeight: 1.05, marginBottom: 24, background: 'linear-gradient(135deg, #f1f5f9 0%, #94a3b8 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Empowering Education<br />
-            <span style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Through Smart Technology</span>
+            International State Colleges<br />
+            <span style={{ background: 'linear-gradient(135deg, #3b82f6, #8b5cf6, #06b6d4)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>of the Philippines</span>
           </h1>
 
-          <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#94a3b8', lineHeight: 1.7, marginBottom: 40, maxWidth: 580, margin: '0 auto 40px' }}>
-            A comprehensive school management system covering enrollment, academics, HR, finance, clinic, guidance, and more — from Elementary to Graduate School.
+          <p style={{ color: '#94a3b8', fontSize: 'clamp(18px, 2.5vw, 24px)', maxWidth: 700, margin: '0 auto 16px', lineHeight: 1.6, fontStyle: 'italic', fontWeight: 600 }}>
+            "Filipinos Sultus Es"
+          </p>
+
+          <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#94a3b8', lineHeight: 1.7, marginBottom: 40, maxWidth: 680, margin: '0 auto 40px' }}>
+            Experience world-class education from Elementary to Graduate School. Empowering students with cutting-edge learning systems, dedicated faculty, and an inclusive academic community.
           </p>
 
           <div style={{ display: 'flex', gap: 14, justifyContent: 'center', flexWrap: 'wrap' }}>
@@ -357,13 +363,22 @@ export default function LandingPage() {
                 <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <School size={18} color="white" />
                 </div>
-                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 15, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>ISCP School System</span>
+                <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 15, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Int'l State Colleges of the PH</span>
               </div>
               <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7 }}>Empowering education through technology. From elementary to graduate school, we support every step of the learning journey.</p>
             </div>
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Quick Links</h4>
               {['Student Login', 'New Enrollment', 'Apply for Position', 'Academic Programs', 'Special Programs'].map(link => (
+                <div key={link} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
+                  onMouseEnter={e => e.target.style.color = '#94a3b8'}
+                  onMouseLeave={e => e.target.style.color = '#475569'}
+                >{link}</div>
+              ))}
+            </div>
+            <div>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Legal</h4>
+              {['Terms of Service', 'Privacy Policy'].map(link => (
                 <div key={link} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
                   onMouseEnter={e => e.target.style.color = '#94a3b8'}
                   onMouseLeave={e => e.target.style.color = '#475569'}
@@ -385,7 +400,7 @@ export default function LandingPage() {
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(148,163,184,0.08)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-            <p style={{ fontSize: 12, color: '#334155' }}>© {new Date().getFullYear()} ISCP School System. All rights reserved.</p>
+            <p style={{ fontSize: 12, color: '#334155' }}>© {new Date().getFullYear()} International State Colleges of the Philippines. All rights reserved.</p>
             <p style={{ fontSize: 12, color: '#334155' }}>Built with ❤️ for Philippine Education</p>
           </div>
         </div>

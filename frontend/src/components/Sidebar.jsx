@@ -270,10 +270,10 @@ export default function Sidebar({ collapsed, onToggle }) {
     <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
       {/* Header */}
       <div className="sidebar-header">
-        <img src={ISCP_LOGO} alt="ISCP" className="sidebar-logo" onError={e => { e.target.style.display='none'; }} />
+        <img src={ISCP_LOGO} alt="ISCP" className="sidebar-logo" style={{ borderRadius: '50%', objectFit: 'cover' }} onError={e => { e.target.style.display='none'; }} />
         <div className="sidebar-brand">
-          <div className="sidebar-brand-name">ISCP</div>
-          <div className="sidebar-brand-sub">School Management</div>
+          <div className="sidebar-brand-name" style={{ fontSize: 13, lineHeight: 1.2 }}>International State Colleges of the PH</div>
+          <div className="sidebar-brand-sub">ISCP Portal</div>
         </div>
       </div>
 

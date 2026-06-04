@@ -94,10 +94,37 @@ function StudentEnrollmentTracker() {
         )}
 
         {step === 4 && (
-          <div style={{ textAlign: 'center', padding: 20 }}>
-            <div style={{ fontSize: 40, color: '#10b981', marginBottom: 10 }}>🎉</div>
-            <p style={{ fontWeight: 600, fontSize: 16 }}>Enrollment Successful!</p>
-            <button className="btn btn-primary" onClick={() => alert('Downloading study load...')} style={{ marginTop: 10 }}>Download Study Load</button>
+          <div style={{ textAlign: 'center', padding: 20, position: 'relative', overflow: 'hidden' }}>
+            <img src="/iscp-logo.jpg" alt="Watermark" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.05, width: 200, height: 200, pointerEvents: 'none' }} />
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <div style={{ fontSize: 40, color: '#10b981', marginBottom: 10 }}>🎉</div>
+              <p style={{ fontWeight: 600, fontSize: 16 }}>Enrollment Successful!</p>
+              <button className="btn btn-primary" onClick={() => {
+                const printWindow = window.open('', '_blank');
+                printWindow.document.write(`
+                  <html><head><title>Study Load</title></head><body style="font-family: Arial, sans-serif; padding: 40px; position: relative;">
+                    <img src="/iscp-logo.jpg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; width: 400px; pointerEvents: none;" />
+                    <div style="position: relative; z-index: 1;">
+                      <h1 style="text-align: center;">International State Colleges of the Philippines</h1>
+                      <h3 style="text-align: center;">Official Study Load</h3>
+                      <p><strong>Student:</strong> ${user?.firstName || 'Student'} ${user?.lastName || ''}</p>
+                      <hr style="margin: 20px 0;" />
+                      <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="background: #f3f4f6;">
+                          <th style="padding: 10px; border: 1px solid #e5e7eb;">Code</th>
+                          <th style="padding: 10px; border: 1px solid #e5e7eb;">Description</th>
+                          <th style="padding: 10px; border: 1px solid #e5e7eb;">Units</th>
+                        </tr>
+                        <tr><td style="padding: 10px; border: 1px solid #e5e7eb;">SYS101</td><td style="padding: 10px; border: 1px solid #e5e7eb;">System Demo</td><td style="padding: 10px; border: 1px solid #e5e7eb; text-align: center;">3</td></tr>
+                      </table>
+                    </div>
+                  </body></html>
+                `);
+                printWindow.document.close();
+                printWindow.focus();
+                setTimeout(() => { printWindow.print(); }, 250);
+              }} style={{ marginTop: 10 }}>Download Study Load</button>
+            </div>
           </div>
         )}
       </div>

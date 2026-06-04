@@ -63,7 +63,7 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 900, background: 'linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12 }}>
-            ISCP School System
+            ISCP Portal
           </h1>
           <p style={{ fontSize: 15, color: 'var(--text-muted)', maxWidth: 320, lineHeight: 1.7 }}>
             International State Colleges of the Philippines<br />

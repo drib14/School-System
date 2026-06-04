@@ -79,13 +79,12 @@ export default function LoginPage() {
 
           {/* Quick login hints */}
           <div style={{ marginTop: 32, background: 'rgba(30,41,59,0.6)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', textAlign: 'left', maxWidth: 360 }}>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quick Test Login</p>
+            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Demo Staff Accounts</p>
             {[
               { role: 'Super Admin', email: 'superadmin@iscp.edu.ph', pass: 'Admin@12345', color: '#a78bfa' },
               { role: 'Principal', email: 'principal@iscp.edu.ph', pass: 'Principal@123', color: '#3b82f6' },
               { role: 'Registrar', email: 'registrar@iscp.edu.ph', pass: 'Registrar@123', color: '#06b6d4' },
               { role: 'Teacher', email: 'teacher@iscp.edu.ph', pass: 'Teacher@123', color: '#10b981' },
-              { role: 'Student', email: 'student@iscp.edu.ph', pass: 'Student@123', color: '#60a5fa' },
             ].map(({ role, email, pass, color }) => (
               <button key={role} onClick={() => quickLogin(email, pass)}
                 style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, transition: 'all 0.2s' }}
@@ -103,8 +102,8 @@ export default function LoginPage() {
           {!twoFactor.required ? (
             <>
               <div className="auth-logo">
-                <h2 style={{ fontSize: 24, fontWeight: 800 }}>Welcome Back</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 6 }}>Sign in to your account</p>
+                <h2 style={{ fontSize: 24, fontWeight: 800 }}>Staff Portal</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 6 }}>Sign in to your staff account</p>
               </div>
 
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -152,8 +151,8 @@ export default function LoginPage() {
               </form>
 
               <div className="auth-links">
-                Don't have an account?{' '}
-                <Link to="/register" style={{ color: 'var(--blue-400)', fontWeight: 600 }}>Register here</Link>
+                Looking for a career with us?{' '}
+                <Link to="/apply-job" style={{ color: 'var(--blue-400)', fontWeight: 600 }}>Apply Now</Link>
               </div>
             </>
           ) : (

@@ -10,26 +10,42 @@ export default function LibraryPage() {
   const [activeTab, setActiveTab] = useState('catalog');
 
   useEffect(() => {
-    setLoading(false); // stub
-  }, []);
+    const fetchBooks = async () => {
+      setLoading(true);
+      try {
+        const query = search ? search : 'education';
+        const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12`);
+        const data = await res.json();
 
-  const SAMPLE_BOOKS = [
-    { _id: '1', title: 'Introduction to Computing', author: 'John Smith', isbn: '978-0123456789', category: 'Science & Technology', available: 5, total: 8, coverUrl: null },
-    { _id: '2', title: 'College Mathematics', author: 'Maria Garcia', isbn: '978-9876543210', category: 'Mathematics', available: 3, total: 5, coverUrl: null },
-    { _id: '3', title: 'English Communication', author: 'James Brown', isbn: '978-1122334455', category: 'Language & Literature', available: 7, total: 10, coverUrl: null },
-    { _id: '4', title: 'Business Ethics', author: 'Ana Reyes', isbn: '978-5544332211', category: 'Business', available: 2, total: 6, coverUrl: null },
-    { _id: '5', title: 'Philippine History', author: 'Carlos Santos', isbn: '978-6677889900', category: 'Social Sciences', available: 0, total: 4, coverUrl: null },
-    { _id: '6', title: 'Calculus for Engineers', author: 'David Lee', isbn: '978-1234567890', category: 'Mathematics', available: 4, total: 7, coverUrl: null },
-  ];
+        const formattedBooks = data.docs.map((doc, idx) => ({
+          _id: idx.toString(),
+          title: doc.title,
+          author: doc.author_name ? doc.author_name[0] : 'Unknown Author',
+          isbn: doc.isbn ? doc.isbn[0] : 'N/A',
+          category: doc.subject ? doc.subject[0] : 'General',
+          available: Math.floor(Math.random() * 5) + 1,
+          total: Math.floor(Math.random() * 5) + 5,
+          coverUrl: doc.cover_i ? `https://covers.openlibrary.org/b/id/${doc.cover_i}-M.jpg` : null
+        }));
 
-  const displayed = SAMPLE_BOOKS.filter(b =>
-    b.title.toLowerCase().includes(search.toLowerCase()) || b.author.toLowerCase().includes(search.toLowerCase())
-  );
+        setBooks(formattedBooks);
+      } catch (err) {
+        console.error("Failed to fetch books", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(fetchBooks, 500);
+    return () => clearTimeout(timeoutId);
+  }, [search]);
+
+  const displayed = books;
 
   return (
     <div>
       <div className="page-header">
-        <div><h1 className="page-title">Library System</h1><p className="page-sub">6 books in catalog</p></div>
+        <div><h1 className="page-title">Library System</h1><p className="page-sub">{loading ? 'Loading catalog...' : `${books.length}+ books in catalog`}</p></div>
         <div className="page-actions">
           {['catalog','borrowing','returns'].map(t => (
             <button key={t} className={`btn btn-sm ${activeTab === t ? 'btn-primary' : 'btn-secondary'}`}

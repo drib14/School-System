@@ -114,7 +114,7 @@ export default function PublicEnrollmentPage() {
             <p style={{ fontSize: 20, fontWeight: 800, color: '#60a5fa', letterSpacing: '0.05em' }}>{referenceNo}</p>
           </div>
           <p style={{ color: '#64748b', fontSize: 13, marginBottom: 32 }}>
-            Please keep your reference number for tracking. Our admissions team will contact you within 2–3 business days to confirm your enrollment and the next steps.
+            Please keep your reference number for tracking. Your student portal credentials have been sent to your email (<strong style={{ color: '#f1f5f9' }}>{form.email}</strong>). You can now login to check your admission status!
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/')} style={{ padding: '10px 22px', borderRadius: 10, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>

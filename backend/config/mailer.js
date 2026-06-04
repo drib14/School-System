@@ -45,6 +45,24 @@ const emailTemplates = {
       </div>
     </div>`,
 
+  studentCredentials: (name, studentId, password) => `
+    <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.1)">
+      <div style="background:linear-gradient(135deg,#10b981,#059669);padding:30px;text-align:center">
+        <h1 style="color:white;margin:0;font-size:24px">Application Approved!</h1>
+        <p style="color:#a7f3d0;margin:5px 0 0">Welcome to ISCP</p>
+      </div>
+      <div style="padding:30px">
+        <h2 style="color:#059669">Congratulations, ${name}!</h2>
+        <p style="color:#4b5563">Your application has been approved. Below are your student portal credentials:</p>
+        <div style="background:#f3f4f6;padding:20px;border-radius:8px;margin:20px 0;font-size:16px;">
+          <p style="margin:0 0 10px 0;"><strong>Student ID / Email:</strong> ${studentId}</p>
+          <p style="margin:0;"><strong>Password:</strong> ${password}</p>
+        </div>
+        <p style="color:#ef4444;font-size:13px;font-weight:bold;">We highly recommend logging in and changing your password immediately.</p>
+        <a href="${process.env.CLIENT_URL}/login/student" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:white;padding:12px 30px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:15px">Login to Student Portal</a>
+      </div>
+    </div>`,
+
   gradeRelease: (studentName, subject, grade) => `
     <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto">
       <div style="background:linear-gradient(135deg,#1e40af,#3b82f6);padding:30px;text-align:center;border-radius:10px 10px 0 0">

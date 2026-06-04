@@ -213,7 +213,7 @@ export default function DashboardPage() {
 
       {user?.role === 'student' && <StudentEnrollmentTracker />}
       {/* Stats Grid */}
-      <div className="grid-stat" style={{ marginBottom: 24 }}>
+      <div className="grid-stat" style={{ marginBottom: 24, display: user?.role === 'student' ? 'none' : 'grid' }}>
         <StatCard icon={GraduationCap} value={stats?.totalStudents || 0} label="Active Students" color="blue" change={5} />
         <StatCard icon={Users} value={stats?.totalTeachers || 0} label="Teachers" color="green" change={2} />
         <StatCard icon={UserCheck} value={stats?.enrolledThisSem || 0} label="Enrolled This Sem" color="purple" change={8} />
@@ -227,7 +227,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts Row 1 */}
-      <div className="grid-2" style={{ marginBottom: 24 }}>
+      <div className="grid-2" style={{ marginBottom: 24, display: user?.role === 'student' ? 'none' : 'grid' }}>
         {/* Revenue Chart */}
         <div className="card">
           <div className="card-header">
@@ -288,7 +288,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts Row 2 */}
-      <div className="grid-2" style={{ marginBottom: 24 }}>
+      <div className="grid-2" style={{ marginBottom: 24, display: user?.role === 'student' ? 'none' : 'grid' }}>
         {/* Attendance */}
         <div className="card">
           <div className="card-header">
@@ -332,7 +332,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="card">
+      <div className="card" style={{ display: user?.role === 'student' ? 'none' : 'block' }}>
         <div className="card-header">
           <div className="card-title">Quick Actions</div>
         </div>

@@ -7,8 +7,8 @@ import { useAuthStore } from './store/authStore';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Auth Pages
-const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const StaffLoginPage = lazy(() => import('./pages/auth/StaffLoginPage'));
+const StudentLoginPage = lazy(() => import('./pages/auth/StudentLoginPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 
@@ -83,7 +83,7 @@ function PageLoader() {
 function ProtectedRoute({ children, roles }) {
   const { isAuthenticated, user, isLoading } = useAuthStore();
   if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   if (roles && !roles.includes(user?.role)) return <Navigate to="/app/dashboard" replace />;
   return children;
 }
@@ -135,8 +135,8 @@ export default function App() {
           <Route path="/enroll/new" element={<PublicEnrollmentPage />} />
 
           {/* Public Auth Routes */}
-          <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
-          <Route path="/register" element={<AuthRoute><RegisterPage /></AuthRoute>} />
+          <Route path="/login/staff" element={<AuthRoute><StaffLoginPage /></AuthRoute>} />
+          <Route path="/login/student" element={<AuthRoute><StudentLoginPage /></AuthRoute>} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 

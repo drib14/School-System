@@ -172,7 +172,7 @@ export default function GradesPage() {
     return (
       <div>
         <div className="page-header">
-          <div><h1 className="page-title">My Grades</h1></div>
+          <div><h1 className="page-title">My Grades (Transmuted)</h1></div>
         </div>
         <div className="filter-bar">
           <select className="filter-select" value={filter.semester} onChange={e => setFilter(p => ({ ...p, semester: e.target.value }))}>
@@ -184,16 +184,39 @@ export default function GradesPage() {
         </div>
         <div className="grid-3">
           {loading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="card skeleton" style={{ height: 100 }} />) :
-          grades.map(g => (
-            <div key={g._id} className="card">
-              <div style={{ fontWeight: 700, marginBottom: 6 }}>{g.subject?.name}</div>
-              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 10 }}>{g.subject?.code} · {g.subject?.units} units</div>
-              <div style={{ fontSize: 28, fontWeight: 900, color: g.finalRating >= 75 ? 'var(--success)' : 'var(--danger)' }}>
-                {g.finalRating?.toFixed(2) || 'N/A'}
+          grades.map(g => {
+            // Philippine K-12 Transmutation logic logic mock
+            const rating = g.finalRating || 0;
+            let transmuted = rating;
+            if (rating >= 96) transmuted = 1.0;
+            else if (rating >= 90) transmuted = 1.5;
+            else if (rating >= 85) transmuted = 2.0;
+            else if (rating >= 80) transmuted = 2.5;
+            else if (rating >= 75) transmuted = 3.0;
+            else transmuted = 5.0;
+
+            return (
+              <div key={g._id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                <div style={{ fontWeight: 700, fontSize: 16 }}>{g.subject?.name}</div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{g.subject?.code} · {g.subject?.units} units</div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Raw Grade</div>
+                    <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-secondary)' }}>{rating.toFixed(2)}</div>
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Transmuted Grade</div>
+                    <div style={{ fontSize: 32, fontWeight: 900, color: rating >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+                      {transmuted.toFixed(1)}
+                    </div>
+                  </div>
+                </div>
+                <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                  <span className={`badge ${g.remarks === 'Passed' ? 'badge-green' : 'badge-red'}`}>{g.remarks || (rating >= 75 ? 'Passed' : 'Failed')}</span>
+                </div>
               </div>
-              <span className={`badge ${g.remarks === 'Passed' ? 'badge-green' : 'badge-red'}`}>{g.remarks || '—'}</span>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     );

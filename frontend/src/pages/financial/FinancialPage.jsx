@@ -48,7 +48,7 @@ export default function FinancialPage() {
       <div className="page-header">
         <div><h1 className="page-title">Financial Management</h1></div>
         <div className="page-actions">
-          {['payments', 'fees', 'assessments', 'summary'].filter(t => !isStudent || t === 'payments').map(t => (
+          {['payments', 'fees', 'assessments', 'summary'].filter(t => !isStudent || t === 'payments' || t === 'assessments').map(t => (
             <button key={t} className={`btn btn-sm ${activeTab === t ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setActiveTab(t)} style={{ textTransform: 'capitalize' }}>{t}</button>
           ))}

@@ -47,6 +47,8 @@ router.get('/applications/:id', protect, authorize(...ADMISSION_ROLES), asyncHan
   res.json({ success: true, application: app });
 }));
 
+const { sendMail, emailTemplates } = require('../config/mailer');
+
 // Public submission (no auth required)
 router.post('/applications', asyncHandler(async (req, res) => {
   const { schoolId, ...body } = req.body;
@@ -54,7 +56,50 @@ router.post('/applications', asyncHandler(async (req, res) => {
     ...body,
     schoolId: schoolId || req.body.schoolId,
   });
-  res.status(201).json({ success: true, application, message: `Application submitted. Your application number is ${application.applicationNumber}.` });
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email: application.email });
+  if (!existingUser) {
+    // Generate ID and password
+    const count = await User.countDocuments({ role: 'student', schoolId: application.schoolId });
+    const year = new Date().getFullYear().toString();
+    const studentId = `${year}-${String(count + 1).padStart(4, '0')}`;
+
+    const lastInitial = application.lastName.charAt(0).toUpperCase();
+    const defaultPassword = `${studentId}${lastInitial}`;
+
+    const newUser = await User.create({
+      schoolId: application.schoolId,
+      firstName: application.firstName,
+      middleName: application.middleName,
+      lastName: application.lastName,
+      email: application.email,
+      phone: application.phone,
+      birthDate: application.birthDate,
+      gender: application.gender,
+      password: defaultPassword,
+      role: 'student',
+      studentId: studentId,
+      isActive: true,
+      isEmailVerified: true // Auto verify
+    });
+
+    application.linkedUser = newUser._id;
+    await application.save();
+
+    // Email credentials immediately (as requested)
+    try {
+      await sendMail({
+        to: application.email,
+        subject: 'ISCP Application Submitted - Student Portal Credentials',
+        html: emailTemplates.studentCredentials(application.firstName, studentId, defaultPassword),
+      });
+    } catch (err) {
+      console.error('Failed to send credential email:', err);
+    }
+  }
+
+  res.status(201).json({ success: true, application, message: `Application submitted. Your application number is ${application.applicationNumber}. Credentials emailed.` });
 }));
 
 router.put('/applications/:id/stage', protect, authorize(...ADMISSION_ROLES), asyncHandler(async (req, res) => {
@@ -69,11 +114,6 @@ router.put('/applications/:id/stage', protect, authorize(...ADMISSION_ROLES), as
   }
 
   const application = await Application.findByIdAndUpdate(req.params.id, updates, { new: true });
-
-  // Send notification email if applicant has an account
-  if (req.body.stage === 'accepted') {
-    // Create or notify user account
-  }
 
   res.json({ success: true, application });
 }));

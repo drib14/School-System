@@ -64,7 +64,7 @@ export default function AcademicsPage() {
               <thead>
                 <tr>
                   {path.includes('programs') && <><th>Code</th><th>Name</th><th>Type</th><th>Duration</th><th>Status</th></>}
-                  {path.includes('subjects') && <><th>Code</th><th>Name</th><th>Units</th><th>Category</th><th>Status</th></>}
+                  {path.includes('subjects') && <><th>Code</th><th>Name</th><th>Units</th><th>Category</th><th>Prerequisites</th><th>Status</th></>}
                   {path.includes('schedules') && <><th>Subject</th><th>Teacher</th><th>Section</th><th>Room</th><th>Days/Time</th><th>Enrolled</th></>}
                   {path.includes('curriculum') && <><th>Name</th><th>Program</th><th>Version</th><th>Status</th></>}
                   <th>Actions</th>
@@ -88,6 +88,7 @@ export default function AcademicsPage() {
                         <td style={{ fontWeight: 600 }}>{item.name}</td>
                         <td>{item.units} units</td>
                         <td><span className="badge badge-blue">{item.category}</span></td>
+                        <td>{item.prerequisites && item.prerequisites.length > 0 ? <div style={{display:'flex', gap:4}}>{item.prerequisites.map(p => typeof p === 'string' ? <span key={p} className="badge badge-gray">{p}</span> : <span key={p._id || p} className="badge badge-gray">{p.code || 'Prereq'}</span>)}</div> : <span style={{color:'var(--text-muted)'}}>None</span>}</td>
                         <td><span className={`badge ${item.isActive ? 'badge-green' : 'badge-gray'}`}>{item.isActive ? 'Active' : 'Inactive'}</span></td>
                       </>
                     )}

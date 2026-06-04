@@ -114,12 +114,20 @@ export default function LandingPage() {
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <button
-            onClick={() => navigate('/login')}
+            onClick={() => navigate('/login/student')}
             style={{ padding: '9px 22px', borderRadius: 8, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa', fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s' }}
             onMouseEnter={e => e.target.style.background = 'rgba(59,130,246,0.2)'}
             onMouseLeave={e => e.target.style.background = 'rgba(59,130,246,0.1)'}
           >
             Student Login
+          </button>
+          <button
+            onClick={() => navigate('/login/staff')}
+            style={{ padding: '9px 22px', borderRadius: 8, background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', color: '#10b981', fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={e => e.target.style.background = 'rgba(16,185,129,0.2)'}
+            onMouseLeave={e => e.target.style.background = 'rgba(16,185,129,0.1)'}
+          >
+            Staff Login
           </button>
           <button
             onClick={() => navigate('/apply-job')}
@@ -166,7 +174,7 @@ export default function LandingPage() {
               <GraduationCap size={18} /> Enroll Now <ArrowRight size={16} />
             </button>
             <button
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/login/student')}
               style={{ padding: '14px 32px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#f1f5f9', fontWeight: 600, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.25s' }}
               onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
               onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
@@ -202,7 +210,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
             {/* Student Login Card */}
             <div
-              onClick={() => navigate('/login')}
+              onClick={() => navigate('/login/student')}
               style={{ padding: 32, borderRadius: 20, background: 'linear-gradient(135deg, rgba(59,130,246,0.15), rgba(139,92,246,0.1))', border: '1px solid rgba(59,130,246,0.25)', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', gap: 16 }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; e.currentTarget.style.boxShadow = '0 20px 50px rgba(59,130,246,0.2)'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.5)'; }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; e.currentTarget.style.borderColor = 'rgba(59,130,246,0.25)'; }}

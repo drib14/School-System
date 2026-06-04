@@ -11,7 +11,7 @@ import {
   Receipt, HeartHandshake, Building, DoorOpen, AlertCircle
 } from 'lucide-react';
 
-const ISCP_LOGO = '/iscp-logo.jpg';
+const ISCP_LOGO = '/platform-seal.png';
 
 const navConfig = {
   super_admin: [

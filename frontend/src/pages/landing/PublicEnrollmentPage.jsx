@@ -84,7 +84,7 @@ export default function PublicEnrollmentPage() {
       const payload = { ...form, status: 'pending', submittedAt: new Date() };
       let ref = '';
       try {
-        const { data } = await api.post('/admission', payload);
+        const { data } = await api.post('/admission/applications', payload);
         ref = data.referenceNumber || data.admissionNo || `ENR-${Date.now()}`;
       } catch {
         ref = `ENR-${Date.now()}`;

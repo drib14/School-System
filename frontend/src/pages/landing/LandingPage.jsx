@@ -102,9 +102,7 @@ export default function LandingPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <School size={20} color="white" />
-          </div>
+          <img src="/platform-seal.png" alt="Platform Seal" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
           <div>
             <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 16, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
               ISCP
@@ -142,15 +140,16 @@ export default function LandingPage() {
 
       {/* ───── HERO ───── */}
       <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', overflow: 'hidden' }}>
-        {/* Background blobs */}
+        {/* Background blobs & Image */}
         <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', top: '10%', left: '15%', width: 500, height: 500, borderRadius: '50%', background: 'rgba(59,130,246,0.12)', filter: 'blur(80px)' }} />
-          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: 400, height: 400, borderRadius: '50%', background: 'rgba(139,92,246,0.12)', filter: 'blur(80px)' }} />
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 600, borderRadius: '50%', background: 'rgba(16,185,129,0.06)', filter: 'blur(100px)' }} />
+          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/hero-study.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.4 }} />
+          <div style={{ position: 'absolute', top: '10%', left: '15%', width: 500, height: 500, borderRadius: '50%', background: 'rgba(59,130,246,0.3)', filter: 'blur(80px)' }} />
+          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: 400, height: 400, borderRadius: '50%', background: 'rgba(139,92,246,0.3)', filter: 'blur(80px)' }} />
+          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 600, borderRadius: '50%', background: 'rgba(16,185,129,0.2)', filter: 'blur(100px)' }} />
         </div>
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 800 }}>
-          <img src="/iscp-logo.jpg" alt="ISCP Logo" style={{ width: 120, height: 120, borderRadius: '50%', border: '4px solid rgba(59,130,246,0.3)', margin: '0 auto 24px', display: 'block', objectFit: 'cover' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, padding: '56px 40px', background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(20px)', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+          <img src="/platform-seal.png" alt="ISCP Platform Seal" style={{ width: 120, height: 120, borderRadius: '50%', border: '4px solid rgba(59,130,246,0.3)', margin: '0 auto 24px', display: 'block', objectFit: 'cover' }} />
 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', marginBottom: 28 }}>
             <Sparkles size={13} style={{ color: '#60a5fa' }} />
@@ -360,29 +359,36 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 40, marginBottom: 40 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <School size={18} color="white" />
-                </div>
+                <img src="/platform-seal.png" alt="Platform Seal" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
                 <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 15, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Int'l State Colleges of the PH</span>
               </div>
               <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7 }}>Empowering education through technology. From elementary to graduate school, we support every step of the learning journey.</p>
             </div>
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Quick Links</h4>
-              {['Student Login', 'New Enrollment', 'Apply for Position', 'Academic Programs', 'Special Programs'].map(link => (
-                <div key={link} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
+              {[
+                { label: 'Student Login', path: '/login/student' },
+                { label: 'New Enrollment', path: '/enroll/new' },
+                { label: 'Apply for Position', path: '/apply-job' },
+                { label: 'Academic Programs', path: '#' },
+                { label: 'Special Programs', path: '#' }
+              ].map(({ label, path }) => (
+                <div key={label} onClick={() => navigate(path)} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
                   onMouseEnter={e => e.target.style.color = '#94a3b8'}
                   onMouseLeave={e => e.target.style.color = '#475569'}
-                >{link}</div>
+                >{label}</div>
               ))}
             </div>
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Legal</h4>
-              {['Terms of Service', 'Privacy Policy'].map(link => (
-                <div key={link} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
+              {[
+                { label: 'Terms of Service', path: '#' },
+                { label: 'Privacy Policy', path: '#' }
+              ].map(({ label, path }) => (
+                <div key={label} onClick={() => navigate(path)} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
                   onMouseEnter={e => e.target.style.color = '#94a3b8'}
                   onMouseLeave={e => e.target.style.color = '#475569'}
-                >{link}</div>
+                >{label}</div>
               ))}
             </div>
             <div>

@@ -195,9 +195,9 @@ const seed = async () => {
     section: 'CS1A',
     academicYear: '2025-2026',
     semester: '1st',
-    schedule: [{ day: 'Mon', startTime: '09:00', endTime: '10:30' }, { day: 'Wed', startTime: '09:00', endTime: '10:30' }],
+    schedule: [{ day: 'Monday', startTime: '09:00', endTime: '10:30' }, { day: 'Wednesday', startTime: '09:00', endTime: '10:30' }],
     maxStudents: 40,
-    status: 'active'
+    status: 'open'
   });
 
   // Create BSCS Student (College)

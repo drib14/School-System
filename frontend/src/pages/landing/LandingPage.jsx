@@ -97,7 +97,10 @@ export default function LandingPage() {
   });
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/public/stats`)
+    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+    const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
+    
+    fetch(`${baseUrl}/api/public/stats`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {

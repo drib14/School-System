@@ -3,12 +3,13 @@ import { Users, School, TrendingUp, Shield, Monitor, BarChart3, RefreshCw, Plus,
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import CustomSelect from '../../components/forms/CustomSelect';
 
 export default function SuperDashboardPage() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [schools, setSchools] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
@@ -169,6 +170,11 @@ export default function SuperDashboardPage() {
               ))}
             </tbody>
           </table>
+        </div>
+        <div style={{ marginTop: 16, display: 'flex', justifyContent: 'center' }}>
+          <button className="btn btn-secondary btn-sm" onClick={() => navigate('/super/audit-logs')}>
+            View All Audit Logs
+          </button>
         </div>
       </div>
 

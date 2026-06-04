@@ -1,17 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Building2, BookOpen, Shield, Lock, Plus, Search, RefreshCw, Layers } from 'lucide-react';
+import { Building2, BookOpen, Shield, Lock, Plus, Search, RefreshCw, Layers, Edit2, Trash2, X } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
 import CustomSelect from '../../components/forms/CustomSelect';
 import CustomCheckbox from '../../components/forms/CustomCheckbox';
+import { useAuthStore } from '../../store/authStore';
 
 export default function SettingsPage() {
   const location = useLocation();
   const path = location.pathname;
   const [activeTab, setActiveTab] = useState('school');
   
+  const { user, school, setSchool } = useAuthStore();
+
   useEffect(() => {
     if (path.includes('/settings/school')) {
       setActiveTab('school');
@@ -48,9 +51,33 @@ export default function SettingsPage() {
   const [systemForm, setSystemForm] = useState({
     enableRegistration: true,
     requireEmailVerification: true,
+    enableLMS: true,
     passwordLength: 8,
     sessionTimeout: 30
   });
+
+  // Campus Editing State
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingCampus, setEditingCampus] = useState(null);
+
+  // Sync settings when school loads
+  useEffect(() => {
+    if (school && school.settings) {
+      setAcademicForm({
+        academicYear: school.settings.academicYear || '2025-2026',
+        currentSemester: school.settings.currentSemester || '1st',
+        gradingSystem: school.settings.gradingSystem || 'percentage',
+        passingGrade: school.settings.passingGrade || 75
+      });
+      setSystemForm({
+        enableRegistration: school.settings.enableOnlineEnrollment ?? true,
+        requireEmailVerification: school.settings.enableParentPortal ?? true,
+        enableLMS: school.settings.enableLMS ?? true,
+        passwordLength: 8,
+        sessionTimeout: 30
+      });
+    }
+  }, [school]);
 
   useEffect(() => {
     fetchData();
@@ -94,14 +121,63 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSaveAcademic = (e) => {
-    e.preventDefault();
-    toast.success('Academic settings updated successfully!');
+  const handleDeleteCampus = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this campus and all its associated accounts? This action cannot be undone.')) {
+      return;
+    }
+    try {
+      await api.delete(`/admin/schools/${id}`);
+      toast.success('Campus deleted successfully');
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete campus.');
+    }
   };
 
-  const handleSaveSystem = (e) => {
+
+  const handleSaveAcademic = async (e) => {
     e.preventDefault();
-    toast.success('System security policies updated!');
+    if (!school?._id) {
+      toast.error('No active school context found.');
+      return;
+    }
+    try {
+      const payload = {
+        settings: {
+          academicYear: academicForm.academicYear,
+          currentSemester: academicForm.currentSemester,
+          gradingSystem: academicForm.gradingSystem,
+          passingGrade: academicForm.passingGrade
+        }
+      };
+      const { data } = await api.put(`/admin/schools/${school._id}`, payload);
+      setSchool(data.school);
+      toast.success('Academic settings updated successfully!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update academic settings.');
+    }
+  };
+
+  const handleSaveSystem = async (e) => {
+    e.preventDefault();
+    if (!school?._id) {
+      toast.error('No active school context found.');
+      return;
+    }
+    try {
+      const payload = {
+        settings: {
+          enableOnlineEnrollment: systemForm.enableRegistration,
+          enableParentPortal: systemForm.requireEmailVerification,
+          enableLMS: systemForm.enableLMS
+        }
+      };
+      const { data } = await api.put(`/admin/schools/${school._id}`, payload);
+      setSchool(data.school);
+      toast.success('System security policies updated!');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to update security policies.');
+    }
   };
 
   const filteredLogs = auditLogs.filter(log => {
@@ -180,6 +256,14 @@ export default function SettingsPage() {
                         {c.address?.city || 'City'}, {c.address?.province || 'Province'} · {c.studentCount || 0} students
                       </div>
                       {c.tagline && <div style={{ fontSize: 11, fontStyle: 'italic', color: '#64748b', marginTop: 4 }}>"{c.tagline}"</div>}
+                    </div>
+                    <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                      <button className="btn btn-secondary btn-sm btn-icon" onClick={() => { setEditingCampus(JSON.parse(JSON.stringify(c))); setShowEditModal(true); }} title="Edit Campus" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8 }}>
+                        <Edit2 size={14} />
+                      </button>
+                      <button className="btn btn-secondary btn-sm btn-icon" style={{ color: 'var(--danger)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 8 }} onClick={() => handleDeleteCampus(c._id)} disabled={c.abbreviation === 'ISCP'} title="Delete Campus">
+                        <Trash2 size={14} />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -364,6 +448,97 @@ export default function SettingsPage() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Modal */}
+      {showEditModal && editingCampus && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowEditModal(false)}>
+          <div className="modal animate-slide">
+            <div className="modal-header">
+              <h3 className="modal-title">Edit Campus: {editingCampus.name}</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowEditModal(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div className="form-group">
+                <label className="form-label">School Name *</label>
+                <input className="form-input" value={editingCampus.name || ''} onChange={e => setEditingCampus({ ...editingCampus, name: e.target.value })} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Abbreviation *</label>
+                <input className="form-input" value={editingCampus.abbreviation || ''} onChange={e => setEditingCampus({ ...editingCampus, abbreviation: e.target.value })} required />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Tagline</label>
+                <input className="form-input" value={editingCampus.tagline || ''} onChange={e => setEditingCampus({ ...editingCampus, tagline: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">City</label>
+                <input className="form-input" value={editingCampus.address?.city || ''} onChange={e => setEditingCampus({ ...editingCampus, address: { ...editingCampus.address, city: e.target.value } })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Province</label>
+                <input className="form-input" value={editingCampus.address?.province || ''} onChange={e => setEditingCampus({ ...editingCampus, address: { ...editingCampus.address, province: e.target.value } })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Email</label>
+                <input className="form-input" type="email" value={editingCampus.contact?.email || ''} onChange={e => setEditingCampus({ ...editingCampus, contact: { ...editingCampus.contact, email: e.target.value } })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Plan</label>
+                <CustomSelect
+                  value={editingCampus.plan || 'starter'}
+                  onChange={val => setEditingCampus({ ...editingCampus, plan: val })}
+                  options={[
+                    { value: 'starter', label: 'Starter' },
+                    { value: 'professional', label: 'Professional' },
+                    { value: 'enterprise', label: 'Enterprise' }
+                  ]}
+                />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <CustomSelect
+                  value={editingCampus.isActive !== false ? 'active' : 'suspended'}
+                  onChange={val => setEditingCampus({ ...editingCampus, isActive: val === 'active' })}
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'suspended', label: 'Suspended' }
+                  ]}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={async () => {
+                if (!editingCampus.name || !editingCampus.abbreviation) {
+                  toast.error('School name and abbreviation are required.');
+                  return;
+                }
+                try {
+                  const payload = {
+                    name: editingCampus.name,
+                    abbreviation: editingCampus.abbreviation,
+                    tagline: editingCampus.tagline,
+                    address: editingCampus.address,
+                    contact: editingCampus.contact,
+                    plan: editingCampus.plan,
+                    status: editingCampus.isActive ? 'active' : 'suspended'
+                  };
+                  await api.put(`/admin/schools/${editingCampus._id}`, payload);
+                  toast.success('Campus details updated successfully');
+                  setShowEditModal(false);
+                  fetchData();
+                  if (school?._id === editingCampus._id) {
+                    const { data } = await api.get('/auth/me');
+                    setSchool(data.user.schoolId);
+                  }
+                } catch (err) {
+                  toast.error(err.response?.data?.message || 'Failed to update campus.');
+                }
+              }}>Save Changes</button>
+            </div>
           </div>
         </div>
       )}

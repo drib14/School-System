@@ -63,6 +63,11 @@ export const useAuthStore = create((set, get) => ({
     return data.user;
   },
 
+  setSchool: (school) => set((state) => {
+    const updatedUser = state.user ? { ...state.user, schoolId: school } : null;
+    return { school, user: updatedUser };
+  }),
+
   hasRole: (...roles) => {
     const { user } = get();
     return user ? roles.includes(user.role) : false;

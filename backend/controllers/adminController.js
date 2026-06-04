@@ -246,4 +246,99 @@ const getAuditLogs = asyncHandler(async (req, res) => {
   res.json({ success: true, total, logs, page: Number(page), pages: Math.ceil(total / limit) });
 });
 
-module.exports = { getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, getStudents, getStudentById, createStudent, updateStudent, transferStudent, dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats, createSchool, getSchools, getAuditLogs };
+const updateSchool = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const { name, abbreviation, plan, status, tagline, logo, address, contact, settings } = req.body;
+
+  // Authorize: only super_admin or owner/principal of the specific school
+  if (req.user.role !== 'super_admin' && req.user.schoolId.toString() !== id) {
+    return res.status(403).json({ success: false, message: 'Not authorized to update this school settings.' });
+  }
+
+  const school = await School.findById(id);
+  if (!school) {
+    return res.status(404).json({ success: false, message: 'School not found.' });
+  }
+
+  if (name) school.name = name;
+  if (abbreviation) school.abbreviation = abbreviation;
+  if (plan) {
+    school.plan = plan;
+    if (school.subscription) {
+      school.subscription.plan = plan;
+    } else {
+      school.subscription = { plan, status: 'active' };
+    }
+  }
+  if (status) {
+    school.isActive = status === 'active';
+    if (school.subscription) {
+      school.subscription.status = status === 'active' ? 'active' : 'suspended';
+    }
+  }
+  if (tagline !== undefined) school.tagline = tagline;
+  if (logo !== undefined) school.logo = logo;
+  
+  if (address) {
+    school.address = { ...school.address, ...address };
+  }
+  if (contact) {
+    school.contact = { ...school.contact, ...contact };
+  }
+  if (settings) {
+    school.settings = { ...school.settings, ...settings };
+  }
+
+  await school.save();
+  res.json({ success: true, message: 'School settings updated successfully.', school });
+});
+
+const deleteSchool = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+
+  // Only super_admin can delete schools
+  if (req.user.role !== 'super_admin') {
+    return res.status(403).json({ success: false, message: 'Not authorized to delete school campuses.' });
+  }
+
+  const school = await School.findById(id);
+  if (!school) {
+    return res.status(404).json({ success: false, message: 'School not found.' });
+  }
+
+  // Prevent deleting the main system school
+  if (school.abbreviation === 'ISCP') {
+    return res.status(400).json({ success: false, message: 'Cannot delete the primary system tenant.' });
+  }
+
+  await School.findByIdAndDelete(id);
+  
+  // Clean up users associated with this school, except super_admins
+  await User.deleteMany({ schoolId: id, role: { $ne: 'super_admin' } });
+
+  res.json({ success: true, message: 'School and associated accounts deleted successfully.' });
+});
+
+module.exports = { 
+  getUsers, 
+  getUser, 
+  createUser, 
+  updateUser, 
+  toggleUserStatus, 
+  deleteUser, 
+  getStudents, 
+  getStudentById, 
+  createStudent, 
+  updateStudent, 
+  transferStudent, 
+  dropStudent, 
+  graduateStudent, 
+  getDashboardStats, 
+  getSuperAdminStats, 
+  createSchool, 
+  getSchools, 
+  getAuditLogs,
+  updateSchool,
+  deleteSchool
+};
+

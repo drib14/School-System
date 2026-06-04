@@ -6,6 +6,7 @@ import api from '../../services/api';
 import { format } from 'date-fns';
 import CustomSelect from '../../components/forms/CustomSelect';
 import toast from 'react-hot-toast';
+import SuperDashboardPage from '../super/SuperDashboardPage';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 function StatCard({ icon: Icon, value, label, color = 'blue', change }) {
@@ -294,6 +295,11 @@ function StudentEnrollmentTracker() {
 
 export default function DashboardPage() {
   const { user, school } = useAuthStore();
+
+  if (user?.role === 'super_admin') {
+    return <SuperDashboardPage />;
+  }
+
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [revenueData, setRevenueData] = useState([]);

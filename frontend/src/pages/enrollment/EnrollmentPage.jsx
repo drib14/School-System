@@ -190,7 +190,7 @@ function EnrollmentDetailModal({ enrollment, onClose, onUpdate, isStudent }) {
       </div>
 
       {showDocs && (
-        <div className="modal-overlay" style={{ zIndex: 9999 }} onClick={e => e.target === e.currentTarget && setShowDocs(false)}>
+        <div className="modal-overlay" style={{ zIndex: 9999 }} onClick={e => { e.stopPropagation(); e.target === e.currentTarget && setShowDocs(false); }}>
           <div className="modal animate-slide" style={{ background: 'rgba(15, 17, 26, 0.98)', border: '1px solid rgba(255,255,255,0.1)', maxWidth: 600 }}>
             <div className="modal-header">
               <h3 className="modal-title">Student Documents</h3>

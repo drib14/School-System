@@ -141,7 +141,21 @@ function StudentEnrollmentTracker() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, marginBottom: 24 }}>
       {/* Financial Summary */}
-      <div className="grid-3">
+      <div className="grid-4">
+        <div className="card" style={{ background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
+            <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(59, 130, 246, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <DollarSign size={20} style={{ color: '#3b82f6' }} />
+            </div>
+            <div>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Total Assessment</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#3b82f6' }}>₱{(financials?.netAmount || 0).toLocaleString()}</div>
+            </div>
+          </div>
+          <div style={{ marginTop: 'auto', display: 'flex', gap: 8 }}>
+            <a href="/financial/assessments" className="btn btn-secondary btn-sm" style={{ flex: 1, textAlign: 'center', textDecoration: 'none' }}>View Breakdown</a>
+          </div>
+        </div>
         <div className="card" style={{ background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'rgba(239, 68, 68, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

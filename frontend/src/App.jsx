@@ -149,13 +149,16 @@ export default function App() {
           {/* Protected Dashboard Routes — same paths as before */}
           <Route element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
             <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/dashboard/*" element={<DashboardPage />} />
 
             {/* Admin */}
             <Route path="admin/students" element={<StudentsPage />} />
             <Route path="admin/students/*" element={<StudentsPage />} />
             <Route path="admin/users" element={<UsersPage />} />
             <Route path="admin/users/*" element={<UsersPage />} />
+            <Route path="admin/roles" element={<UsersPage />} />
             <Route path="admin/roles/*" element={<UsersPage />} />
+            <Route path="admin/permissions" element={<UsersPage />} />
             <Route path="admin/permissions/*" element={<UsersPage />} />
 
             {/* Enrollment */}
@@ -196,6 +199,8 @@ export default function App() {
             <Route path="reports" element={<ReportsPage />} />
 
             {/* Super Admin */}
+            <Route path="super/audit-logs" element={<ProtectedRoute roles={['super_admin']}><SettingsPage /></ProtectedRoute>} />
+            <Route path="super/audit-logs/*" element={<ProtectedRoute roles={['super_admin']}><SettingsPage /></ProtectedRoute>} />
             <Route path="super/*" element={<ProtectedRoute roles={['super_admin']}><SuperDashboardPage /></ProtectedRoute>} />
 
             {/* Profile & Settings */}

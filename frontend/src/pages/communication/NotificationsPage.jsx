@@ -3,6 +3,7 @@ import { Bell, Check, CheckCheck, Trash2, Filter, Clock, AlertCircle, BookOpen, 
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { formatDistanceToNow } from 'date-fns';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const TYPE_ICON = {
   grade: BookOpen,
@@ -102,12 +103,18 @@ export default function NotificationsPage() {
             {f}
           </button>
         ))}
-        <select className="filter-select" value={typeFilter} onChange={e => { setTypeFilter(e.target.value); setPage(1); }}>
-          <option value="">All Types</option>
-          {['grade', 'payment', 'attendance', 'announcement', 'enrollment', 'message', 'system', 'alert', 'reminder'].map(t => (
-            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-          ))}
-        </select>
+        <CustomSelect
+          className="filter-cs"
+          value={typeFilter}
+          onChange={val => { setTypeFilter(val); setPage(1); }}
+          options={[
+            { value: '', label: 'All Types' },
+            ...['grade', 'payment', 'attendance', 'announcement', 'enrollment', 'message', 'system', 'alert', 'reminder'].map(t => ({
+              value: t,
+              label: t.charAt(0).toUpperCase() + t.slice(1)
+            }))
+          ]}
+        />
       </div>
 
       {/* Notifications List */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Building2, BookOpen, Shield, Lock, Plus, Search, RefreshCw, Layers } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
@@ -7,7 +8,22 @@ import CustomSelect from '../../components/forms/CustomSelect';
 import CustomCheckbox from '../../components/forms/CustomCheckbox';
 
 export default function SettingsPage() {
+  const location = useLocation();
+  const path = location.pathname;
   const [activeTab, setActiveTab] = useState('school');
+  
+  useEffect(() => {
+    if (path.includes('/settings/school')) {
+      setActiveTab('school');
+    } else if (path.includes('/settings/academic')) {
+      setActiveTab('academic');
+    } else if (path.includes('/settings/system') || path.includes('/settings/security')) {
+      setActiveTab('system');
+    } else if (path.includes('/super/audit-logs')) {
+      setActiveTab('audit');
+    }
+  }, [path]);
+
   const [campuses, setCampuses] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [loading, setLoading] = useState(false);

@@ -135,6 +135,11 @@ const seed = async () => {
     { code: 'ELEM-MATH1', name: 'Mathematics 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
     { code: 'ELEM-ENG1', name: 'English 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
     { code: 'ELEM-SCI3', name: 'Science 3', units: 3, level: 'k12', gradeLevel: ['3'], program: [createdPrograms.ELEM] },
+    { code: 'ELEM-FIL1', name: 'Filipino 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
+    { code: 'ELEM-AP1', name: 'Araling Panlipunan 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
+    { code: 'ELEM-MAPEH1', name: 'MAPEH 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
+    { code: 'ELEM-ESP1', name: 'Edukasyon sa Pagpapakatao 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
+    { code: 'ELEM-TLE4', name: 'EPP 4', units: 3, level: 'k12', gradeLevel: ['4'], program: [createdPrograms.ELEM] },
   ];
 
   // JHS
@@ -142,17 +147,49 @@ const seed = async () => {
     { code: 'JHS-MATH7', name: 'Mathematics 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
     { code: 'JHS-ENG7', name: 'English 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
     { code: 'JHS-SCI7', name: 'Science 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
+    { code: 'JHS-FIL7', name: 'Filipino 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
+    { code: 'JHS-AP7', name: 'Araling Panlipunan 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
+    { code: 'JHS-MAPEH7', name: 'MAPEH 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
+    { code: 'JHS-ESP7', name: 'Edukasyon sa Pagpapakatao 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
+    { code: 'JHS-TLE7', name: 'TLE 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
   ];
 
   // SHS (Strand specific)
   const shsSubjects = [
-    // Core
+    // Core (Shared)
     { code: 'SHS-CORE1', name: 'Oral Communication in Context', units: 3, level: 'k12', gradeLevel: ['11','12'], program: [createdPrograms.STEM, createdPrograms.ABM, createdPrograms.HUMSS] },
+    { code: 'SHS-CORE2', name: 'Reading and Writing Skills', units: 3, level: 'k12', gradeLevel: ['11','12'], program: [createdPrograms.STEM, createdPrograms.ABM, createdPrograms.HUMSS] },
+    { code: 'SHS-CORE3', name: 'Komunikasyon at Pananaliksik', units: 3, level: 'k12', gradeLevel: ['11','12'], program: [createdPrograms.STEM, createdPrograms.ABM, createdPrograms.HUMSS] },
+    
     // STEM
     { code: 'SHS-STEM1', name: 'Pre-Calculus', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM2', name: 'Basic Calculus', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] }, // prerequisite: Pre-Calculus (linked later)
+    { code: 'SHS-STEM2', name: 'Basic Calculus', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
+    { code: 'SHS-STEM3', name: 'General Physics 1', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.STEM] },
+    { code: 'SHS-STEM4', name: 'General Physics 2', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.STEM] },
+    { code: 'SHS-STEM5', name: 'General Chemistry 1', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
+    { code: 'SHS-STEM6', name: 'General Chemistry 2', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
+    { code: 'SHS-STEM7', name: 'General Biology 1', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
+    { code: 'SHS-STEM8', name: 'General Biology 2', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
+    
     // ABM
     { code: 'SHS-ABM1', name: 'Fundamentals of ABM 1', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
+    { code: 'SHS-ABM2', name: 'Fundamentals of ABM 2', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
+    { code: 'SHS-ABM3', name: 'Business Math', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
+    { code: 'SHS-ABM4', name: 'Business Finance', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
+    { code: 'SHS-ABM5', name: 'Organization and Management', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
+    { code: 'SHS-ABM6', name: 'Principles of Marketing', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
+    { code: 'SHS-ABM7', name: 'Business Ethics and Social Responsibility', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
+    { code: 'SHS-ABM8', name: 'Applied Economics', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
+
+    // HUMSS
+    { code: 'SHS-HUMSS1', name: 'Creative Writing', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
+    { code: 'SHS-HUMSS2', name: 'Creative Nonfiction', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
+    { code: 'SHS-HUMSS3', name: 'Introduction to World Religions', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
+    { code: 'SHS-HUMSS4', name: 'Trends, Networks, and Critical Thinking', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
+    { code: 'SHS-HUMSS5', name: 'Philippine Politics and Governance', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
+    { code: 'SHS-HUMSS6', name: 'Community Engagement, Solidarity, and Citizenship', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
+    { code: 'SHS-HUMSS7', name: 'Disciplines and Ideas in the Social Sciences', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
+    { code: 'SHS-HUMSS8', name: 'Disciplines and Ideas in the Applied Social Sciences', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
   ];
 
   // College

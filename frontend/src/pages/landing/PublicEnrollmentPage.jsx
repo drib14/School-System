@@ -71,6 +71,10 @@ export default function PublicEnrollmentPage() {
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [addressTimer, setAddressTimer] = useState(null);
 
+  const [schoolAddressSuggestions, setSchoolAddressSuggestions] = useState([]);
+  const [isSearchingSchoolAddress, setIsSearchingSchoolAddress] = useState(false);
+  const [schoolAddressTimer, setSchoolAddressTimer] = useState(null);
+
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: typeof e === 'string' ? e : e.target.value }));
 
   const handleAddressChange = (e) => {
@@ -98,6 +102,31 @@ export default function PublicEnrollmentPage() {
     }, 600));
   };
 
+  const handleSchoolAddressChange = (e) => {
+    const val = e.target.value;
+    setForm(f => ({ ...f, lastSchoolAddress: val }));
+    
+    if (schoolAddressTimer) clearTimeout(schoolAddressTimer);
+    if (!val.trim()) {
+      setSchoolAddressSuggestions([]);
+      return;
+    }
+    
+    setSchoolAddressTimer(setTimeout(async () => {
+      setIsSearchingSchoolAddress(true);
+      try {
+        const token = import.meta.env.VITE_LOCATIONIQ_ACCESS_TOKEN;
+        const res = await fetch(`https://api.locationiq.com/v1/autocomplete?key=${token}&q=${encodeURIComponent(val)}&limit=5&countrycodes=ph`);
+        const data = await res.json();
+        setSchoolAddressSuggestions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('LocationIQ Error:', err);
+      } finally {
+        setIsSearchingSchoolAddress(false);
+      }
+    }, 600));
+  };
+
   const selectAddress = (item) => {
     const addr = item.address || {};
     setForm(f => ({
@@ -108,6 +137,14 @@ export default function PublicEnrollmentPage() {
       zip: addr.postcode || '',
     }));
     setAddressSuggestions([]);
+  };
+
+  const selectSchoolAddress = (item) => {
+    setForm(f => ({
+      ...f,
+      lastSchoolAddress: item.display_name,
+    }));
+    setSchoolAddressSuggestions([]);
   };
 
   const levelInfo = YEAR_LEVELS[form.level];
@@ -346,11 +383,27 @@ export default function PublicEnrollmentPage() {
                 <div style={{ borderTop: '1px solid rgba(148,163,184,0.1)', paddingTop: 20, marginTop: 4 }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Parent / Guardian</p>
                   <FieldGroup cols={3}>
-                    {[['guardianName', 'Guardian Full Name'], ['guardianRelation', 'Relationship'], ['guardianContact', 'Contact Number']].map(([k, lb]) => (
-                      <Field key={k} label={lb}>
-                        <input value={form[k]} onChange={set(k)} placeholder={lb} style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
-                      </Field>
-                    ))}
+                    <Field label="Guardian Full Name">
+                      <input value={form.guardianName} onChange={set('guardianName')} placeholder="Guardian Full Name" style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                    </Field>
+                    <Field label="Relationship">
+                      <CustomSelect 
+                        value={form.guardianRelation} 
+                        onChange={set('guardianRelation')} 
+                        options={[
+                          { value: 'Father', label: 'Father' },
+                          { value: 'Mother', label: 'Mother' },
+                          { value: 'Grandparent', label: 'Grandparent' },
+                          { value: 'Sibling', label: 'Sibling' },
+                          { value: 'Aunt / Uncle', label: 'Aunt / Uncle' },
+                          { value: 'Legal Guardian', label: 'Legal Guardian' },
+                          { value: 'Other', label: 'Other' },
+                        ]} 
+                      />
+                    </Field>
+                    <Field label="Contact Number">
+                      <input value={form.guardianContact} onChange={set('guardianContact')} placeholder="Contact Number" style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                    </Field>
                   </FieldGroup>
                 </div>
               </div>
@@ -366,11 +419,46 @@ export default function PublicEnrollmentPage() {
                   <input value={form.lastSchoolAttended} onChange={set('lastSchoolAttended')} placeholder="Name of school" style={inputStyle('#8b5cf6')} onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                 </Field>
                 <Field label="School Address">
-                  <input value={form.lastSchoolAddress} onChange={set('lastSchoolAddress')} placeholder="City, Province" style={inputStyle('#8b5cf6')} onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      value={form.lastSchoolAddress} 
+                      onChange={handleSchoolAddressChange} 
+                      placeholder="Start typing your school address to autocomplete..." 
+                      style={inputStyle('#8b5cf6')} 
+                      onFocus={e => e.target.style.borderColor = '#8b5cf6'} 
+                      onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} 
+                    />
+                    {isSearchingSchoolAddress && <div style={{ position: 'absolute', right: 12, top: 10, fontSize: 12, color: '#94a3b8' }}>Searching...</div>}
+                    {schoolAddressSuggestions.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e293b', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, marginTop: 4, zIndex: 50, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                        {schoolAddressSuggestions.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => selectSchoolAddress(item)}
+                            style={{ padding: '10px 14px', fontSize: 12, borderBottom: idx < schoolAddressSuggestions.length - 1 ? '1px solid rgba(148,163,184,0.1)' : 'none', cursor: 'pointer', color: '#f1f5f9' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {item.display_name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </Field>
                 <FieldGroup>
                   <Field label="Last Grade / Year Completed">
-                    <input value={form.lastGradeYear} onChange={set('lastGradeYear')} placeholder="e.g. Grade 10, 3rd Year College" style={inputStyle('#8b5cf6')} onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                    <CustomSelect 
+                      value={form.lastGradeYear} 
+                      onChange={set('lastGradeYear')} 
+                      options={[
+                        ...['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'].map(v => ({ value: v, label: v })),
+                        ...['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(v => ({ value: v, label: v })),
+                        ...['Grade 11', 'Grade 12'].map(v => ({ value: v, label: v })),
+                        ...['1st Year College', '2nd Year College', '3rd Year College', '4th Year College', '5th Year College'].map(v => ({ value: v, label: v })),
+                        ...['Bachelor\'s Degree Graduate', '1st Year Master\'s', 'Master\'s Degree Graduate', 'Doctorate'].map(v => ({ value: v, label: v }))
+                      ]} 
+                    />
                   </Field>
                   <Field label="School Type">
                     <CustomSelect value={form.lastSchoolType} onChange={set('lastSchoolType')} options={[{ value: 'public', label: 'Public' }, { value: 'private', label: 'Private' }, { value: 'international', label: 'International' }]} />

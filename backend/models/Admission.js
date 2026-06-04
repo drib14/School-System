@@ -68,13 +68,12 @@ const applicationSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
-applicationSchema.pre('save', async function (next) {
+applicationSchema.pre('save', async function () {
   if (!this.applicationNumber) {
     const count = await this.constructor.countDocuments({ schoolId: this.schoolId });
     const year = new Date().getFullYear().toString().slice(-2);
     this.applicationNumber = `APP-${year}-${String(count + 1).padStart(5, '0')}`;
   }
-  next();
 });
 
 // Entrance Exam Schedule

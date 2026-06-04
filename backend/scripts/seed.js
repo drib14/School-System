@@ -25,10 +25,12 @@ const seed = async () => {
     console.log('✅ School created');
   }
 
+  const defaultPass = process.env.SEED_DEFAULT_PASS;
+
   // Create Super Admin
   const superAdmin = await User.findOneAndUpdate({ email: 'superadmin@iscp.edu.ph' }, {
     firstName: 'Super', lastName: 'Admin', email: 'superadmin@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_ADMIN_PASS || 'Admin@12345', 12), role: 'super_admin', isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_ADMIN_PASS || defaultPass, 12), role: 'super_admin', isActive: true, isEmailVerified: true,
     schoolId: school._id,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Super Admin created: superadmin@iscp.edu.ph');
@@ -36,28 +38,28 @@ const seed = async () => {
   // Create Principal
   await User.findOneAndUpdate({ email: 'principal@iscp.edu.ph' }, {
     firstName: 'Maria', middleName: 'Santos', lastName: 'Cruz', email: 'principal@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_PRINCIPAL_PASS || 'Principal@123', 12), role: 'principal', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_PRINCIPAL_PASS || defaultPass, 12), role: 'principal', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Principal created: principal@iscp.edu.ph');
 
   // Create Registrar
   await User.findOneAndUpdate({ email: 'registrar@iscp.edu.ph' }, {
     firstName: 'Ana', lastName: 'Reyes', email: 'registrar@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_REGISTRAR_PASS || 'Registrar@123', 12), role: 'registrar', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_REGISTRAR_PASS || defaultPass, 12), role: 'registrar', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Registrar created: registrar@iscp.edu.ph');
 
   // Create Teacher
   const teacher = await User.findOneAndUpdate({ email: 'teacher@iscp.edu.ph' }, {
     firstName: 'Juan', middleName: 'dela', lastName: 'Cruz', email: 'teacher@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_TEACHER_PASS || 'Teacher@123', 12), role: 'teacher', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_TEACHER_PASS || defaultPass, 12), role: 'teacher', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Teacher created: teacher@iscp.edu.ph');
 
   // Create Student
   await User.findOneAndUpdate({ email: 'student@iscp.edu.ph' }, {
     firstName: 'Jose', lastName: 'Rizal', email: 'student@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || 'Student@123', 12), role: 'student', schoolId: school._id,
+    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
     studentId: '25-00001', isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Student created: student@iscp.edu.ph');
@@ -65,7 +67,7 @@ const seed = async () => {
   // Create Cashier
   await User.findOneAndUpdate({ email: 'cashier@iscp.edu.ph' }, {
     firstName: 'Rosa', lastName: 'Garcia', email: 'cashier@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_CASHIER_PASS || 'Cashier@123', 12), role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_CASHIER_PASS || defaultPass, 12), role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
   // Comprehensive Academic Structure Seeding
@@ -143,6 +145,103 @@ const seed = async () => {
   await Subject.findByIdAndUpdate(createdSubjects['CS201'], { prerequisites: [createdSubjects['CS102']] });
 
   console.log(`✅ Subjects created and prerequisites linked (${allSubjects.length})`);
+
+  // 4. Create Curriculum for College (BSCS)
+  const Curriculum = require('../models/Curriculum');
+  await Curriculum.deleteMany({ schoolId: school._id });
+  const bscsCurriculum = await Curriculum.create({
+    schoolId: school._id,
+    program: createdPrograms.BSCS,
+    name: 'BSCS New Curriculum',
+    code: 'BSCS-NEW',
+    version: '1.0',
+    effectiveYear: '2025',
+    status: 'active',
+    subjects: [
+      { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
+      { subject: createdSubjects['MATH101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
+      { subject: createdSubjects['CS101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
+      { subject: createdSubjects['CS102'], yearLevel: 1, semester: '2nd', isRequired: true, order: 1 },
+      { subject: createdSubjects['CS201'], yearLevel: 2, semester: '1st', isRequired: true, order: 1 },
+    ],
+    totalUnits: 15,
+    createdBy: superAdmin._id
+  });
+  console.log('✅ Curriculums created (1)');
+
+  // 5. Create Pre-enrolled Students
+  const StudentProfile = require('../models/StudentProfile');
+  const Enrollment = require('../models/Enrollment');
+  const ClassSchedule = require('../models/ClassSchedule');
+
+  await StudentProfile.deleteMany({ schoolId: school._id });
+  await Enrollment.deleteMany({ schoolId: school._id });
+  await ClassSchedule.deleteMany({ schoolId: school._id });
+
+  // Create a class schedule for CS101
+  const cs101Schedule = await ClassSchedule.create({
+    schoolId: school._id,
+    subject: createdSubjects['CS101'],
+    teacher: teacher._id,
+    section: 'CS1A',
+    academicYear: '2025-2026',
+    semester: '1st',
+    schedule: [{ day: 'Mon', startTime: '09:00', endTime: '10:30' }, { day: 'Wed', startTime: '09:00', endTime: '10:30' }],
+    maxStudents: 40,
+    status: 'active'
+  });
+
+  // Create BSCS Student (College)
+  const collegeStudent = await User.findOneAndUpdate({ email: 'college_student@iscp.edu.ph' }, {
+    firstName: 'Juan', lastName: 'College', email: 'college_student@iscp.edu.ph',
+    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
+    studentId: '25-COL01', isActive: true, isEmailVerified: true,
+  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+
+  await StudentProfile.create({
+    userId: collegeStudent._id, schoolId: school._id, studentId: '25-COL01',
+    program: createdPrograms.BSCS, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
+    course: 'BSCS'
+  });
+
+  await Enrollment.create({
+    schoolId: school._id, student: collegeStudent._id, academicYear: '2025-2026', semester: '1st',
+    levelType: 'college', program: createdPrograms.BSCS, yearLevel: 1, type: 'new',
+    status: 'enrolled',
+    subjects: [{ subject: createdSubjects['CS101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
+    totalUnits: 3,
+    steps: [
+      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+    ]
+  });
+
+  // Create JHS Student (K-12)
+  const jhsStudent = await User.findOneAndUpdate({ email: 'jhs_student@iscp.edu.ph' }, {
+    firstName: 'Maria', lastName: 'Junior', email: 'jhs_student@iscp.edu.ph',
+    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
+    studentId: '25-JHS01', isActive: true, isEmailVerified: true,
+  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+
+  await StudentProfile.create({
+    userId: jhsStudent._id, schoolId: school._id, studentId: '25-JHS01',
+    program: createdPrograms.JHS, gradeLevel: '7', academicStatus: 'active', enrollmentStatus: 'enrolled'
+  });
+
+  await Enrollment.create({
+    schoolId: school._id, student: jhsStudent._id, academicYear: '2025-2026', semester: '1st',
+    levelType: 'k12', program: createdPrograms.JHS, gradeLevel: '7', type: 'new',
+    status: 'enrolled',
+    subjects: [], // Add JHS subjects here if needed
+    steps: [
+      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+    ]
+  });
+  console.log('✅ Pre-enrolled students created (College, JHS)');
+
 
   await mongoose.connection.close();
   console.log('\n🎉 Seeding complete!');

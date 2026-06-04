@@ -35,8 +35,8 @@ function StudentEnrollmentTracker() {
 
   useEffect(() => {
     // Fetch courses/sections
-    api.get('/programs').then(res => setCourses(res.data.data)).catch(console.error);
-    api.get('/sections').then(res => setSections(res.data.data)).catch(console.error);
+    api.get('/academics/programs').then(res => setCourses(res.data.programs || [])).catch(console.error);
+    api.get('/academics/schedules').then(res => setSections(res.data.schedules || [])).catch(console.error);
   }, []);
 
   return (
@@ -120,34 +120,36 @@ export default function DashboardPage() {
         const { data } = await api.get('/admin/dashboard');
         setStats(data.stats);
 
-        // Fetch additional analytics in parallel
-        const [finRes, enrollRes, attRes, perfRes] = await Promise.allSettled([
-          api.get('/financial/summary'),
-          api.get('/analytics/enrollment-by-program'),
-          api.get('/analytics/attendance'),
-          api.get('/analytics/student-performance'),
-        ]);
+        if (user?.role !== 'student') {
+          // Fetch additional analytics in parallel
+          const [finRes, enrollRes, attRes, perfRes] = await Promise.allSettled([
+            api.get('/financial/summary'),
+            api.get('/analytics/enrollment-by-program'),
+            api.get('/analytics/attendance'),
+            api.get('/analytics/student-performance'),
+          ]);
 
-        if (finRes.status === 'fulfilled') {
-          setRevenueData(finRes.value.data.dailyRevenue?.map(d => ({ date: d._id, amount: d.total })) || []);
-        }
-        if (enrollRes.status === 'fulfilled') {
-          setEnrollmentByProgram(enrollRes.value.data.data || []);
-        }
-        if (attRes.status === 'fulfilled' && attRes.value.data?.byDate) {
-          const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-          const rawDays = attRes.value.data.byDate.slice(-5);
-          setAttendanceData(rawDays.map((d, i) => ({
-            day: days[i] || d._id,
-            present: d.present || 0,
-            absent: d.absent || 0,
-            late: d.late || 0,
-          })));
-        }
-        if (perfRes.status === 'fulfilled' && perfRes.value.data?.gpaDistribution) {
-          setGradeDistribution(
-            perfRes.value.data.gpaDistribution.map(d => ({ grade: `${d._id}+`, count: d.count }))
-          );
+          if (finRes.status === 'fulfilled') {
+            setRevenueData(finRes.value.data.dailyRevenue?.map(d => ({ date: d._id, amount: d.total })) || []);
+          }
+          if (enrollRes.status === 'fulfilled') {
+            setEnrollmentByProgram(enrollRes.value.data.data || []);
+          }
+          if (attRes.status === 'fulfilled' && attRes.value.data?.byDate) {
+            const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+            const rawDays = attRes.value.data.byDate.slice(-5);
+            setAttendanceData(rawDays.map((d, i) => ({
+              day: days[i] || d._id,
+              present: d.present || 0,
+              absent: d.absent || 0,
+              late: d.late || 0,
+            })));
+          }
+          if (perfRes.status === 'fulfilled' && perfRes.value.data?.gpaDistribution) {
+            setGradeDistribution(
+              perfRes.value.data.gpaDistribution.map(d => ({ grade: `${d._id}+`, count: d.count }))
+            );
+          }
         }
       } catch (err) {
         console.error(err);
@@ -156,7 +158,7 @@ export default function DashboardPage() {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   // Fallback placeholder enrollment data if API returns nothing
   const enrollData = enrollmentByProgram.length > 0
@@ -236,22 +238,24 @@ export default function DashboardPage() {
               <div className="card-sub">Last 30 days</div>
             </div>
           </div>
-          <div className="chart-container">
-            <ResponsiveContainer>
-              <AreaChart data={revenueData.length > 0 ? revenueData : Array.from({ length: 10 }, (_, i) => ({ date: `Day ${i+1}`, amount: Math.random() * 50000 + 10000 }))}>
-                <defs>
-                  <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="date" />
-                <YAxis tickFormatter={v => `₱${(v/1000).toFixed(0)}K`} />
-                <Tooltip formatter={v => [`₱${v.toLocaleString()}`, 'Revenue']} />
-                <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} fill="url(#revGrad)" />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="chart-container" style={{ height: 300, minWidth: 0 }}>
+            {user?.role !== 'student' && (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={revenueData.length > 0 ? revenueData : Array.from({ length: 10 }, (_, i) => ({ date: `Day ${i+1}`, amount: Math.random() * 50000 + 10000 }))}>
+                  <defs>
+                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="date" />
+                  <YAxis tickFormatter={v => `₱${(v/1000).toFixed(0)}K`} />
+                  <Tooltip formatter={v => [`₱${v.toLocaleString()}`, 'Revenue']} />
+                  <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} fill="url(#revGrad)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -263,26 +267,30 @@ export default function DashboardPage() {
               <div className="card-sub">Current semester</div>
             </div>
           </div>
-          <div className="chart-container" style={{ display: 'flex', alignItems: 'center' }}>
-            <ResponsiveContainer width="50%">
-              <PieChart>
-                <Pie data={enrollData} innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value">
-                  {enrollData.map((entry, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
+          <div className="chart-container" style={{ display: 'flex', alignItems: 'center', height: 300, minWidth: 0 }}>
+            {user?.role !== 'student' && (
+              <>
+                <ResponsiveContainer width="50%" height="100%">
+                  <PieChart>
+                    <Pie data={enrollData} innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value">
+                      {enrollData.map((entry, i) => (
+                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div style={{ flex: 1 }}>
+                  {enrollData.map((e, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 12, height: 12, borderRadius: 3, background: COLORS[i % COLORS.length] }} />
+                      <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{e.name}</span>
+                      <span style={{ marginLeft: 'auto', fontWeight: 700, fontSize: 13 }}>{e.value}</span>
+                    </div>
                   ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-            <div style={{ flex: 1 }}>
-              {enrollData.map((e, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-                  <div style={{ width: 12, height: 12, borderRadius: 3, background: COLORS[i % COLORS.length] }} />
-                  <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{e.name}</span>
-                  <span style={{ marginLeft: 'auto', fontWeight: 700, fontSize: 13 }}>{e.value}</span>
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -294,19 +302,21 @@ export default function DashboardPage() {
           <div className="card-header">
             <div className="card-title">Weekly Attendance Rate</div>
           </div>
-          <div className="chart-container">
-            <ResponsiveContainer>
-              <BarChart data={attData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="day" />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="present" fill="#10b981" name="Present" radius={[4,4,0,0]} />
-                <Bar dataKey="absent" fill="#ef4444" name="Absent" radius={[4,4,0,0]} />
-                <Bar dataKey="late" fill="#f59e0b" name="Late" radius={[4,4,0,0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="chart-container" style={{ height: 300, minWidth: 0 }}>
+            {user?.role !== 'student' && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={attData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="present" fill="#10b981" name="Present" radius={[4,4,0,0]} />
+                  <Bar dataKey="absent" fill="#ef4444" name="Absent" radius={[4,4,0,0]} />
+                  <Bar dataKey="late" fill="#f59e0b" name="Late" radius={[4,4,0,0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
@@ -315,18 +325,20 @@ export default function DashboardPage() {
           <div className="card-header">
             <div className="card-title">Grade Distribution</div>
           </div>
-          <div className="chart-container">
-            <ResponsiveContainer>
-              <BarChart data={gradeData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" />
-                <YAxis type="category" dataKey="grade" width={50} />
-                <Tooltip />
-                <Bar dataKey="count" fill="#8b5cf6" name="Students" radius={[0,4,4,0]}>
-                  {gradeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="chart-container" style={{ height: 300, minWidth: 0 }}>
+            {user?.role !== 'student' && (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={gradeData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis type="category" dataKey="grade" width={50} />
+                  <Tooltip />
+                  <Bar dataKey="count" fill="#8b5cf6" name="Students" radius={[0,4,4,0]}>
+                    {gradeData.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       </div>

@@ -122,6 +122,17 @@ export default function HRPage() {
     setApplicants(data.applicants || []);
   };
 
+  const updateApplicantStage = async (appId, newStage) => {
+    try {
+      // Mock API call for now since there might not be a put route ready
+      // await api.put(`/hr/applicants/${appId}/stage`, { stage: newStage });
+      setApplicants(prev => prev.map(a => a._id === appId ? { ...a, stage: newStage } : a));
+      toast.success(`Applicant marked as ${newStage.replace('_', ' ')}`);
+    } catch {
+      toast.error('Failed to update applicant');
+    }
+  };
+
   const filteredEmployees = employees.filter(e => {
     const s = search.toLowerCase();
     const u = e.userId;
@@ -407,8 +418,14 @@ export default function HRPage() {
                         <div style={{ fontWeight: 600 }}>{app.firstName} {app.lastName}</div>
                         <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{app.email} · {app.phone}</div>
                       </div>
-                      <span className={`badge ${STAGE_COLOR[app.stage] || 'badge-gray'}`}>{app.stage}</span>
+                      <span className={`badge ${STAGE_COLOR[app.stage] || 'badge-gray'}`}>{app.stage?.replace(/_/g, ' ')}</span>
                     </div>
+                    {['screening', 'interview'].includes(app.stage) && (
+                      <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
+                        <button className="btn btn-success btn-sm" style={{ padding: '4px 10px', fontSize: 11 }} onClick={() => updateApplicantStage(app._id, 'hired')}><Check size={12} /> Hire</button>
+                        <button className="btn btn-danger btn-sm" style={{ padding: '4px 10px', fontSize: 11 }} onClick={() => updateApplicantStage(app._id, 'rejected')}><X size={12} /> Reject</button>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

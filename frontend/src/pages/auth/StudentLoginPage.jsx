@@ -63,7 +63,7 @@ export default function LoginPage() {
             </div>
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 900, background: 'linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12 }}>
-            ISCP School System
+            ISCP Portal
           </h1>
           <p style={{ fontSize: 15, color: 'var(--text-muted)', maxWidth: 320, lineHeight: 1.7 }}>
             International State Colleges of the Philippines<br />
@@ -77,25 +77,6 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Quick login hints */}
-          <div style={{ marginTop: 32, background: 'rgba(30,41,59,0.6)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', textAlign: 'left', maxWidth: 360 }}>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Quick Test Login</p>
-            {[
-              { role: 'Super Admin', email: 'superadmin@iscp.edu.ph', pass: 'Admin@12345', color: '#a78bfa' },
-              { role: 'Principal', email: 'principal@iscp.edu.ph', pass: 'Principal@123', color: '#3b82f6' },
-              { role: 'Registrar', email: 'registrar@iscp.edu.ph', pass: 'Registrar@123', color: '#06b6d4' },
-              { role: 'Teacher', email: 'teacher@iscp.edu.ph', pass: 'Teacher@123', color: '#10b981' },
-              { role: 'Student', email: 'student@iscp.edu.ph', pass: 'Student@123', color: '#60a5fa' },
-            ].map(({ role, email, pass, color }) => (
-              <button key={role} onClick={() => quickLogin(email, pass)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, transition: 'all 0.2s' }}
-                className="dropdown-item">
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{role}</span>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>{email}</span>
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Right — Form */}
@@ -103,19 +84,19 @@ export default function LoginPage() {
           {!twoFactor.required ? (
             <>
               <div className="auth-logo">
-                <h2 style={{ fontSize: 24, fontWeight: 800 }}>Welcome Back</h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 6 }}>Sign in to your account</p>
+                <h2 style={{ fontSize: 24, fontWeight: 800 }}>Student Portal</h2>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, marginTop: 6 }}>Sign in using your Student ID</p>
               </div>
 
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                 <div className="form-group">
-                  <label className="form-label">Email Address</label>
+                  <label className="form-label">Student ID / Email</label>
                   <div style={{ position: 'relative' }}>
-                    <Mail size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <Shield size={16} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input
                       className="form-input"
                       style={{ paddingLeft: 38 }}
-                      type="text" placeholder="email@iscp.edu.ph"
+                      type="text" placeholder="e.g. 2023-0001 or email"
                       value={form.email}
                       onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                       required
@@ -152,8 +133,8 @@ export default function LoginPage() {
               </form>
 
               <div className="auth-links">
-                Don't have an account?{' '}
-                <Link to="/register" style={{ color: 'var(--blue-400)', fontWeight: 600 }}>Register here</Link>
+                Don't have a student account?{' '}
+                <Link to="/enroll/new" style={{ color: 'var(--blue-400)', fontWeight: 600 }}>Enroll Now</Link>
               </div>
             </>
           ) : (

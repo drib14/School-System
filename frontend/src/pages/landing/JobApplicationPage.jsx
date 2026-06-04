@@ -129,7 +129,7 @@ export default function JobApplicationPage() {
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <School size={18} style={{ color: '#3b82f6' }} />
-          <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: 14, color: '#f1f5f9' }}>ISCP School System</span>
+          <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 700, fontSize: 14, color: '#f1f5f9' }}>ISCP</span>
         </div>
       </nav>
 
@@ -140,7 +140,7 @@ export default function JobApplicationPage() {
             <Briefcase size={24} color="white" />
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, fontFamily: 'Outfit, sans-serif', marginBottom: 8 }}>Job Application</h1>
-          <p style={{ color: '#64748b', fontSize: 14 }}>Apply to join our team at ISCP School System</p>
+          <p style={{ color: '#64748b', fontSize: 14 }}>Apply to join our team at International State Colleges of the Philippines</p>
         </div>
 
         {/* Step Indicator */}

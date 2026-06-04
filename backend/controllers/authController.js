@@ -127,14 +127,22 @@ const login = asyncHandler(async (req, res) => {
 
   const school = user.schoolId ? await School.findById(user.schoolId).select('name abbreviation logo settings') : null;
 
+  const userObj = {
+    id: user._id, firstName: user.firstName, lastName: user.lastName, fullName: user.fullName,
+    email: user.email, role: user.role, avatar: user.avatar,
+    schoolId: user.schoolId, twoFactorEnabled: user.twoFactorEnabled,
+  };
+
+  if (user.role === 'student') {
+    const StudentProfile = require('../models/StudentProfile');
+    const profile = await StudentProfile.findOne({ userId: user._id }).populate('program', 'name code type level').lean();
+    userObj.profile = profile;
+  }
+
   res.json({
     success: true, message: 'Login successful.',
     accessToken,
-    user: {
-      id: user._id, firstName: user.firstName, lastName: user.lastName, fullName: user.fullName,
-      email: user.email, role: user.role, avatar: user.avatar,
-      schoolId: user.schoolId, twoFactorEnabled: user.twoFactorEnabled,
-    },
+    user: userObj,
     school,
   });
 });
@@ -270,7 +278,12 @@ const sendEmailOTP = asyncHandler(async (req, res) => {
 // @desc    Get current user
 // @route   GET /api/auth/me
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).populate('schoolId', 'name abbreviation logo settings');
+  const user = await User.findById(req.user._id).populate('schoolId', 'name abbreviation logo settings').lean();
+  if (user && user.role === 'student') {
+    const StudentProfile = require('../models/StudentProfile');
+    const profile = await StudentProfile.findOne({ userId: user._id }).populate('program', 'name code type level').lean();
+    user.profile = profile;
+  }
   res.json({ success: true, user });
 });
 

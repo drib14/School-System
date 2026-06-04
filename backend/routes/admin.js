@@ -9,6 +9,13 @@ const adminRoles = ['super_admin','school_owner','principal','registrar','hr_sta
 router.get('/dashboard', protect, ctrl.getDashboardStats);
 router.get('/dashboard/super', protect, authorize('super_admin'), ctrl.getSuperAdminStats);
 
+// Schools (Tenant Management)
+router.get('/schools', protect, authorize('super_admin'), ctrl.getSchools);
+router.post('/schools', protect, authorize('super_admin'), ctrl.createSchool);
+
+// Audit Logs
+router.get('/audit-logs', protect, authorize('super_admin'), ctrl.getAuditLogs);
+
 // Users
 router.get('/users', protect, authorize(...adminRoles), ctrl.getUsers);
 router.post('/users', protect, authorize(...adminRoles), ctrl.createUser);

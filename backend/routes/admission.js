@@ -5,6 +5,7 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const { Application, EntranceExam, Interview } = require('../models/Admission');
 const { Notification } = require('../models/Communication');
 const User = require('../models/User');
+const { sendMail, emailTemplates } = require('../config/mailer');
 
 const ADMISSION_ROLES = ['registrar', 'principal', 'super_admin', 'school_owner'];
 
@@ -49,12 +50,114 @@ router.get('/applications/:id', protect, authorize(...ADMISSION_ROLES), asyncHan
 
 // Public submission (no auth required)
 router.post('/applications', asyncHandler(async (req, res) => {
-  const { schoolId, ...body } = req.body;
+  let { schoolId, enrollmentType, program, gender, level, track, ...body } = req.body;
+
+  // 1. Format gender
+  if (gender) {
+    gender = gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+    if (gender === 'Prefer_not_to_say') gender = 'Other';
+  }
+
+  // 2. Fetch default School if not provided
+  if (!schoolId) {
+    const School = require('../models/School');
+    let school = await School.findOne();
+    if (!school) {
+      school = await School.create({
+        name: 'International State Colleges of the Philippines',
+        code: 'ISCP',
+        address: { city: 'Quezon City', country: 'Philippines' },
+        contactEmail: 'info@iscp.edu.ph'
+      });
+    }
+    schoolId = school._id;
+  }
+
+  // 3. Application Type
+  const applicationType = enrollmentType || 'new';
+
+  // 4. Resolve desiredProgram
+  const Program = require('../models/Program');
+  let desiredProgramDoc;
+  if (level === 'elementary') {
+    desiredProgramDoc = await Program.findOne({ name: /Elementary/i });
+  } else if (level === 'jhs') {
+    desiredProgramDoc = await Program.findOne({ name: /Junior High/i });
+  } else if (level === 'shs' && track) {
+    desiredProgramDoc = await Program.findOne({ name: new RegExp(track, 'i') });
+  } else if (program) {
+    desiredProgramDoc = await Program.findOne({ name: program });
+  }
+  
+  if (!desiredProgramDoc) {
+    desiredProgramDoc = await Program.findOne(); // Fallback to avoid error
+  }
+  if (!desiredProgramDoc) {
+    desiredProgramDoc = await Program.create({
+      schoolId: schoolId,
+      name: program || track || level || 'General Admission',
+      code: 'GEN',
+      type: 'college',
+      level: 'bachelor',
+      totalUnits: 120
+    });
+  }
+
   const application = await Application.create({
     ...body,
-    schoolId: schoolId || req.body.schoolId,
+    gender,
+    applicationType,
+    desiredProgram: desiredProgramDoc ? desiredProgramDoc._id : null,
+    schoolId,
   });
-  res.status(201).json({ success: true, application, message: `Application submitted. Your application number is ${application.applicationNumber}.` });
+
+  // Check if user already exists
+  const existingUser = await User.findOne({ email: application.email });
+  if (!existingUser) {
+    // Generate ID and password
+    const count = await User.countDocuments({ role: 'student', schoolId: application.schoolId });
+    const now = new Date();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const year = now.getFullYear().toString();
+    const sequence = String(count + 1).padStart(3, '0');
+    const studentId = `${month}${day}${year.slice(-2)}${sequence}`;
+
+    const lastInitial = application.lastName.charAt(0).toUpperCase();
+    const defaultPassword = `${studentId}${lastInitial}`;
+
+    const newUser = await User.create({
+      schoolId: application.schoolId,
+      firstName: application.firstName,
+      middleName: application.middleName,
+      lastName: application.lastName,
+      email: application.email,
+      phone: application.phone,
+      birthDate: application.birthDate,
+      gender: application.gender,
+      password: defaultPassword,
+      role: 'student',
+      studentId: studentId,
+      isActive: true,
+      isEmailVerified: true // Auto verify
+    });
+
+    application.linkedUser = newUser._id;
+    await application.save();
+
+    // Email credentials immediately (as requested)
+    try {
+      await sendMail({
+        to: application.email,
+        subject: 'ISCP Application Submitted - Student Portal Credentials',
+        html: emailTemplates.studentCredentials(application.firstName, studentId, defaultPassword),
+      });
+    } catch (err) {
+      console.error('Failed to send credential email:', err);
+    }
+  }
+
+  res.status(201).json({ success: true, application, message: `Application submitted. Your application number is ${application.applicationNumber}. Credentials emailed.` });
 }));
 
 router.put('/applications/:id/stage', protect, authorize(...ADMISSION_ROLES), asyncHandler(async (req, res) => {
@@ -69,11 +172,6 @@ router.put('/applications/:id/stage', protect, authorize(...ADMISSION_ROLES), as
   }
 
   const application = await Application.findByIdAndUpdate(req.params.id, updates, { new: true });
-
-  // Send notification email if applicant has an account
-  if (req.body.stage === 'accepted') {
-    // Create or notify user account
-  }
 
   res.json({ success: true, application });
 }));

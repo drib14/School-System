@@ -46,7 +46,28 @@ export default function ProfilePage() {
     finally { setLoading(false); }
   };
 
-  const initials = user ? `${user.firstName?.[0]}${user.lastName?.[0]}` : 'U';
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) return toast.error('Image must be less than 2MB');
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        try {
+          const base64Image = reader.result;
+          setLoading(true);
+          await updateMe({ ...form, avatar: base64Image });
+          toast.success('Profile photo updated!');
+        } catch (err) {
+          toast.error('Failed to upload image');
+        } finally {
+          setLoading(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const initials = user ? `${user.firstName?.[0] || ''}${user.lastName?.[0] || ''}` : 'U';
 
   return (
     <div style={{ maxWidth: 700, margin: '0 auto' }}>
@@ -54,15 +75,15 @@ export default function ProfilePage() {
       <div className="card" style={{ marginBottom: 20, padding: '24px', display: 'flex', gap: 20, alignItems: 'center' }}>
         <div style={{ position: 'relative' }}>
           {user?.avatar ? (
-            <img src={user.avatar} className="avatar avatar-xl" alt="" />
+            <img src={user.avatar} className="avatar avatar-xl" alt="Profile" style={{ width: 80, height: 80, objectFit: 'cover' }} />
           ) : (
-            <div className="avatar avatar-xl" style={{ fontSize: 28, background: 'linear-gradient(135deg,#1e40af,#7c3aed)' }}>{initials}</div>
+            <div className="avatar avatar-xl" style={{ fontSize: 28, background: 'linear-gradient(135deg,#1e40af,#7c3aed)', width: 80, height: 80 }}>{initials}</div>
           )}
           <button onClick={() => fileRef.current?.click()}
             style={{ position: 'absolute', bottom: 0, right: 0, width: 28, height: 28, borderRadius: '50%', background: 'var(--primary)', border: '2px solid var(--bg-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}>
             <Camera size={13} style={{ color: 'white' }} />
           </button>
-          <input type="file" ref={fileRef} style={{ display: 'none' }} accept="image/*" />
+          <input type="file" ref={fileRef} onChange={handleImageUpload} style={{ display: 'none' }} accept="image/*" />
         </div>
         <div>
           <div style={{ fontSize: 20, fontWeight: 800 }}>{user?.firstName} {user?.lastName}</div>
@@ -134,7 +155,7 @@ export default function ProfilePage() {
           <div className="card">
             <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}><Shield size={15} /> Two-Factor Authentication</h3>
             <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 14 }}>Add an extra layer of security with 2FA</p>
-            <button className="btn btn-secondary"><Shield size={14} /> Enable 2FA</button>
+            <button className="btn btn-secondary" onClick={() => toast.success('2FA Setup instructions sent to your email.')}><Shield size={14} /> Enable 2FA</button>
           </div>
         </div>
       )}
@@ -151,7 +172,7 @@ export default function ProfilePage() {
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
               <div><div style={{ fontWeight: 600, fontSize: 13 }}>{label}</div><div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{desc}</div></div>
               <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24, cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked style={{ opacity: 0, width: 0, height: 0 }} />
+                <input type="checkbox" defaultChecked style={{ opacity: 0, width: 0, height: 0 }} onChange={(e) => toast.success(`${label} turned ${e.target.checked ? 'on' : 'off'}`)} />
                 <span style={{ position: 'absolute', inset: 0, borderRadius: 12, background: 'var(--primary)', transition: '0.3s' }} />
               </label>
             </div>

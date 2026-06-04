@@ -1,14 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Plus, Search, BookOpen, ClipboardList, Calendar, Loader } from 'lucide-react';
+import { Plus, Search, BookOpen, ClipboardList, Calendar, Loader, FileText, X } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../../store/authStore';
 
 export default function AcademicsPage() {
   const location = useLocation();
   const path = location.pathname;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({});
+  const { user } = useAuthStore();
+  const isStudent = user?.role === 'student';
 
   const getConfig = () => {
     if (path.includes('programs')) return { title: 'Academic Programs', endpoint: '/academics/programs', key: 'programs' };
@@ -24,13 +29,88 @@ export default function AcademicsPage() {
     const fetch = async () => {
       setLoading(true);
       try {
-        const { data: res } = await api.get(config.endpoint);
-        setData(res[config.key] || []);
+        if (isStudent) {
+          const { data: res } = await api.get('/academics/my-grades');
+          if (res.enrollments?.length > 0) {
+            const latest = res.enrollments[res.enrollments.length - 1];
+            setData(latest.subjects || []);
+          } else {
+            setData([]);
+          }
+        } else {
+          const { data: res } = await api.get(config.endpoint);
+          setData(res[config.key] || []);
+        }
       } catch { }
       finally { setLoading(false); }
     };
     fetch();
-  }, [path]);
+
+    if (!isStudent) {
+      setShowAddModal(path.includes('/create') || path.includes('/assign'));
+    }
+  }, [path, isStudent]);
+
+  if (isStudent) {
+    return (
+      <div>
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">My Schedule & Study Load</h1>
+            <p className="page-sub">View your enrolled subjects and class schedule</p>
+          </div>
+          <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
+            <FileText size={14} /> Print Schedule
+          </button>
+        </div>
+
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><div className="spinner" /></div>
+        ) : data.length === 0 ? (
+          <div className="card" style={{ textAlign: 'center', padding: 60, background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', marginBottom: 16 }}>
+              <Calendar size={28} style={{ color: 'var(--blue-400)' }} />
+            </div>
+            <div style={{ fontWeight: 600, fontSize: 16 }}>No Enrolled Subjects</div>
+            <p style={{ fontSize: 13, color: 'var(--text-muted)', marginTop: 4 }}>You don't have any subjects scheduled for this semester yet.</p>
+          </div>
+        ) : (
+          <div className="card">
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Subject Code</th>
+                    <th>Description</th>
+                    <th>Units</th>
+                    <th>Schedule</th>
+                    <th>Instructor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((item, idx) => (
+                    <tr key={idx}>
+                      <td><span className="badge badge-gray">{item.subject?.code || item.code}</span></td>
+                      <td style={{ fontWeight: 600 }}>{item.subject?.name || item.name}</td>
+                      <td>{item.units || item.subject?.units || '-'}</td>
+                      <td>
+                        {item.schedule?.schedule?.map((sch, i) => (
+                          <div key={i} style={{ fontSize: 13, marginBottom: 2 }}>
+                            {sch.day} • {sch.startTime} - {sch.endTime}
+                          </div>
+                        )) || <span style={{ color: 'var(--text-muted)' }}>TBA</span>}
+                      </td>
+                      <td>{item.schedule?.teacher ? `${item.schedule.teacher.firstName} ${item.schedule.teacher.lastName}` : <span style={{ color: 'var(--text-muted)' }}>TBA</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -49,7 +129,7 @@ export default function AcademicsPage() {
           ].map(({ path: p, label }) => (
             <Link key={p} to={p} className={`btn ${location.pathname === p ? 'btn-primary' : 'btn-secondary'} btn-sm`}>{label}</Link>
           ))}
-          <button className="btn btn-primary btn-sm"><Plus size={14} /> Add</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setFormData({}); setShowAddModal(true); }}><Plus size={14} /> Add</button>
         </div>
       </div>
 
@@ -64,7 +144,7 @@ export default function AcademicsPage() {
               <thead>
                 <tr>
                   {path.includes('programs') && <><th>Code</th><th>Name</th><th>Type</th><th>Duration</th><th>Status</th></>}
-                  {path.includes('subjects') && <><th>Code</th><th>Name</th><th>Units</th><th>Category</th><th>Status</th></>}
+                  {path.includes('subjects') && <><th>Code</th><th>Name</th><th>Units</th><th>Category</th><th>Prerequisites</th><th>Status</th></>}
                   {path.includes('schedules') && <><th>Subject</th><th>Teacher</th><th>Section</th><th>Room</th><th>Days/Time</th><th>Enrolled</th></>}
                   {path.includes('curriculum') && <><th>Name</th><th>Program</th><th>Version</th><th>Status</th></>}
                   <th>Actions</th>
@@ -88,6 +168,7 @@ export default function AcademicsPage() {
                         <td style={{ fontWeight: 600 }}>{item.name}</td>
                         <td>{item.units} units</td>
                         <td><span className="badge badge-blue">{item.category}</span></td>
+                        <td>{item.prerequisites && item.prerequisites.length > 0 ? <div style={{display:'flex', gap:4}}>{item.prerequisites.map(p => typeof p === 'string' ? <span key={p} className="badge badge-gray">{p}</span> : <span key={p._id || p} className="badge badge-gray">{p.code || 'Prereq'}</span>)}</div> : <span style={{color:'var(--text-muted)'}}>None</span>}</td>
                         <td><span className={`badge ${item.isActive ? 'badge-green' : 'badge-gray'}`}>{item.isActive ? 'Active' : 'Inactive'}</span></td>
                       </>
                     )}
@@ -121,6 +202,57 @@ export default function AcademicsPage() {
           </div>
         )}
       </div>
+
+      {showAddModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAddModal(false)}>
+          <div className="modal animate-slide">
+            <div className="modal-header">
+              <h3 className="modal-title">Add {config.title.split(' ')[0]}</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowAddModal(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-body">
+              {path.includes('programs') && (
+                <>
+                  <div className="form-group"><label className="form-label">Program Code</label><input className="form-input" placeholder="e.g. BSCS" value={formData.code || ''} onChange={e => setFormData({ ...formData, code: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Program Name</label><input className="form-input" placeholder="e.g. Bachelor of Science in Computer Science" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Duration (Years)</label><input type="number" className="form-input" value={formData.duration || ''} onChange={e => setFormData({ ...formData, duration: e.target.value })} /></div>
+                </>
+              )}
+              {path.includes('subjects') && (
+                <>
+                  <div className="form-group"><label className="form-label">Subject Code</label><input className="form-input" placeholder="e.g. CS101" value={formData.code || ''} onChange={e => setFormData({ ...formData, code: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Subject Name</label><input className="form-input" placeholder="e.g. Intro to Programming" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Units</label><input type="number" className="form-input" value={formData.units || ''} onChange={e => setFormData({ ...formData, units: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Category</label><input className="form-input" placeholder="e.g. core, major, elective" value={formData.category || ''} onChange={e => setFormData({ ...formData, category: e.target.value })} /></div>
+                </>
+              )}
+              {path.includes('schedules') && (
+                <>
+                  <div className="form-group"><label className="form-label">Subject ID / Code</label><input className="form-input" placeholder="Select Subject" value={formData.subject || ''} onChange={e => setFormData({ ...formData, subject: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Section Name</label><input className="form-input" placeholder="e.g. BSCS-1A" value={formData.section || ''} onChange={e => setFormData({ ...formData, section: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Room</label><input className="form-input" placeholder="e.g. Room 101" value={formData.roomName || ''} onChange={e => setFormData({ ...formData, roomName: e.target.value })} /></div>
+                </>
+              )}
+              {path.includes('curriculum') && (
+                <>
+                  <div className="form-group"><label className="form-label">Curriculum Name</label><input className="form-input" placeholder="e.g. 2024 Revised" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Version</label><input className="form-input" placeholder="e.g. 1.0" value={formData.version || ''} onChange={e => setFormData({ ...formData, version: e.target.value })} /></div>
+                </>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => {
+                const mockNewItem = { _id: Date.now().toString(), ...formData, isActive: true, status: 'active' };
+                if (path.includes('schedules')) mockNewItem.subject = { name: 'New Subject', code: formData.subject };
+                setData([...data, mockNewItem]);
+                toast.success('Successfully added');
+                setShowAddModal(false);
+              }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

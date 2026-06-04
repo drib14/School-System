@@ -83,6 +83,8 @@ app.use('/api/analytics', analyticsRoutes);
 app.use('/api/campus', campusRoutes);
 app.use('/api/services', servicesRoutes);
 app.use('/api/admission', admissionRoutes);
+const publicRoutes = require('./routes/public');
+app.use('/api/public', publicRoutes);
 
 
 // Health check

@@ -7,8 +7,8 @@ import { useAuthStore } from './store/authStore';
 import DashboardLayout from './layouts/DashboardLayout';
 
 // Auth Pages
-const LoginPage = lazy(() => import('./pages/auth/LoginPage'));
-const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'));
+const StaffLoginPage = lazy(() => import('./pages/auth/StaffLoginPage'));
+const StudentLoginPage = lazy(() => import('./pages/auth/StudentLoginPage'));
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'));
 const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'));
 
@@ -66,6 +66,8 @@ const AdmissionPage = lazy(() => import('./pages/admission/AdmissionPage'));
 const LandingPage = lazy(() => import('./pages/landing/LandingPage'));
 const JobApplicationPage = lazy(() => import('./pages/landing/JobApplicationPage'));
 const PublicEnrollmentPage = lazy(() => import('./pages/landing/PublicEnrollmentPage'));
+const TermsPage = lazy(() => import('./pages/landing/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/landing/PrivacyPage'));
 
 // Loading spinner
 function PageLoader() {
@@ -83,7 +85,7 @@ function PageLoader() {
 function ProtectedRoute({ children, roles }) {
   const { isAuthenticated, user, isLoading } = useAuthStore();
   if (isLoading) return <PageLoader />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/" replace />;
   if (roles && !roles.includes(user?.role)) return <Navigate to="/app/dashboard" replace />;
   return children;
 }
@@ -133,10 +135,12 @@ export default function App() {
           <Route path="/" element={<LandingRoute />} />
           <Route path="/apply-job" element={<JobApplicationPage />} />
           <Route path="/enroll/new" element={<PublicEnrollmentPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           {/* Public Auth Routes */}
-          <Route path="/login" element={<AuthRoute><LoginPage /></AuthRoute>} />
-          <Route path="/register" element={<AuthRoute><RegisterPage /></AuthRoute>} />
+          <Route path="/login/staff" element={<AuthRoute><StaffLoginPage /></AuthRoute>} />
+          <Route path="/login/student" element={<AuthRoute><StudentLoginPage /></AuthRoute>} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
@@ -146,10 +150,15 @@ export default function App() {
 
             {/* Admin */}
             <Route path="admin/students" element={<StudentsPage />} />
+            <Route path="admin/students/*" element={<StudentsPage />} />
             <Route path="admin/users" element={<UsersPage />} />
+            <Route path="admin/users/*" element={<UsersPage />} />
+            <Route path="admin/roles/*" element={<UsersPage />} />
+            <Route path="admin/permissions/*" element={<UsersPage />} />
 
             {/* Enrollment */}
             <Route path="enrollment" element={<EnrollmentPage />} />
+            <Route path="enrollment/*" element={<EnrollmentPage />} />
             <Route path="my-enrollment" element={<EnrollmentPage />} />
 
             {/* Academics */}
@@ -159,10 +168,12 @@ export default function App() {
 
             {/* Grades */}
             <Route path="grades" element={<GradesPage />} />
+            <Route path="grades/*" element={<GradesPage />} />
             <Route path="my-grades" element={<GradesPage />} />
 
             {/* Attendance */}
             <Route path="attendance" element={<AttendancePage />} />
+            <Route path="attendance/*" element={<AttendancePage />} />
             <Route path="my-attendance" element={<AttendancePage />} />
 
             {/* Financial */}
@@ -188,6 +199,34 @@ export default function App() {
             {/* Profile & Settings */}
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/*" element={<SettingsPage />} />
+
+            {/* Student Hub Routes */}
+            <Route path="student/profile/*" element={<ProfilePage />} />
+            <Route path="student/enrollment/*" element={<EnrollmentPage />} />
+            <Route path="student/academics/*" element={<AcademicsPage />} />
+            <Route path="student/schedule/*" element={<AcademicsPage />} />
+            <Route path="student/lms/*" element={<LMSPage />} />
+            <Route path="student/grades/*" element={<GradesPage />} />
+            <Route path="student/attendance/*" element={<AttendancePage />} />
+            <Route path="student/billing/*" element={<FinancialPage />} />
+            <Route path="student/payments/*" element={<FinancialPage />} />
+            <Route path="student/scholarships/*" element={<FinancialPage />} />
+            <Route path="student/library/*" element={<LibraryPage />} />
+            <Route path="student/clinic/*" element={<ClinicPage />} />
+            <Route path="student/guidance/*" element={<GuidancePage />} />
+            <Route path="student/orgs/*" element={<DashboardPage />} />
+            <Route path="student/events/*" element={<DashboardPage />} />
+            <Route path="student/id/*" element={<ProfilePage />} />
+            <Route path="student/qr/*" element={<ProfilePage />} />
+            <Route path="student/ojt/*" element={<DashboardPage />} />
+            <Route path="student/thesis/*" element={<DashboardPage />} />
+            <Route path="student/clearance/*" element={<ClearancePage />} />
+            <Route path="student/docs/*" element={<ClearancePage />} />
+            <Route path="student/alumni/*" element={<DashboardPage />} />
+            <Route path="student/messages/*" element={<MessagesPage />} />
+            <Route path="student/announcements/*" element={<AnnouncementsPage />} />
+            <Route path="student/notifications/*" element={<NotificationsPage />} />
 
             {/* Parent routes */}
             <Route path="parent/*" element={<DashboardPage />} />
@@ -196,9 +235,11 @@ export default function App() {
             <Route path="hr" element={<HRPage />} />
             <Route path="hr/*" element={<HRPage />} />
 
-            {/* Guidance / Clinic / Security */}
+            {/* Guidance / Clinic / Security / Orgs */}
             <Route path="guidance" element={<GuidancePage />} />
+            <Route path="guidance/*" element={<GuidancePage />} />
             <Route path="clinic" element={<ClinicPage />} />
+            <Route path="clinic/*" element={<ClinicPage />} />
             <Route path="visitors" element={<VisitorsPage />} />
             <Route path="incidents" element={<VisitorsPage />} />
             <Route path="security" element={<VisitorsPage />} />
@@ -207,7 +248,10 @@ export default function App() {
             {/* Clearance / Documents / Services */}
             <Route path="clearance" element={<ClearancePage />} />
             <Route path="documents" element={<DashboardPage />} />
+            <Route path="documents/*" element={<DashboardPage />} />
             <Route path="organizations" element={<DashboardPage />} />
+            <Route path="organizations/*" element={<DashboardPage />} />
+            <Route path="scholarships/*" element={<DashboardPage />} />
             <Route path="ojt" element={<DashboardPage />} />
             <Route path="qr-system" element={<DashboardPage />} />
 

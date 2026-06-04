@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ChevronLeft, ChevronRight, Check, School, User, BookOpen, FileText, CheckCircle, ArrowLeft, Star, Award, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -21,6 +21,7 @@ const YEAR_LEVELS = {
     ]
   },
   graduate: { label: 'Graduate School', grades: ['1st Year', '2nd Year', '3rd Year'], icon: Layers, color: '#06b6d4', gradient: 'linear-gradient(135deg, #0284c7, #06b6d4)', programs: ['Master of Arts in Education', 'Master of Business Administration (MBA)', 'Master of Science in Information Technology', 'Master of Public Administration', 'Doctor of Education', 'Doctor of Philosophy'] },
+  special: { label: 'Special Programs', grades: ['Alternative Learning System (ALS)', 'Special Education (SPED)', 'Language Proficiency', 'Technical Vocational'], icon: Star, color: '#ec4899', gradient: 'linear-gradient(135deg, #db2777, #ec4899)' },
 };
 
 const GENDERS = [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }, { value: 'other', label: 'Other' }, { value: 'prefer_not_to_say', label: 'Prefer not to say' }];
@@ -52,10 +53,23 @@ export default function PublicEnrollmentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [referenceNo, setReferenceNo] = useState('');
+  const [campuses, setCampuses] = useState([]);
+  const [campusDropdownOpen, setCampusDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    api.get('/public/schools')
+      .then(({ data }) => {
+        setCampuses(data.schools || []);
+        if (data.schools?.length > 0) {
+          setForm(f => ({ ...f, schoolId: data.schools[0]._id }));
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const [form, setForm] = useState({
     // Step 0 — Level
-    level: '', grade: '', track: '', program: '', enrollmentType: 'new', academicYear: '2025-2026', semester: '1st',
+    schoolId: '', level: '', grade: '', track: '', program: '', enrollmentType: 'new', academicYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, semester: '1st',
     // Step 1 — Personal
     firstName: '', lastName: '', middleName: '', suffix: '', birthDate: '', birthPlace: '', gender: '', civilStatus: 'single', nationality: 'Filipino', religion: '',
     // Step 2 — Family & Contact
@@ -67,12 +81,90 @@ export default function PublicEnrollmentPage() {
     remarks: '',
   });
 
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [addressTimer, setAddressTimer] = useState(null);
+
+  const [schoolAddressSuggestions, setSchoolAddressSuggestions] = useState([]);
+  const [isSearchingSchoolAddress, setIsSearchingSchoolAddress] = useState(false);
+  const [schoolAddressTimer, setSchoolAddressTimer] = useState(null);
+
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: typeof e === 'string' ? e : e.target.value }));
+
+  const handleAddressChange = (e) => {
+    const val = e.target.value;
+    setForm(f => ({ ...f, address: val }));
+    
+    if (addressTimer) clearTimeout(addressTimer);
+    if (!val.trim()) {
+      setAddressSuggestions([]);
+      return;
+    }
+    
+    setAddressTimer(setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        const token = import.meta.env.VITE_LOCATIONIQ_ACCESS_TOKEN;
+        const res = await fetch(`https://api.locationiq.com/v1/autocomplete?key=${token}&q=${encodeURIComponent(val)}&limit=5&countrycodes=ph`);
+        const data = await res.json();
+        setAddressSuggestions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('LocationIQ Error:', err);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 600));
+  };
+
+  const handleSchoolAddressChange = (e) => {
+    const val = e.target.value;
+    setForm(f => ({ ...f, lastSchoolAddress: val }));
+    
+    if (schoolAddressTimer) clearTimeout(schoolAddressTimer);
+    if (!val.trim()) {
+      setSchoolAddressSuggestions([]);
+      return;
+    }
+    
+    setSchoolAddressTimer(setTimeout(async () => {
+      setIsSearchingSchoolAddress(true);
+      try {
+        const token = import.meta.env.VITE_LOCATIONIQ_ACCESS_TOKEN;
+        const res = await fetch(`https://api.locationiq.com/v1/autocomplete?key=${token}&q=${encodeURIComponent(val)}&limit=5&countrycodes=ph`);
+        const data = await res.json();
+        setSchoolAddressSuggestions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('LocationIQ Error:', err);
+      } finally {
+        setIsSearchingSchoolAddress(false);
+      }
+    }, 600));
+  };
+
+  const selectAddress = (item) => {
+    const addr = item.address || {};
+    setForm(f => ({
+      ...f,
+      address: item.display_name,
+      city: addr.city || addr.town || addr.county || '',
+      province: addr.state || addr.region || '',
+      zip: addr.postcode || '',
+    }));
+    setAddressSuggestions([]);
+  };
+
+  const selectSchoolAddress = (item) => {
+    setForm(f => ({
+      ...f,
+      lastSchoolAddress: item.display_name,
+    }));
+    setSchoolAddressSuggestions([]);
+  };
 
   const levelInfo = YEAR_LEVELS[form.level];
 
   const validate = () => {
-    if (step === 0) return form.level && form.grade && form.enrollmentType && ((form.level === 'shs' && form.track) || form.level !== 'shs') && ((['college','graduate'].includes(form.level) && form.program) || !['college','graduate'].includes(form.level));
+    if (step === 0) return form.schoolId && form.level && form.grade && form.enrollmentType && ((form.level === 'shs' && form.track) || form.level !== 'shs') && ((['college', 'graduate'].includes(form.level) && form.program) || !['college', 'graduate'].includes(form.level));
     if (step === 1) return form.firstName && form.lastName && form.birthDate && form.gender;
     if (step === 2) return form.address && form.contactNumber;
     return true;
@@ -82,17 +174,13 @@ export default function PublicEnrollmentPage() {
     setSubmitting(true);
     try {
       const payload = { ...form, status: 'pending', submittedAt: new Date() };
-      let ref = '';
-      try {
-        const { data } = await api.post('/admission', payload);
-        ref = data.referenceNumber || data.admissionNo || `ENR-${Date.now()}`;
-      } catch {
-        ref = `ENR-${Date.now()}`;
-      }
+      const { data } = await api.post('/admission/applications', payload);
+      const ref = data.referenceNumber || data.admissionNo || data.application?.applicationNumber || `ENR-${Date.now()}`;
       setReferenceNo(ref);
       setSubmitted(true);
-    } catch {
-      toast.error('Failed to submit. Please try again.');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to submit. Please try again.');
     } finally {
       setSubmitting(false);
     }
@@ -114,7 +202,7 @@ export default function PublicEnrollmentPage() {
             <p style={{ fontSize: 20, fontWeight: 800, color: '#60a5fa', letterSpacing: '0.05em' }}>{referenceNo}</p>
           </div>
           <p style={{ color: '#64748b', fontSize: 13, marginBottom: 32 }}>
-            Please keep your reference number for tracking. Our admissions team will contact you within 2–3 business days to confirm your enrollment and the next steps.
+            Please keep your reference number for tracking. Your student portal credentials have been sent to your email (<strong style={{ color: '#f1f5f9' }}>{form.email}</strong>). You can now login to check your admission status!
           </p>
           <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => navigate('/')} style={{ padding: '10px 22px', borderRadius: 10, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}>
@@ -149,7 +237,7 @@ export default function PublicEnrollmentPage() {
             <GraduationCap size={24} color="white" />
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, fontFamily: 'Outfit, sans-serif', marginBottom: 8 }}>Student Enrollment Form</h1>
-          <p style={{ color: '#64748b', fontSize: 14 }}>A.Y. 2025-2026 · Fill out all required fields to complete your enrollment application</p>
+          <p style={{ color: '#64748b', fontSize: 14 }}>A.Y. {new Date().getFullYear()}-{new Date().getFullYear() + 1} · Fill out all required fields to complete your enrollment application</p>
         </div>
 
         {/* Step Indicator */}
@@ -188,6 +276,58 @@ export default function PublicEnrollmentPage() {
 
               {form.level && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                  <Field label="Desired Campus / Branch" required col={2}>
+                    <div style={{ position: 'relative' }}>
+                      <div 
+                        onClick={() => setCampusDropdownOpen(!campusDropdownOpen)}
+                        style={{ ...inputStyle('#10b981'), display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: '#0f172a', border: '1px solid rgba(148,163,184,0.15)', padding: '8px 12px', minHeight: 46 }}
+                      >
+                        {form.schoolId ? (
+                          (() => {
+                            const selected = campuses.find(c => c._id === form.schoolId);
+                            return selected ? (
+                              <>
+                                <img src={selected.logo || '/iscp-logo.jpg'} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', background: 'rgba(255,255,255,0.05)' }} />
+                                <div>
+                                  <div style={{ fontWeight: 600, fontSize: 13, color: '#f1f5f9' }}>{selected.name}</div>
+                                  <div style={{ fontSize: 11, color: '#64748b' }}>{selected.address?.city || 'Philippines'}</div>
+                                </div>
+                              </>
+                            ) : <span>Select Campus</span>;
+                          })()
+                        ) : (
+                          <span>Select Campus</span>
+                        )}
+                        <ChevronRight size={16} style={{ marginLeft: 'auto', transform: campusDropdownOpen ? 'rotate(90deg)' : 'none', transition: '0.2s', color: '#64748b' }} />
+                      </div>
+                      
+                      {campusDropdownOpen && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e293b', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 12, marginTop: 4, zIndex: 50, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', maxHeight: 220, overflowY: 'auto' }}>
+                          {campuses.map((c) => (
+                            <div 
+                              key={c._id}
+                              onClick={() => {
+                                setForm(f => ({ ...f, schoolId: c._id }));
+                                setCampusDropdownOpen(false);
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderBottom: '1px solid rgba(148,163,184,0.08)', cursor: 'pointer', background: form.schoolId === c._id ? 'rgba(16,185,129,0.08)' : 'transparent' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.05)'}
+                              onMouseLeave={e => e.currentTarget.style.background = form.schoolId === c._id ? 'rgba(16,185,129,0.08)' : 'transparent'}
+                            >
+                              <img src={c.logo || '/iscp-logo.jpg'} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', background: 'rgba(255,255,255,0.05)' }} />
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: '#f1f5f9' }}>{c.name}</div>
+                                <div style={{ fontSize: 11, color: '#94a3b8' }}>{c.tagline || c.address?.city || 'ISCP Campus'}</div>
+                              </div>
+                            </div>
+                          ))}
+                          {campuses.length === 0 && (
+                            <div style={{ padding: 16, textAlign: 'center', color: '#64748b', fontSize: 13 }}>No campuses found</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </Field>
                   <Field label="Grade / Year Level" required>
                     <CustomSelect value={form.grade} onChange={set('grade')} options={(levelInfo?.grades || []).map(g => ({ value: g, label: g }))} placeholder="Select grade" />
                   </Field>
@@ -204,12 +344,19 @@ export default function PublicEnrollmentPage() {
                   <Field label="Enrollment Type" required>
                     <CustomSelect value={form.enrollmentType} onChange={set('enrollmentType')} options={ENROLLMENT_TYPES} />
                   </Field>
-                  <Field label="Academic Year" required>
-                    <CustomSelect value={form.academicYear} onChange={set('academicYear')} options={['2025-2026', '2026-2027'].map(y => ({ value: y, label: y }))} />
-                  </Field>
-                  <Field label="Semester">
-                    <CustomSelect value={form.semester} onChange={set('semester')} options={[{ value: '1st', label: '1st Semester' }, { value: '2nd', label: '2nd Semester' }, { value: 'Summer', label: 'Summer' }]} />
-                  </Field>
+                  <FieldGroup cols={2}>
+                    <Field label="Academic Year" required>
+                      <CustomSelect value={form.academicYear} onChange={set('academicYear')} options={[
+                        { value: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, label: `A.Y. ${new Date().getFullYear()}-${new Date().getFullYear() + 1}` },
+                        { value: `${new Date().getFullYear() + 1}-${new Date().getFullYear() + 2}`, label: `A.Y. ${new Date().getFullYear() + 1}-${new Date().getFullYear() + 2}` }
+                      ]} />
+                    </Field>
+                    {form.level !== 'elementary' && form.level !== 'jhs' && form.level !== 'special' && (
+                      <Field label="Semester" required>
+                        <CustomSelect value={form.semester} onChange={set('semester')} options={[{ value: '1st', label: '1st Semester' }, { value: '2nd', label: '2nd Semester' }, { value: 'Summer', label: 'Summer' }]} />
+                      </Field>
+                    )}
+                  </FieldGroup>
                 </div>
               )}
             </div>
@@ -260,18 +407,43 @@ export default function PublicEnrollmentPage() {
             <div>
               <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}><FileText size={18} style={{ color: '#f59e0b' }} /> Family & Contact Information</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <Field label="Home Address" required>
-                  <input value={form.address} onChange={set('address')} placeholder="House No., Street, Barangay" style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                <Field label="Home Address" required col={2}>
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      value={form.address} 
+                      onChange={handleAddressChange} 
+                      placeholder="Start typing your address to autocomplete..." 
+                      style={inputStyle('#f59e0b')} 
+                      onFocus={e => e.target.style.borderColor = '#f59e0b'} 
+                      onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} 
+                    />
+                    {isSearchingAddress && <div style={{ position: 'absolute', right: 12, top: 10, fontSize: 12, color: '#94a3b8' }}>Searching...</div>}
+                    {addressSuggestions.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e293b', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, marginTop: 4, zIndex: 50, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                        {addressSuggestions.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => selectAddress(item)}
+                            style={{ padding: '10px 14px', fontSize: 12, borderBottom: idx < addressSuggestions.length - 1 ? '1px solid rgba(148,163,184,0.1)' : 'none', cursor: 'pointer', color: '#f1f5f9' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {item.display_name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </Field>
                 <FieldGroup cols={3}>
-                  {[['city','City / Municipality'], ['province','Province'], ['zip','ZIP Code']].map(([k, lb]) => (
+                  {[['city', 'City / Municipality'], ['province', 'Province'], ['zip', 'ZIP Code']].map(([k, lb]) => (
                     <Field key={k} label={lb}>
                       <input value={form[k]} onChange={set(k)} placeholder={lb} style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                     </Field>
                   ))}
                 </FieldGroup>
                 <FieldGroup>
-                  {[['contactNumber','Contact Number',true], ['email','Email Address (optional)',false]].map(([k, lb, req]) => (
+                  {[['contactNumber', 'Contact Number', true], ['email', 'Email Address (optional)', false]].map(([k, lb, req]) => (
                     <Field key={k} label={lb} required={req}>
                       <input value={form[k]} onChange={set(k)} placeholder={lb} style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                     </Field>
@@ -280,11 +452,27 @@ export default function PublicEnrollmentPage() {
                 <div style={{ borderTop: '1px solid rgba(148,163,184,0.1)', paddingTop: 20, marginTop: 4 }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Parent / Guardian</p>
                   <FieldGroup cols={3}>
-                    {[['guardianName','Guardian Full Name'], ['guardianRelation','Relationship'], ['guardianContact','Contact Number']].map(([k, lb]) => (
-                      <Field key={k} label={lb}>
-                        <input value={form[k]} onChange={set(k)} placeholder={lb} style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
-                      </Field>
-                    ))}
+                    <Field label="Guardian Full Name">
+                      <input value={form.guardianName} onChange={set('guardianName')} placeholder="Guardian Full Name" style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                    </Field>
+                    <Field label="Relationship">
+                      <CustomSelect 
+                        value={form.guardianRelation} 
+                        onChange={set('guardianRelation')} 
+                        options={[
+                          { value: 'Father', label: 'Father' },
+                          { value: 'Mother', label: 'Mother' },
+                          { value: 'Grandparent', label: 'Grandparent' },
+                          { value: 'Sibling', label: 'Sibling' },
+                          { value: 'Aunt / Uncle', label: 'Aunt / Uncle' },
+                          { value: 'Legal Guardian', label: 'Legal Guardian' },
+                          { value: 'Other', label: 'Other' },
+                        ]} 
+                      />
+                    </Field>
+                    <Field label="Contact Number">
+                      <input value={form.guardianContact} onChange={set('guardianContact')} placeholder="Contact Number" style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                    </Field>
                   </FieldGroup>
                 </div>
               </div>
@@ -300,11 +488,46 @@ export default function PublicEnrollmentPage() {
                   <input value={form.lastSchoolAttended} onChange={set('lastSchoolAttended')} placeholder="Name of school" style={inputStyle('#8b5cf6')} onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                 </Field>
                 <Field label="School Address">
-                  <input value={form.lastSchoolAddress} onChange={set('lastSchoolAddress')} placeholder="City, Province" style={inputStyle('#8b5cf6')} onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      value={form.lastSchoolAddress} 
+                      onChange={handleSchoolAddressChange} 
+                      placeholder="Start typing your school address to autocomplete..." 
+                      style={inputStyle('#8b5cf6')} 
+                      onFocus={e => e.target.style.borderColor = '#8b5cf6'} 
+                      onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} 
+                    />
+                    {isSearchingSchoolAddress && <div style={{ position: 'absolute', right: 12, top: 10, fontSize: 12, color: '#94a3b8' }}>Searching...</div>}
+                    {schoolAddressSuggestions.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e293b', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, marginTop: 4, zIndex: 50, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                        {schoolAddressSuggestions.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => selectSchoolAddress(item)}
+                            style={{ padding: '10px 14px', fontSize: 12, borderBottom: idx < schoolAddressSuggestions.length - 1 ? '1px solid rgba(148,163,184,0.1)' : 'none', cursor: 'pointer', color: '#f1f5f9' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {item.display_name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </Field>
                 <FieldGroup>
                   <Field label="Last Grade / Year Completed">
-                    <input value={form.lastGradeYear} onChange={set('lastGradeYear')} placeholder="e.g. Grade 10, 3rd Year College" style={inputStyle('#8b5cf6')} onFocus={e => e.target.style.borderColor = '#8b5cf6'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                    <CustomSelect 
+                      value={form.lastGradeYear} 
+                      onChange={set('lastGradeYear')} 
+                      options={[
+                        ...['Kindergarten', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'Grade 6'].map(v => ({ value: v, label: v })),
+                        ...['Grade 7', 'Grade 8', 'Grade 9', 'Grade 10'].map(v => ({ value: v, label: v })),
+                        ...['Grade 11', 'Grade 12'].map(v => ({ value: v, label: v })),
+                        ...['1st Year College', '2nd Year College', '3rd Year College', '4th Year College', '5th Year College'].map(v => ({ value: v, label: v })),
+                        ...['Bachelor\'s Degree Graduate', '1st Year Master\'s', 'Master\'s Degree Graduate', 'Doctorate'].map(v => ({ value: v, label: v }))
+                      ]} 
+                    />
                   </Field>
                   <Field label="School Type">
                     <CustomSelect value={form.lastSchoolType} onChange={set('lastSchoolType')} options={[{ value: 'public', label: 'Public' }, { value: 'private', label: 'Private' }, { value: 'international', label: 'International' }]} />
@@ -327,10 +550,10 @@ export default function PublicEnrollmentPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {[
                   ['Academic Level', levelInfo?.label || '—'],
+                  ['Level & Track', `${levelInfo?.label || ''} ${form.track ? `— ${form.track}` : ''} ${form.program ? `— ${form.program}` : ''}`],
                   ['Grade / Year', form.grade],
-                  ['Track / Program', form.track || form.program || '—'],
-                  ['Enrollment Type', form.enrollmentType?.replace(/_/g, ' ')],
-                  ['Academic Year', `${form.academicYear} — ${form.semester} Semester`],
+                  ['Academic Year', (form.level === 'elementary' || form.level === 'jhs') ? form.academicYear : `${form.academicYear} — ${form.semester} Semester`],
+                  ['Enrollment Type', ENROLLMENT_TYPES.find(t => t.value === form.enrollmentType)?.label],
                   ['Full Name', `${form.firstName} ${form.middleName ? form.middleName + ' ' : ''}${form.lastName}`],
                   ['Date of Birth', form.birthDate],
                   ['Gender', form.gender],

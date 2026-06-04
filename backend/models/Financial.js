@@ -79,13 +79,12 @@ const paymentSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
-paymentSchema.pre('save', async function (next) {
+paymentSchema.pre('save', async function () {
   if (!this.referenceNumber) {
     const count = await this.constructor.countDocuments({ schoolId: this.schoolId });
     const year = new Date().getFullYear().toString().slice(-2);
     this.referenceNumber = `PAY-${year}-${String(count + 1).padStart(6, '0')}`;
   }
-  next();
 });
 
 const Fee = mongoose.model('Fee', feeSchema);

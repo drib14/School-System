@@ -62,13 +62,12 @@ const enrollmentSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
-enrollmentSchema.pre('save', async function (next) {
+enrollmentSchema.pre('save', async function () {
   if (!this.enrollmentNumber) {
     const count = await this.constructor.countDocuments({ schoolId: this.schoolId });
     const year = new Date().getFullYear().toString().slice(-2);
     this.enrollmentNumber = `ENR-${year}-${String(count + 1).padStart(5, '0')}`;
   }
-  next();
 });
 
 module.exports = mongoose.model('Enrollment', enrollmentSchema);

@@ -74,4 +74,7 @@ const studentProfileSchema = new mongoose.Schema({
   updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
+studentProfileSchema.index({ schoolId: 1 });
+studentProfileSchema.index({ academicStatus: 1, enrollmentStatus: 1 });
+
 module.exports = mongoose.model('StudentProfile', studentProfileSchema);

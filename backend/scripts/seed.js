@@ -402,6 +402,7 @@ const seed = async () => {
   await Enrollment.findOneAndUpdate(
     { student: nursingStudent._id, academicYear: '2025-2026' },
     {
+      enrollmentNumber: 'ENR-25-NUR01',
       schoolId: school._id, semester: '1st',
       levelType: 'college', program: createdPrograms.BSN, yearLevel: 1, type: 'new',
       status: 'enrolled',
@@ -435,6 +436,7 @@ const seed = async () => {
   await Enrollment.findOneAndUpdate(
     { student: jhsStudent._id, academicYear: '2025-2026' },
     {
+      enrollmentNumber: 'ENR-25-JHS01',
       schoolId: school._id, semester: '1st',
       levelType: 'k12', program: createdPrograms.JHS, gradeLevel: '7', type: 'new',
       status: 'enrolled',
@@ -467,6 +469,7 @@ const seed = async () => {
   await Enrollment.findOneAndUpdate(
     { student: elemStudent._id, academicYear: '2025-2026' },
     {
+      enrollmentNumber: 'ENR-25-ELE01',
       schoolId: school._id, semester: '1st',
       levelType: 'k12', program: createdPrograms.ELEM, gradeLevel: '1', type: 'new',
       status: 'enrolled',
@@ -499,6 +502,7 @@ const seed = async () => {
   await Enrollment.findOneAndUpdate(
     { student: shsStudent._id, academicYear: '2025-2026' },
     {
+      enrollmentNumber: 'ENR-25-SHS01',
       schoolId: school._id, semester: '1st',
       levelType: 'k12', program: createdPrograms.STEM, gradeLevel: '11', type: 'new',
       status: 'enrolled',

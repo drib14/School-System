@@ -188,4 +188,19 @@ const getSuperAdminStats = asyncHandler(async (req, res) => {
   res.json({ success: true, stats: { schools, totalUsers, activeSubscriptions, totalRevenue: totalRevenue[0]?.total || 0 }, schoolList });
 });
 
-module.exports = { getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, getStudents, getStudentById, createStudent, updateStudent, transferStudent, dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats };
+const createSchool = asyncHandler(async (req, res) => {
+  const { name, abbreviation, plan = 'starter' } = req.body;
+  
+  if (!name || !abbreviation) {
+    return res.status(400).json({ success: false, message: 'Name and abbreviation are required.' });
+  }
+
+  const newSchool = await School.create({
+    name, abbreviation, 
+    plan, subscription: { status: 'active', plan }
+  });
+
+  res.status(201).json({ success: true, message: 'School created.', school: newSchool });
+});
+
+module.exports = { getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, getStudents, getStudentById, createStudent, updateStudent, transferStudent, dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats, createSchool };

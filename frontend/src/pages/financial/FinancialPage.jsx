@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { DollarSign, CreditCard, TrendingUp, Plus, CheckCircle } from 'lucide-react';
+import { DollarSign, CreditCard, TrendingUp, Plus, CheckCircle, X } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -15,6 +15,8 @@ export default function FinancialPage() {
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
   const [showPayModal, setShowPayModal] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({});
   const [activeTab, setActiveTab] = useState(path.includes('fees') ? 'fees' : path.includes('assessments') ? 'assessments' : path.includes('summary') ? 'summary' : 'payments');
 
   const isStudent = user?.role === 'student';
@@ -53,7 +55,9 @@ export default function FinancialPage() {
             <button key={t} className={`btn btn-sm ${activeTab === t ? 'btn-primary' : 'btn-secondary'}`}
               onClick={() => setActiveTab(t)} style={{ textTransform: 'capitalize' }}>{t}</button>
           ))}
-          {!isStudent && <button className="btn btn-primary btn-sm"><Plus size={14} /> Record Payment</button>}
+          {!isStudent && activeTab === 'payments' && <button className="btn btn-primary btn-sm" onClick={() => { setFormData({}); setShowAddModal('payment'); }}><Plus size={14} /> Record Payment</button>}
+          {!isStudent && activeTab === 'fees' && <button className="btn btn-primary btn-sm" onClick={() => { setFormData({}); setShowAddModal('fee'); }}><Plus size={14} /> Add Fee</button>}
+          {!isStudent && activeTab === 'assessments' && <button className="btn btn-primary btn-sm" onClick={() => { setFormData({}); setShowAddModal('assessment'); }}><Plus size={14} /> Generate Assessment</button>}
         </div>
       </div>
 
@@ -242,6 +246,75 @@ export default function FinancialPage() {
                   fetchData(); // Refresh data
                 }}>Confirm Payment</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Admin Add Modals */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAddModal(false)}>
+          <div className="modal animate-slide">
+            <div className="modal-header">
+              <h3 className="modal-title">
+                {showAddModal === 'fee' && 'Add Fee'}
+                {showAddModal === 'assessment' && 'Generate Assessment'}
+                {showAddModal === 'payment' && 'Record Payment'}
+              </h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowAddModal(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-body">
+              {showAddModal === 'fee' && (
+                <>
+                  <div className="form-group"><label className="form-label">Fee Name</label><input className="form-input" placeholder="e.g. Tuition Fee" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Amount</label><input type="number" className="form-input" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Category</label>
+                    <select className="form-select" value={formData.category || 'tuition'} onChange={e => setFormData({ ...formData, category: e.target.value })}>
+                      <option value="tuition">Tuition</option><option value="miscellaneous">Miscellaneous</option><option value="laboratory">Laboratory</option><option value="other">Other</option>
+                    </select>
+                  </div>
+                </>
+              )}
+              {showAddModal === 'assessment' && (
+                <>
+                  <div className="form-group"><label className="form-label">Student ID</label><input className="form-input" placeholder="Enter student ID" value={formData.student || ''} onChange={e => setFormData({ ...formData, student: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Academic Year</label><input className="form-input" placeholder="e.g. 2024-2025" value={formData.academicYear || ''} onChange={e => setFormData({ ...formData, academicYear: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Discount (Optional)</label><input type="number" className="form-input" value={formData.discount || ''} onChange={e => setFormData({ ...formData, discount: e.target.value })} /></div>
+                </>
+              )}
+              {showAddModal === 'payment' && (
+                <>
+                  <div className="form-group"><label className="form-label">Student ID</label><input className="form-input" placeholder="Enter student ID" value={formData.student || ''} onChange={e => setFormData({ ...formData, student: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Amount</label><input type="number" className="form-input" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Method</label>
+                    <select className="form-select" value={formData.method || 'cash'} onChange={e => setFormData({ ...formData, method: e.target.value })}>
+                      <option value="cash">Cash</option><option value="bank_transfer">Bank Transfer</option>
+                    </select>
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={async () => {
+                try {
+                  let endpoint = '';
+                  let payload = { ...formData };
+                  if (showAddModal === 'fee') endpoint = '/financial/fees';
+                  if (showAddModal === 'assessment') {
+                    endpoint = '/financial/assessments';
+                    payload.fees = []; // mock fees payload
+                  }
+                  if (showAddModal === 'payment') endpoint = '/financial/payments/cash';
+
+                  await api.post(endpoint, payload);
+                  toast.success('Successfully saved');
+                  setShowAddModal(false);
+                  fetchData();
+                } catch (err) {
+                  toast.error(err.response?.data?.message || 'Action failed. Check console for details or check if ID exists.');
+                }
+              }}>Submit</button>
             </div>
           </div>
         </div>

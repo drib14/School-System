@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Eye, CheckCircle, Clock, XCircle, ArrowRight, BookOpen } from 'lucide-react';
+import { Plus, Eye, CheckCircle, Clock, XCircle, ArrowRight, BookOpen, FileText } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
@@ -56,6 +56,7 @@ function EnrollmentDetailModal({ enrollment, onClose, onUpdate, isStudent }) {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState(enrollment.status);
   const [availableSubjects, setAvailableSubjects] = useState([]);
+  const [showDocs, setShowDocs] = useState(false);
 
   useEffect(() => {
     api.get('/academics/subjects').then(({ data }) => setAvailableSubjects(data.subjects || []));
@@ -156,6 +157,9 @@ function EnrollmentDetailModal({ enrollment, onClose, onUpdate, isStudent }) {
             <div style={{ flex: 1, fontSize: 13, color: 'var(--text-muted)', alignSelf: 'center' }}>
               Update enrollment status:
             </div>
+            <button className="btn btn-secondary btn-sm" onClick={() => setShowDocs(true)}>
+              <FileText size={13} /> View Documents
+            </button>
             {status === 'pending' && (
               <button className="btn btn-secondary btn-sm" onClick={() => updateStatus('under_review', 'verification')} disabled={loading}>
                 <Eye size={13} /> Start Review
@@ -171,7 +175,7 @@ function EnrollmentDetailModal({ enrollment, onClose, onUpdate, isStudent }) {
                 <ArrowRight size={13} /> For Payment
               </button>
             )}
-            {status === 'for_payment' && (
+            {(status === 'for_payment' || status === 'under_review') && (
               <button className="btn btn-success btn-sm" onClick={() => updateStatus('enrolled', 'confirmation')} disabled={loading}>
                 <CheckCircle size={13} /> Confirm Enrollment
               </button>
@@ -184,6 +188,33 @@ function EnrollmentDetailModal({ enrollment, onClose, onUpdate, isStudent }) {
           </div>
         )}
       </div>
+
+      {showDocs && (
+        <div className="modal-overlay" style={{ zIndex: 9999 }} onClick={e => e.target === e.currentTarget && setShowDocs(false)}>
+          <div className="modal animate-slide" style={{ background: 'rgba(15, 17, 26, 0.98)', border: '1px solid rgba(255,255,255,0.1)', maxWidth: 600 }}>
+            <div className="modal-header">
+              <h3 className="modal-title">Student Documents</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowDocs(false)}>✕</button>
+            </div>
+            <div style={{ padding: '0 0 20px' }}>
+              <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>Review the documents submitted by {student?.firstName} for enrollment.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
+                {['Form 138 (Report Card)', 'Certificate of Good Moral Character', 'PSA / NSO Birth Certificate', '2x2 ID Picture'].map(doc => (
+                  <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      <FileText size={16} style={{ color: 'var(--blue-400)' }} />
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{doc}</span>
+                    </div>
+                    <button className="btn btn-secondary btn-sm" onClick={() => toast.success(`Viewing ${doc}`)}>
+                      <Eye size={12} /> View
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

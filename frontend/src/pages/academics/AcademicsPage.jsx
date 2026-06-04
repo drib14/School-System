@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Plus, Search, BookOpen, ClipboardList, Calendar, Loader, FileText } from 'lucide-react';
+import { Plus, Search, BookOpen, ClipboardList, Calendar, Loader, FileText, X } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
@@ -10,6 +10,8 @@ export default function AcademicsPage() {
   const path = location.pathname;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [formData, setFormData] = useState({});
   const { user } = useAuthStore();
   const isStudent = user?.role === 'student';
 
@@ -123,7 +125,7 @@ export default function AcademicsPage() {
           ].map(({ path: p, label }) => (
             <Link key={p} to={p} className={`btn ${location.pathname === p ? 'btn-primary' : 'btn-secondary'} btn-sm`}>{label}</Link>
           ))}
-          <button className="btn btn-primary btn-sm"><Plus size={14} /> Add</button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setFormData({}); setShowAddModal(true); }}><Plus size={14} /> Add</button>
         </div>
       </div>
 
@@ -196,6 +198,57 @@ export default function AcademicsPage() {
           </div>
         )}
       </div>
+
+      {showAddModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAddModal(false)}>
+          <div className="modal animate-slide">
+            <div className="modal-header">
+              <h3 className="modal-title">Add {config.title.split(' ')[0]}</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowAddModal(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-body">
+              {path.includes('programs') && (
+                <>
+                  <div className="form-group"><label className="form-label">Program Code</label><input className="form-input" placeholder="e.g. BSCS" value={formData.code || ''} onChange={e => setFormData({ ...formData, code: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Program Name</label><input className="form-input" placeholder="e.g. Bachelor of Science in Computer Science" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Duration (Years)</label><input type="number" className="form-input" value={formData.duration || ''} onChange={e => setFormData({ ...formData, duration: e.target.value })} /></div>
+                </>
+              )}
+              {path.includes('subjects') && (
+                <>
+                  <div className="form-group"><label className="form-label">Subject Code</label><input className="form-input" placeholder="e.g. CS101" value={formData.code || ''} onChange={e => setFormData({ ...formData, code: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Subject Name</label><input className="form-input" placeholder="e.g. Intro to Programming" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Units</label><input type="number" className="form-input" value={formData.units || ''} onChange={e => setFormData({ ...formData, units: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Category</label><input className="form-input" placeholder="e.g. core, major, elective" value={formData.category || ''} onChange={e => setFormData({ ...formData, category: e.target.value })} /></div>
+                </>
+              )}
+              {path.includes('schedules') && (
+                <>
+                  <div className="form-group"><label className="form-label">Subject ID / Code</label><input className="form-input" placeholder="Select Subject" value={formData.subject || ''} onChange={e => setFormData({ ...formData, subject: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Section Name</label><input className="form-input" placeholder="e.g. BSCS-1A" value={formData.section || ''} onChange={e => setFormData({ ...formData, section: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Room</label><input className="form-input" placeholder="e.g. Room 101" value={formData.roomName || ''} onChange={e => setFormData({ ...formData, roomName: e.target.value })} /></div>
+                </>
+              )}
+              {path.includes('curriculum') && (
+                <>
+                  <div className="form-group"><label className="form-label">Curriculum Name</label><input className="form-input" placeholder="e.g. 2024 Revised" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
+                  <div className="form-group"><label className="form-label">Version</label><input className="form-input" placeholder="e.g. 1.0" value={formData.version || ''} onChange={e => setFormData({ ...formData, version: e.target.value })} /></div>
+                </>
+              )}
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={() => {
+                const mockNewItem = { _id: Date.now().toString(), ...formData, isActive: true, status: 'active' };
+                if (path.includes('schedules')) mockNewItem.subject = { name: 'New Subject', code: formData.subject };
+                setData([...data, mockNewItem]);
+                toast.success('Successfully added');
+                setShowAddModal(false);
+              }}>Save</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

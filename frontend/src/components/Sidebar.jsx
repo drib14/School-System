@@ -25,7 +25,13 @@ const navConfig = {
     { section: 'Management', items: [
       { to: '/admin/users', icon: Users, label: 'All Users' },
       { to: '/admin/students', icon: GraduationCap, label: 'Students' },
+      { to: '/hr', icon: Briefcase, label: 'Human Resources' },
       { to: '/reports', icon: BarChart3, label: 'Analytics' },
+    ]},
+    { section: 'Operations', items: [
+      { to: '/enrollment', icon: ClipboardCheck, label: 'Enrollments' },
+      { to: '/academics/programs', icon: BookOpen, label: 'Academics' },
+      { to: '/admission', icon: ClipboardList, label: 'Admissions' },
     ]},
   ],
   principal: [

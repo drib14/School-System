@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Users, School, TrendingUp, Shield, Monitor, BarChart3, RefreshCw } from 'lucide-react';
+import { Users, School, TrendingUp, Shield, Monitor, BarChart3, RefreshCw, Plus, X } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import api from '../../services/api';
+import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -12,6 +13,8 @@ export default function SuperDashboardPage() {
   const [auditLogs, setAuditLogs] = useState([]);
   const [activityData, setActivityData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showAddSchool, setShowAddSchool] = useState(false);
+  const [formData, setFormData] = useState({});
 
   useEffect(() => { fetchData(); }, []);
 
@@ -60,9 +63,14 @@ export default function SuperDashboardPage() {
           <h1 className="page-title">Super Admin Console</h1>
           <p className="page-sub">Multi-school SaaS management</p>
         </div>
-        <button className="btn btn-secondary btn-sm" onClick={fetchData}>
-          <RefreshCw size={14} /> Refresh
-        </button>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-secondary btn-sm" onClick={fetchData}>
+            <RefreshCw size={14} /> Refresh
+          </button>
+          <button className="btn btn-primary btn-sm" onClick={() => { setFormData({}); setShowAddSchool(true); }}>
+            <Plus size={14} /> Add School
+          </button>
+        </div>
       </div>
 
       <div className="grid-4" style={{ marginBottom: 24 }}>
@@ -162,6 +170,48 @@ export default function SuperDashboardPage() {
           </table>
         </div>
       </div>
+
+      {showAddSchool && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowAddSchool(false)}>
+          <div className="modal animate-slide">
+            <div className="modal-header">
+              <h3 className="modal-title">Onboard New School</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowAddSchool(false)}><X size={16} /></button>
+            </div>
+            <div className="modal-body">
+              <div className="form-group">
+                <label className="form-label">School Name</label>
+                <input className="form-input" placeholder="e.g. International School of Asia" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Abbreviation</label>
+                <input className="form-input" placeholder="e.g. ISA" value={formData.abbreviation || ''} onChange={e => setFormData({ ...formData, abbreviation: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Plan</label>
+                <select className="form-select" value={formData.plan || 'starter'} onChange={e => setFormData({ ...formData, plan: e.target.value })}>
+                  <option value="starter">Starter</option>
+                  <option value="professional">Professional</option>
+                  <option value="enterprise">Enterprise</option>
+                </select>
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn btn-secondary" onClick={() => setShowAddSchool(false)}>Cancel</button>
+              <button className="btn btn-primary" onClick={async () => {
+                try {
+                  await api.post('/admin/schools', formData);
+                  toast.success('School added successfully');
+                  setShowAddSchool(false);
+                  fetchData();
+                } catch (err) {
+                  toast.error(err.response?.data?.message || 'Failed to add school');
+                }
+              }}>Save School</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

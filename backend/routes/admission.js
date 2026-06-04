@@ -97,8 +97,8 @@ router.post('/applications', asyncHandler(async (req, res) => {
       schoolId: schoolId,
       name: program || track || level || 'General Admission',
       code: 'GEN',
-      type: 'bachelor',
-      level: 'college',
+      type: 'college',
+      level: 'bachelor',
       totalUnits: 120
     });
   }

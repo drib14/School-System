@@ -171,18 +171,25 @@ export default function LandingPage() {
       </nav>
 
       {/* ───── HERO ───── */}
-      <section style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '160px 40px 100px', overflow: 'hidden' }}>
-        {/* Simple gradient background to replace the full glassmorphism image overlay */}
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0f172a, #1e293b)' }} />
+      <section style={{ 
+        position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', 
+        textAlign: 'center', padding: '0 40px', overflow: 'hidden', minHeight: '100vh', marginBottom: '80px' 
+      }}>
+        {/* Background Image with Gradient Overlay */}
+        <div style={{ 
+          position: 'absolute', inset: 0, 
+          backgroundImage: 'url(/hero-study.png)', backgroundSize: 'cover', backgroundPosition: 'center',
+        }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(15,23,42,0.7) 0%, #0f172a 100%)' }} />
         
         {/* Glow blobs */}
-        <div style={{ position: 'absolute', top: '-10%', left: '15%', width: 500, height: 500, borderRadius: '50%', background: 'rgba(59,130,246,0.15)', filter: 'blur(100px)' }} />
-        <div style={{ position: 'absolute', bottom: '-10%', right: '10%', width: 400, height: 400, borderRadius: '50%', background: 'rgba(139,92,246,0.15)', filter: 'blur(100px)' }} />
+        <div style={{ position: 'absolute', top: '10%', left: '15%', width: 500, height: 500, borderRadius: '50%', background: 'rgba(59,130,246,0.15)', filter: 'blur(100px)' }} />
+        <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: 400, height: 400, borderRadius: '50%', background: 'rgba(139,92,246,0.15)', filter: 'blur(100px)' }} />
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 900, padding: '40px' }}>
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 900, padding: '40px', marginTop: '68px' }}>
           <img src="/iscp-logo.jpg" alt="ISCP Logo" style={{ width: 140, height: 140, borderRadius: '50%', border: '4px solid rgba(59,130,246,0.3)', margin: '0 auto 32px', display: 'block', objectFit: 'cover', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }} />
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', marginBottom: 28 }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', marginBottom: 28, backdropFilter: 'blur(4px)' }}>
             <Sparkles size={13} style={{ color: '#60a5fa' }} />
             <span style={{ fontSize: 12, color: '#60a5fa', fontWeight: 600 }}>Admissions for A.Y. 2025–2026 are now open!</span>
           </div>
@@ -196,7 +203,7 @@ export default function LandingPage() {
             "Filipinos Sultus Es"
           </p>
 
-          <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#94a3b8', lineHeight: 1.7, marginBottom: 40, maxWidth: 680, margin: '0 auto 40px' }}>
+          <p style={{ fontSize: 'clamp(15px, 2vw, 18px)', color: '#f1f5f9', lineHeight: 1.7, marginBottom: 40, maxWidth: 680, margin: '0 auto 40px', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>
             Experience world-class education from Elementary to Graduate School. Empowering students with cutting-edge learning systems, dedicated faculty, and an inclusive academic community.
           </p>
 
@@ -211,9 +218,9 @@ export default function LandingPage() {
             </button>
             <button
               onClick={() => navigate('/login/student')}
-              style={{ padding: '14px 32px', borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)', color: '#f1f5f9', fontWeight: 600, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.25s' }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+              style={{ padding: '14px 32px', borderRadius: 12, background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', color: '#f1f5f9', fontWeight: 600, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8, transition: 'all 0.25s', backdropFilter: 'blur(4px)' }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.15)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.1)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)'; }}
             >
               <UserCheck size={18} /> Student Login
             </button>
@@ -221,8 +228,31 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* ───── DEMO CREDENTIALS ───── */}
+      <section style={{ padding: '0 40px 60px', maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 24, fontWeight: 700 }}>Seed Credentials</h2>
+          <p style={{ color: '#94a3b8', fontSize: 14 }}>Use these accounts to test the different portals (Password: <strong>Passw0rd123!</strong>)</p>
+        </div>
+        <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', justifyContent: 'center' }}>
+          {[
+            { role: 'Super Admin', email: 'superadmin@iscp.edu.ph', color: '#3b82f6' },
+            { role: 'Principal', email: 'principal@iscp.edu.ph', color: '#8b5cf6' },
+            { role: 'Registrar', email: 'registrar@iscp.edu.ph', color: '#10b981' },
+            { role: 'Student', email: 'student@iscp.edu.ph', color: '#f59e0b' },
+            { role: 'Teacher', email: 'teacher@iscp.edu.ph', color: '#ef4444' },
+            { role: 'Cashier', email: 'cashier@iscp.edu.ph', color: '#14b8a6' },
+          ].map(c => (
+            <div key={c.role} style={{ padding: '12px 20px', background: 'rgba(30,41,59,0.8)', border: `1px solid ${c.color}40`, borderRadius: 12, backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: c.color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{c.role}</div>
+              <div style={{ fontSize: 14, color: '#f1f5f9', fontWeight: 600 }}>{c.email}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ───── HERO STATS ───── */}
-      <section style={{ padding: '0 40px 100px', maxWidth: 1200, margin: '-40px auto 0', position: 'relative', zIndex: 10 }}>
+      <section style={{ padding: '0 40px 100px', maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
           {HERO_STATS_DYNAMIC.map(({ value, label }) => (
             <div key={label} style={{ textAlign: 'center', padding: '28px 20px', background: 'rgba(30,41,59,0.6)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: 16, backdropFilter: 'blur(8px)', transition: 'all 0.25s' }}

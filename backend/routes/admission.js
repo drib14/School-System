@@ -50,10 +50,47 @@ router.get('/applications/:id', protect, authorize(...ADMISSION_ROLES), asyncHan
 
 // Public submission (no auth required)
 router.post('/applications', asyncHandler(async (req, res) => {
-  const { schoolId, ...body } = req.body;
+  let { schoolId, enrollmentType, program, gender, level, track, ...body } = req.body;
+
+  // 1. Format gender
+  if (gender) {
+    gender = gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+    if (gender === 'Prefer_not_to_say') gender = 'Other';
+  }
+
+  // 2. Fetch default School if not provided
+  if (!schoolId) {
+    const School = require('../models/School');
+    const school = await School.findOne();
+    if (school) schoolId = school._id;
+  }
+
+  // 3. Application Type
+  const applicationType = enrollmentType || 'new';
+
+  // 4. Resolve desiredProgram
+  const Program = require('../models/Program');
+  let desiredProgramDoc;
+  if (level === 'elementary') {
+    desiredProgramDoc = await Program.findOne({ name: /Elementary/i });
+  } else if (level === 'jhs') {
+    desiredProgramDoc = await Program.findOne({ name: /Junior High/i });
+  } else if (level === 'shs' && track) {
+    desiredProgramDoc = await Program.findOne({ name: new RegExp(track, 'i') });
+  } else if (program) {
+    desiredProgramDoc = await Program.findOne({ name: program });
+  }
+  
+  if (!desiredProgramDoc) {
+    desiredProgramDoc = await Program.findOne(); // Fallback to avoid error
+  }
+
   const application = await Application.create({
     ...body,
-    schoolId: schoolId || req.body.schoolId,
+    gender,
+    applicationType,
+    desiredProgram: desiredProgramDoc ? desiredProgramDoc._id : null,
+    schoolId,
   });
 
   // Check if user already exists

@@ -82,18 +82,13 @@ export default function PublicEnrollmentPage() {
     setSubmitting(true);
     try {
       const payload = { ...form, status: 'pending', submittedAt: new Date() };
-      let ref = '';
-      try {
-        const { data } = await api.post('/admission/applications', payload);
-        ref = data.referenceNumber || data.admissionNo || data.application?.applicationNumber || `ENR-${Date.now()}`;
-      } catch (err) {
-        console.error(err);
-        ref = `APP-${Date.now()}`;
-      }
+      const { data } = await api.post('/admission/applications', payload);
+      const ref = data.referenceNumber || data.admissionNo || data.application?.applicationNumber || `ENR-${Date.now()}`;
       setReferenceNo(ref);
       setSubmitted(true);
-    } catch {
-      toast.error('Failed to submit. Please try again.');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Failed to submit. Please try again.');
     } finally {
       setSubmitting(false);
     }

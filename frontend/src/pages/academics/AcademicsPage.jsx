@@ -45,6 +45,10 @@ export default function AcademicsPage() {
       finally { setLoading(false); }
     };
     fetch();
+
+    if (!isStudent) {
+      setShowAddModal(path.includes('/create') || path.includes('/assign'));
+    }
   }, [path, isStudent]);
 
   if (isStudent) {

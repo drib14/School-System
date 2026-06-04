@@ -22,7 +22,7 @@ export default function SuperDashboardPage() {
     setLoading(true);
     try {
       const [statsRes, schoolsRes, auditRes] = await Promise.allSettled([
-        api.get('/admin/super-stats'),
+        api.get('/admin/dashboard/super'),
         api.get('/admin/schools'),
         api.get('/admin/audit-logs?limit=8'),
       ]);

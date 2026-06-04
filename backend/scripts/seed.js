@@ -18,20 +18,32 @@ const seed = async () => {
       name: 'International State Colleges of the Philippines - Manila',
       abbreviation: 'ISCP-MNL',
       tagline: 'Filipinos Sultus Es',
+      logo: '/iscp-logo.jpg',
       address: { city: 'Manila', province: 'Metro Manila', country: 'Philippines' },
       contact: { email: 'manila@iscp.edu.ph', phone: '+63-2-8888-0001' },
       settings: { schoolLevel: 'both', academicYear: '2025-2026', currentSemester: '1st' },
     });
 
     await School.create({
-      name: 'International State Colleges of the Philippines - Biringan',
-      abbreviation: 'ISCP-BRN',
+      name: 'International State Colleges of the Philippines - Cebu',
+      abbreviation: 'ISCP-CEB',
       tagline: 'Filipinos Sultus Es',
-      address: { city: 'Biringan', province: 'Samar', country: 'Philippines' },
-      contact: { email: 'biringan@iscp.edu.ph', phone: '+63-2-8888-0002' },
+      logo: '/iscp-logo.jpg',
+      address: { city: 'Cebu City', province: 'Cebu', country: 'Philippines' },
+      contact: { email: 'cebu@iscp.edu.ph', phone: '+63-32-8888-0002' },
       settings: { schoolLevel: 'both', academicYear: '2025-2026', currentSemester: '1st' },
     });
-    console.log('✅ Schools/Campuses created (Manila & Biringan)');
+    
+    await School.create({
+      name: 'International State Colleges of the Philippines - Davao',
+      abbreviation: 'ISCP-DVO',
+      tagline: 'Filipinos Sultus Es',
+      logo: '/iscp-logo.jpg',
+      address: { city: 'Davao City', province: 'Davao del Sur', country: 'Philippines' },
+      contact: { email: 'davao@iscp.edu.ph', phone: '+63-82-8888-0003' },
+      settings: { schoolLevel: 'both', academicYear: '2025-2026', currentSemester: '1st' },
+    });
+    console.log('✅ Schools/Campuses created (Manila, Cebu, Davao)');
   }
 
   const defaultPass = process.env.SEED_DEFAULT_PASS;

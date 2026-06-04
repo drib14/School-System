@@ -150,10 +150,15 @@ export default function App() {
 
             {/* Admin */}
             <Route path="admin/students" element={<StudentsPage />} />
+            <Route path="admin/students/*" element={<StudentsPage />} />
             <Route path="admin/users" element={<UsersPage />} />
+            <Route path="admin/users/*" element={<UsersPage />} />
+            <Route path="admin/roles/*" element={<UsersPage />} />
+            <Route path="admin/permissions/*" element={<UsersPage />} />
 
             {/* Enrollment */}
             <Route path="enrollment" element={<EnrollmentPage />} />
+            <Route path="enrollment/*" element={<EnrollmentPage />} />
             <Route path="my-enrollment" element={<EnrollmentPage />} />
 
             {/* Academics */}
@@ -163,10 +168,12 @@ export default function App() {
 
             {/* Grades */}
             <Route path="grades" element={<GradesPage />} />
+            <Route path="grades/*" element={<GradesPage />} />
             <Route path="my-grades" element={<GradesPage />} />
 
             {/* Attendance */}
             <Route path="attendance" element={<AttendancePage />} />
+            <Route path="attendance/*" element={<AttendancePage />} />
             <Route path="my-attendance" element={<AttendancePage />} />
 
             {/* Financial */}
@@ -200,9 +207,11 @@ export default function App() {
             <Route path="hr" element={<HRPage />} />
             <Route path="hr/*" element={<HRPage />} />
 
-            {/* Guidance / Clinic / Security */}
+            {/* Guidance / Clinic / Security / Orgs */}
             <Route path="guidance" element={<GuidancePage />} />
+            <Route path="guidance/*" element={<GuidancePage />} />
             <Route path="clinic" element={<ClinicPage />} />
+            <Route path="clinic/*" element={<ClinicPage />} />
             <Route path="visitors" element={<VisitorsPage />} />
             <Route path="incidents" element={<VisitorsPage />} />
             <Route path="security" element={<VisitorsPage />} />
@@ -211,7 +220,10 @@ export default function App() {
             {/* Clearance / Documents / Services */}
             <Route path="clearance" element={<ClearancePage />} />
             <Route path="documents" element={<DashboardPage />} />
+            <Route path="documents/*" element={<DashboardPage />} />
             <Route path="organizations" element={<DashboardPage />} />
+            <Route path="organizations/*" element={<DashboardPage />} />
+            <Route path="scholarships/*" element={<DashboardPage />} />
             <Route path="ojt" element={<DashboardPage />} />
             <Route path="qr-system" element={<DashboardPage />} />
 

@@ -21,6 +21,20 @@ export default function FinancialPage() {
 
   const isStudent = user?.role === 'student';
 
+  useEffect(() => {
+    if (path.includes('fees')) setActiveTab('fees');
+    else if (path.includes('assessments')) setActiveTab('assessments');
+    else if (path.includes('summary')) setActiveTab('summary');
+    else setActiveTab('payments');
+
+    if (!isStudent) {
+      if (path.match(/fees\/(tuition|misc|discounts)/)) setShowAddModal('fee');
+      else if (path.match(/assessments\/(generate|bills|balances)/)) setShowAddModal('assessment');
+      else if (path.match(/payments\/(verify|approve|refund)/)) setShowAddModal('payment');
+      else setShowAddModal(false);
+    }
+  }, [path, isStudent]);
+
   const fetchData = async () => {
     setLoading(true);
     try {

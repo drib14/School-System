@@ -4,6 +4,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import { useLocation } from 'react-router-dom';
 
 const ROLES = ['super_admin','school_owner','principal','registrar','teacher','student','parent','cashier','accountant','librarian','nurse','guidance_counselor','hr_staff','employee','alumni'];
 const ROLE_COLORS = {
@@ -60,13 +61,28 @@ function InviteUserModal({ onClose, onSuccess }) {
 
 export default function UsersPage() {
   const { user: currentUser } = useAuthStore();
+  const location = useLocation();
+  const path = location.pathname;
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
+  
+  // Extract role from URL if present
+  const initialRole = path.includes('/admin/roles/') ? path.split('/').pop() : '';
+  const [roleFilter, setRoleFilter] = useState(ROLES.includes(initialRole) ? initialRole : '');
   const [page, setPage] = useState(1);
-  const [showCreate, setShowCreate] = useState(false);
+  const [showCreate, setShowCreate] = useState(path.includes('/create'));
+
+  useEffect(() => {
+    if (path.includes('/admin/roles/')) {
+      const pRole = path.split('/').pop();
+      if (ROLES.includes(pRole)) setRoleFilter(pRole);
+    } else {
+      setRoleFilter('');
+    }
+    setShowCreate(path.includes('/create'));
+  }, [path]);
 
   const fetchUsers = async () => {
     setLoading(true);

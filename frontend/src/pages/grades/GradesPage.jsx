@@ -195,7 +195,17 @@ export default function GradesPage() {
             else transmuted = 5.0;
 
             return (
-              <div key={g._id} className="card" style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div key={g._id} className="card" style={{ 
+                display: 'flex', flexDirection: 'column', gap: 8,
+                background: 'rgba(23, 27, 43, 0.4)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.05)',
+                transition: 'transform 0.2s',
+                cursor: 'default'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-4px)'}
+              onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}
+              >
                 <div style={{ fontWeight: 700, fontSize: 16 }}>{g.subject?.name}</div>
                 <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>{g.subject?.code} · {g.subject?.units} units</div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
@@ -205,12 +215,12 @@ export default function GradesPage() {
                   </div>
                   <div style={{ textAlign: 'right' }}>
                     <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>Transmuted Grade</div>
-                    <div style={{ fontSize: 32, fontWeight: 900, color: rating >= 75 ? 'var(--success)' : 'var(--danger)' }}>
+                    <div style={{ fontSize: 36, fontWeight: 900, color: rating >= 75 ? '#10b981' : '#ef4444', textShadow: `0 0 20px ${rating >= 75 ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}` }}>
                       {transmuted.toFixed(1)}
                     </div>
                   </div>
                 </div>
-                <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid var(--border)' }}>
+                <div style={{ marginTop: 'auto', paddingTop: 12, borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
                   <span className={`badge ${g.remarks === 'Passed' ? 'badge-green' : 'badge-red'}`}>{g.remarks || (rating >= 75 ? 'Passed' : 'Failed')}</span>
                 </div>
               </div>

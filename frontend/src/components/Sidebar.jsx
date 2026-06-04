@@ -87,47 +87,21 @@ const navConfig = {
   ],
   student: [
     { section: 'Overview', items: [
-      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard / Analytics' },
-      { to: '/profile', icon: UserCheck, label: 'Student Info (SIS)' },
-    ]},
-    { section: 'Enrollment & Admission', items: [
-      { to: '/admission/track', icon: MapPin, label: 'Admission Status' },
-      { to: '/my-enrollment', icon: ClipboardCheck, label: 'Enrollment System' },
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+      { to: '/profile', icon: UserCheck, label: 'My Profile' },
     ]},
     { section: 'Academic & Records', items: [
-      { to: '/academics/subjects', icon: BookOpen, label: 'Subjects & Prereqs' },
-      { to: '/academics/curriculum', icon: ClipboardList, label: 'Curriculum' },
-      { to: '/my-schedule', icon: Calendar, label: 'Class Schedule' },
-      { to: '/my-grades', icon: Award, label: 'Grading System' },
-      { to: '/lms', icon: MonitorPlay, label: 'LMS (Learning)' },
-      { to: '/my-attendance', icon: UserCheck, label: 'Attendance' },
+      { to: '/my-enrollment', icon: ClipboardCheck, label: 'Enrollment' },
+      { to: '/my-schedule', icon: Calendar, label: 'My Schedule' },
+      { to: '/my-grades', icon: Award, label: 'My Grades' },
     ]},
     { section: 'Financial', items: [
-      { to: '/financial/assessments', icon: Receipt, label: 'Billing & Assessment' },
+      { to: '/financial/assessments', icon: Receipt, label: 'Assessments' },
       { to: '/my-payments', icon: CreditCard, label: 'Payments' },
-      { to: '/scholarships', icon: GraduationCap, label: 'Scholarships' },
     ]},
-    { section: 'Campus & Services', items: [
-      { to: '/library', icon: Library, label: 'Library System' },
-      { to: '/clinic/records', icon: HeartHandshake, label: 'Clinic Services' },
-      { to: '/guidance', icon: Stethoscope, label: 'Guidance' },
-      { to: '/campus/rooms', icon: Building, label: 'Room Management' },
-      { to: '/visitors/request', icon: Shield, label: 'Visitor Access' },
-      { to: '/security/gate-pass', icon: DoorOpen, label: 'Gate Pass' },
-      { to: '/security/incidents', icon: AlertCircle, label: 'Incident Reports' },
-    ]},
-    { section: 'Documents & Activities', items: [
-      { to: '/clearance', icon: ClipboardCheck, label: 'Clearance System' },
-      { to: '/documents/request', icon: FileText, label: 'Document Requests' },
-      { to: '/organizations', icon: Users, label: 'Organizations' },
-      { to: '/ojt', icon: Briefcase, label: 'OJT / Internship' },
-    ]},
-    { section: 'Communication & Identity', items: [
-      { to: '/messages', icon: MessageSquare, label: 'Messaging' },
+    { section: 'Campus & Communication', items: [
       { to: '/announcements', icon: Megaphone, label: 'Announcements' },
-      { to: '/notifications', icon: Bell, label: 'Notifications' },
-      { to: '/id-system', icon: QrCode, label: 'ID / QR / RFID' },
-      { to: '/alumni', icon: GraduationCap, label: 'Alumni Registry' },
+      { to: '/messages', icon: MessageSquare, label: 'Messages' },
     ]},
   ],
   parent: [

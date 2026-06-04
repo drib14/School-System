@@ -75,8 +75,13 @@ function StudentEnrollmentTracker() {
   }
 
   return (
-    <div className="card" style={{ marginBottom: 24 }}>
-      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="card" style={{ 
+      marginBottom: 24, 
+      position: 'relative', 
+      overflow: 'hidden',
+      background: 'linear-gradient(to right, rgba(23, 27, 43, 0.95), rgba(23, 27, 43, 0.85)), url("/seal-bg.jpg") center/cover no-repeat'
+    }}>
+      <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'relative', zIndex: 2 }}>
         <div>
           <div className="card-title">Current Study Load</div>
           <div className="card-sub">{enrollment?.academicYear} · {enrollment?.semester} Semester</div>
@@ -85,7 +90,7 @@ function StudentEnrollmentTracker() {
           const printWindow = window.open('', '_blank');
           printWindow.document.write(`
             <html><head><title>Study Load</title></head><body style="font-family: Arial, sans-serif; padding: 40px; position: relative;">
-              <img src="/iscp-logo.jpg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; width: 400px; pointerEvents: none;" />
+              <img src="/seal-bg.jpg" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.1; width: 400px; pointerEvents: none;" />
               <div style="position: relative; z-index: 1;">
                 <h1 style="text-align: center; margin-bottom: 5px;">International State Colleges of the Philippines</h1>
                 <h3 style="text-align: center; margin-top: 0; color: #555;">Official Study Load</h3>
@@ -125,7 +130,7 @@ function StudentEnrollmentTracker() {
         </button>
       </div>
       
-      <div className="table-container">
+      <div className="table-container" style={{ position: 'relative', zIndex: 2, background: 'rgba(23, 27, 43, 0.6)', borderRadius: 12 }}>
         <table className="table">
           <thead>
             <tr>

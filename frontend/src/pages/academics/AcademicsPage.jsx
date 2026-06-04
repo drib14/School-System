@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { Plus, Search, BookOpen, ClipboardList, Calendar, Loader } from 'lucide-react';
+import { Plus, Search, BookOpen, ClipboardList, Calendar, Loader, FileText } from 'lucide-react';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
+import { useAuthStore } from '../../store/authStore';
 
 export default function AcademicsPage() {
   const location = useLocation();
   const path = location.pathname;
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+  const isStudent = user?.role === 'student';
 
   const getConfig = () => {
     if (path.includes('programs')) return { title: 'Academic Programs', endpoint: '/academics/programs', key: 'programs' };
@@ -24,13 +27,78 @@ export default function AcademicsPage() {
     const fetch = async () => {
       setLoading(true);
       try {
-        const { data: res } = await api.get(config.endpoint);
-        setData(res[config.key] || []);
+        if (isStudent) {
+          const { data: res } = await api.get('/academics/my-grades');
+          if (res.enrollments?.length > 0) {
+            const latest = res.enrollments[res.enrollments.length - 1];
+            setData(latest.subjects || []);
+          } else {
+            setData([]);
+          }
+        } else {
+          const { data: res } = await api.get(config.endpoint);
+          setData(res[config.key] || []);
+        }
       } catch { }
       finally { setLoading(false); }
     };
     fetch();
-  }, [path]);
+  }, [path, isStudent]);
+
+  if (isStudent) {
+    return (
+      <div>
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">My Schedule & Study Load</h1>
+            <p className="page-sub">View your enrolled subjects and class schedule</p>
+          </div>
+        </div>
+
+        {loading ? (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: 40 }}><div className="spinner" /></div>
+        ) : data.length === 0 ? (
+          <div className="card" style={{ padding: 40, textAlign: 'center', color: 'var(--text-muted)' }}>
+            <Calendar size={48} style={{ opacity: 0.2, marginBottom: 16 }} />
+            <div>No enrolled subjects found for this semester.</div>
+          </div>
+        ) : (
+          <div className="card">
+            <div className="table-container">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Subject Code</th>
+                    <th>Description</th>
+                    <th>Units</th>
+                    <th>Schedule</th>
+                    <th>Instructor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((item, idx) => (
+                    <tr key={idx}>
+                      <td><span className="badge badge-gray">{item.subject?.code || item.code}</span></td>
+                      <td style={{ fontWeight: 600 }}>{item.subject?.name || item.name}</td>
+                      <td>{item.units || item.subject?.units || '-'}</td>
+                      <td>
+                        {item.schedule?.schedule?.map((sch, i) => (
+                          <div key={i} style={{ fontSize: 13, marginBottom: 2 }}>
+                            {sch.day} • {sch.startTime} - {sch.endTime}
+                          </div>
+                        )) || <span style={{ color: 'var(--text-muted)' }}>TBA</span>}
+                      </td>
+                      <td>{item.schedule?.teacher ? `${item.schedule.teacher.firstName} ${item.schedule.teacher.lastName}` : <span style={{ color: 'var(--text-muted)' }}>TBA</span>}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div>

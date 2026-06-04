@@ -28,44 +28,44 @@ const seed = async () => {
   // Create Super Admin
   const superAdmin = await User.findOneAndUpdate({ email: 'superadmin@iscp.edu.ph' }, {
     firstName: 'Super', lastName: 'Admin', email: 'superadmin@iscp.edu.ph',
-    password: await bcrypt.hash('Admin@12345', 12), role: 'super_admin', isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_ADMIN_PASS || 'Admin@12345', 12), role: 'super_admin', isActive: true, isEmailVerified: true,
     schoolId: school._id,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Super Admin created: superadmin@iscp.edu.ph / Admin@12345');
+  console.log('✅ Super Admin created: superadmin@iscp.edu.ph');
 
   // Create Principal
   await User.findOneAndUpdate({ email: 'principal@iscp.edu.ph' }, {
     firstName: 'Maria', middleName: 'Santos', lastName: 'Cruz', email: 'principal@iscp.edu.ph',
-    password: await bcrypt.hash('Principal@123', 12), role: 'principal', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_PRINCIPAL_PASS || 'Principal@123', 12), role: 'principal', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Principal created: principal@iscp.edu.ph / Principal@123');
+  console.log('✅ Principal created: principal@iscp.edu.ph');
 
   // Create Registrar
   await User.findOneAndUpdate({ email: 'registrar@iscp.edu.ph' }, {
     firstName: 'Ana', lastName: 'Reyes', email: 'registrar@iscp.edu.ph',
-    password: await bcrypt.hash('Registrar@123', 12), role: 'registrar', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_REGISTRAR_PASS || 'Registrar@123', 12), role: 'registrar', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Registrar created: registrar@iscp.edu.ph / Registrar@123');
+  console.log('✅ Registrar created: registrar@iscp.edu.ph');
 
   // Create Teacher
   const teacher = await User.findOneAndUpdate({ email: 'teacher@iscp.edu.ph' }, {
     firstName: 'Juan', middleName: 'dela', lastName: 'Cruz', email: 'teacher@iscp.edu.ph',
-    password: await bcrypt.hash('Teacher@123', 12), role: 'teacher', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_TEACHER_PASS || 'Teacher@123', 12), role: 'teacher', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Teacher created: teacher@iscp.edu.ph / Teacher@123');
+  console.log('✅ Teacher created: teacher@iscp.edu.ph');
 
   // Create Student
   await User.findOneAndUpdate({ email: 'student@iscp.edu.ph' }, {
     firstName: 'Jose', lastName: 'Rizal', email: 'student@iscp.edu.ph',
-    password: await bcrypt.hash('Student@123', 12), role: 'student', schoolId: school._id,
+    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || 'Student@123', 12), role: 'student', schoolId: school._id,
     studentId: '25-00001', isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Student created: student@iscp.edu.ph / Student@123');
+  console.log('✅ Student created: student@iscp.edu.ph');
 
   // Create Cashier
   await User.findOneAndUpdate({ email: 'cashier@iscp.edu.ph' }, {
     firstName: 'Rosa', lastName: 'Garcia', email: 'cashier@iscp.edu.ph',
-    password: await bcrypt.hash('Cashier@123', 12), role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
+    password: await bcrypt.hash(process.env.SEED_CASHIER_PASS || 'Cashier@123', 12), role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
   // Comprehensive Academic Structure Seeding
@@ -146,13 +146,6 @@ const seed = async () => {
 
   await mongoose.connection.close();
   console.log('\n🎉 Seeding complete!');
-  console.log('\n📋 Test Accounts:');
-  console.log('  Super Admin: superadmin@iscp.edu.ph / Admin@12345');
-  console.log('  Principal:   principal@iscp.edu.ph / Principal@123');
-  console.log('  Registrar:   registrar@iscp.edu.ph / Registrar@123');
-  console.log('  Teacher:     teacher@iscp.edu.ph / Teacher@123');
-  console.log('  Student:     student@iscp.edu.ph / Student@123');
-  console.log('  Cashier:     cashier@iscp.edu.ph / Cashier@123');
 };
 
 seed().catch(err => { console.error('❌ Seed error:', err); process.exit(1); });

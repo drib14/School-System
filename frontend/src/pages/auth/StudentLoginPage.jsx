@@ -77,21 +77,6 @@ export default function LoginPage() {
             ))}
           </div>
 
-          {/* Quick login hints */}
-          <div style={{ marginTop: 32, background: 'rgba(30,41,59,0.6)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', padding: '16px 20px', textAlign: 'left', maxWidth: 360 }}>
-            <p style={{ fontSize: 11, color: 'var(--text-muted)', marginBottom: 10, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Demo Student Account</p>
-            {[
-              { role: 'Student', email: 'student@iscp.edu.ph', pass: 'Student@123', color: '#60a5fa' },
-            ].map(({ role, email, pass, color }) => (
-              <button key={role} onClick={() => quickLogin(email, pass)}
-                style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '6px 8px', background: 'none', border: 'none', cursor: 'pointer', borderRadius: 6, transition: 'all 0.2s' }}
-                className="dropdown-item">
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: color, flexShrink: 0 }} />
-                <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>{role}</span>
-                <span style={{ fontSize: 11, color: 'var(--text-muted)', marginLeft: 'auto' }}>{email}</span>
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Right — Form */}

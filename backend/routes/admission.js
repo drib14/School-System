@@ -5,6 +5,7 @@ const { asyncHandler } = require('../middleware/errorHandler');
 const { Application, EntranceExam, Interview } = require('../models/Admission');
 const { Notification } = require('../models/Communication');
 const User = require('../models/User');
+const { sendMail, emailTemplates } = require('../config/mailer');
 
 const ADMISSION_ROLES = ['registrar', 'principal', 'super_admin', 'school_owner'];
 
@@ -46,8 +47,6 @@ router.get('/applications/:id', protect, authorize(...ADMISSION_ROLES), asyncHan
   if (!app) return res.status(404).json({ success: false, message: 'Application not found.' });
   res.json({ success: true, application: app });
 }));
-
-const { sendMail, emailTemplates } = require('../config/mailer');
 
 // Public submission (no auth required)
 router.post('/applications', asyncHandler(async (req, res) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Book, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import toast from 'react-hot-toast';
 
 export default function LibraryPage() {
   const { user } = useAuthStore();
@@ -9,13 +10,14 @@ export default function LibraryPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('education');
   const [activeTab, setActiveTab] = useState('catalog');
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchBooks = async () => {
       setLoading(true);
       try {
         const query = search ? search : `subject:${category}`;
-        const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12`);
+        const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12&page=${page}`);
         const data = await res.json();
 
         const formattedBooks = data.docs.map((doc, idx) => ({
@@ -39,7 +41,7 @@ export default function LibraryPage() {
 
     const timeoutId = setTimeout(fetchBooks, 500);
     return () => clearTimeout(timeoutId);
-  }, [search, category]);
+  }, [search, category, page]);
 
   const displayed = books;
 
@@ -61,7 +63,7 @@ export default function LibraryPage() {
           <div className="filter-bar" style={{ flexWrap: 'wrap' }}>
             <div className="search-box" style={{ flex: '1 1 300px' }}>
               <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
-              <input placeholder="Search title, author, ISBN..." value={search} onChange={e => setSearch(e.target.value)} />
+              <input placeholder="Search title, author, ISBN..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
             </div>
             <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
               {['education', 'history', 'science', 'mathematics', 'technology', 'literature'].map(cat => (
@@ -69,18 +71,18 @@ export default function LibraryPage() {
                   key={cat} 
                   className={`badge ${category === cat ? 'badge-blue' : 'badge-gray'}`}
                   style={{ cursor: 'pointer', border: 'none', textTransform: 'capitalize', padding: '6px 12px' }}
-                  onClick={() => { setCategory(cat); setSearch(''); }}
+                  onClick={() => { setCategory(cat); setSearch(''); setPage(1); }}
                 >
                   {cat}
                 </button>
               ))}
             </div>
           </div>
-          <div className="grid-3">
+          <div className="grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px' }}>
             {displayed.length === 0 && !loading ? (
               <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>No books found.</div>
             ) : displayed.map(book => (
-              <div key={book._id} className="card" style={{ transition: 'all 0.2s', background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)' }}
+              <div key={book._id} className="card" style={{ transition: 'all 0.2s', background: 'rgba(23, 27, 43, 0.4)', backdropFilter: 'blur(12px)', border: '1px solid rgba(255, 255, 255, 0.05)', display: 'flex', flexDirection: 'column' }}
                 onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-3px)'; e.currentTarget.style.boxShadow = 'var(--shadow-lg)'; }}
                 onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none'; }}>
                 <div style={{ width: '100%', height: 160, background: 'linear-gradient(135deg, #1e3a8a, #3b82f6)', borderRadius: 'var(--radius-md)', marginBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -100,12 +102,21 @@ export default function LibraryPage() {
                     <span style={{ fontWeight: 700, fontSize: 15, color: book.available > 0 ? 'var(--success)' : 'var(--danger)' }}>{book.available}</span>
                     <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>/{book.total} available</span>
                   </div>
-                  <button className={`btn btn-sm ${book.available > 0 ? 'btn-primary' : 'btn-secondary'}`} disabled={book.available === 0}>
+                  <button className={`btn btn-sm ${book.available > 0 ? 'btn-primary' : 'btn-secondary'}`} disabled={book.available === 0} onClick={() => book.available > 0 && toast.success(`Borrowed ${book.title}`)}>
                     {book.available > 0 ? 'Borrow' : 'Reserved'}
                   </button>
                 </div>
               </div>
             ))}
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, padding: '16px 0', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+             <button className="btn btn-secondary" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1 || loading}>
+               <ArrowLeft size={16} /> Previous
+             </button>
+             <span style={{ fontSize: 14, fontWeight: 600 }}>Page {page}</span>
+             <button className="btn btn-secondary" onClick={() => setPage(p => p + 1)} disabled={loading || displayed.length === 0}>
+               Next <ArrowRight size={16} />
+             </button>
           </div>
         </>
       )}

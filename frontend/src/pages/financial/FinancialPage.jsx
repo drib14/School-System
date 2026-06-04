@@ -14,6 +14,7 @@ export default function FinancialPage() {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
+  const [showPayModal, setShowPayModal] = useState(null);
   const [activeTab, setActiveTab] = useState(path.includes('fees') ? 'fees' : path.includes('assessments') ? 'assessments' : path.includes('summary') ? 'summary' : 'payments');
 
   const isStudent = user?.role === 'student';
@@ -195,7 +196,7 @@ export default function FinancialPage() {
                     {isStudent && (
                       <td>
                         {a.balance > 0 ? (
-                          <button className="btn btn-primary btn-sm" onClick={() => toast.success('Redirecting to payment gateway...')} style={{ whiteSpace: 'nowrap' }}>
+                          <button className="btn btn-primary btn-sm" onClick={() => setShowPayModal(a)} style={{ whiteSpace: 'nowrap' }}>
                             <DollarSign size={14} style={{ marginRight: 4 }} /> Pay Now
                           </button>
                         ) : (
@@ -207,6 +208,41 @@ export default function FinancialPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* Pay Modal */}
+      {showPayModal && (
+        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowPayModal(null)}>
+          <div className="modal animate-slide" style={{ background: 'rgba(15, 17, 26, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: 400 }}>
+            <div className="modal-header">
+              <h3 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><CreditCard size={18} /> Make Payment</h3>
+              <button className="btn btn-ghost btn-icon" onClick={() => setShowPayModal(null)}>✕</button>
+            </div>
+            <div style={{ padding: '0 0 20px 0' }}>
+              <div style={{ marginBottom: 20, textAlign: 'center', padding: 20, background: 'rgba(59, 130, 246, 0.1)', borderRadius: 12 }}>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Amount Due</div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: '#3b82f6' }}>₱{(showPayModal.balance || 0).toLocaleString()}</div>
+              </div>
+              <div className="form-group">
+                <label className="form-label">Payment Method</label>
+                <select className="form-input">
+                  <option>Credit / Debit Card</option>
+                  <option>GCash</option>
+                  <option>Maya</option>
+                  <option>Online Bank Transfer</option>
+                </select>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20, gap: 12 }}>
+                <button className="btn btn-secondary" onClick={() => setShowPayModal(null)}>Cancel</button>
+                <button className="btn btn-primary" onClick={() => {
+                  toast.success('Payment processed successfully! (Simulated)');
+                  setShowPayModal(null);
+                  fetchData(); // Refresh data
+                }}>Confirm Payment</button>
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -5,7 +5,7 @@ import { useAuthStore } from '../../store/authStore';
 import api from '../../services/api';
 import { format } from 'date-fns';
 import CustomSelect from '../../components/forms/CustomSelect';
-
+import toast from 'react-hot-toast';
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4'];
 
 function StatCard({ icon: Icon, value, label, color = 'blue', change }) {
@@ -33,6 +33,8 @@ function StudentEnrollmentTracker() {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [financials, setFinancials] = useState(null);
 
+  const [uploadedDocs, setUploadedDocs] = useState({});
+
   useEffect(() => {
     Promise.all([
       api.get('/academics/my-grades'),
@@ -53,6 +55,23 @@ function StudentEnrollmentTracker() {
   if (loading) return <div className="card skeleton" style={{ height: 200, marginBottom: 24 }} />;
 
   const isEnrolled = user?.profile?.enrollmentStatus === 'enrolled' || enrollment?.status === 'enrolled';
+
+  const handleFileChange = (doc, e) => {
+    if (e.target.files[0]) {
+      setUploadedDocs(prev => ({ ...prev, [doc]: e.target.files[0].name }));
+      toast.success(`${doc} attached successfully!`);
+    }
+  };
+
+  const handleSubmitRequirements = () => {
+    const required = ['Form 138', 'Good Moral', 'Birth Certificate', 'ID Picture'];
+    if (Object.keys(uploadedDocs).length < required.length) {
+      toast.error('Please attach all required documents before submitting.');
+      return;
+    }
+    toast.success('Requirements submitted for approval!');
+    setShowSubmitModal(false);
+  };
 
   if (!isEnrolled) {
     return (
@@ -96,15 +115,20 @@ function StudentEnrollmentTracker() {
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>Upload your scanned documents below. Allowed formats: PDF, JPG, PNG.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {['Form 138', 'Good Moral', 'Birth Certificate', 'ID Picture'].map(doc => (
-                    <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.1)' }}>
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>{doc}</span>
-                      <input type="file" id={doc} style={{ display: 'none' }} accept=".pdf,.jpg,.jpeg,.png" />
-                      <label htmlFor={doc} className="btn btn-secondary btn-sm" style={{ cursor: 'pointer' }}>Choose File</label>
+                    <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: uploadedDocs[doc] ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.02)', borderRadius: 8, border: `1px dashed ${uploadedDocs[doc] ? 'var(--success)' : 'rgba(255,255,255,0.1)'}` }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: uploadedDocs[doc] ? 'var(--success)' : 'inherit' }}>{doc}</span>
+                        {uploadedDocs[doc] && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{uploadedDocs[doc]}</span>}
+                      </div>
+                      <input type="file" id={doc} onChange={(e) => handleFileChange(doc, e)} style={{ display: 'none' }} accept=".pdf,.jpg,.jpeg,.png" />
+                      <label htmlFor={doc} className={`btn btn-sm ${uploadedDocs[doc] ? 'btn-ghost' : 'btn-secondary'}`} style={{ cursor: 'pointer', color: uploadedDocs[doc] ? 'var(--success)' : 'inherit' }}>
+                        {uploadedDocs[doc] ? 'Change File' : 'Choose File'}
+                      </label>
                     </div>
                   ))}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
-                  <button className="btn btn-primary" onClick={() => setShowSubmitModal(false)}>Submit All</button>
+                  <button className="btn btn-primary" onClick={handleSubmitRequirements}>Submit All</button>
                 </div>
               </div>
             </div>

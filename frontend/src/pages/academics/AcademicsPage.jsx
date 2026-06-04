@@ -53,6 +53,9 @@ export default function AcademicsPage() {
             <h1 className="page-title">My Schedule & Study Load</h1>
             <p className="page-sub">View your enrolled subjects and class schedule</p>
           </div>
+          <button className="btn btn-secondary btn-sm" onClick={() => window.print()}>
+            <FileText size={14} /> Print Schedule
+          </button>
         </div>
 
         {loading ? (

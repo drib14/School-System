@@ -398,10 +398,10 @@ export default function Sidebar({ collapsed, onToggle }) {
           <div key={si}>
             <div className="sidebar-section-label">{section.section}</div>
             {section.items.map((item, idx) => (
-              user?.role === 'super_admin' ? (
+              (item.subItems && item.subItems.length > 0) ? (
                 <AccordionItem key={idx} item={item} collapsed={collapsed} />
               ) : (
-                <NavLink key={item.to} to={item.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title={collapsed ? item.label : ''}>
+                <NavLink key={item.to || idx} to={item.to} className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`} title={collapsed ? item.label : ''}>
                   <item.icon className="nav-icon" size={18} />
                   <span>{item.label}</span>
                 </NavLink>

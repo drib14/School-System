@@ -203,18 +203,47 @@ const getSuperAdminStats = asyncHandler(async (req, res) => {
 });
 
 const createSchool = asyncHandler(async (req, res) => {
-  const { name, abbreviation, plan = 'starter' } = req.body;
+  const { name, abbreviation, plan = 'starter', tagline, logo, address, contact, settings } = req.body;
   
   if (!name || !abbreviation) {
     return res.status(400).json({ success: false, message: 'Name and abbreviation are required.' });
   }
 
   const newSchool = await School.create({
-    name, abbreviation, 
+    name, abbreviation, tagline, logo, address, contact, settings,
     plan, subscription: { status: 'active', plan }
   });
 
   res.status(201).json({ success: true, message: 'School created.', school: newSchool });
 });
 
-module.exports = { getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, getStudents, getStudentById, createStudent, updateStudent, transferStudent, dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats, createSchool };
+const getSchools = asyncHandler(async (req, res) => {
+  const schools = await School.find().sort({ createdAt: -1 });
+  const schoolsWithStats = await Promise.all(schools.map(async (s) => {
+    const studentCount = await StudentProfile.countDocuments({ schoolId: s._id });
+    return {
+      ...s.toObject(),
+      studentCount
+    };
+  }));
+  res.json({ success: true, schools: schoolsWithStats });
+});
+
+const getAuditLogs = asyncHandler(async (req, res) => {
+  const { limit = 20, page = 1 } = req.query;
+  const filter = {};
+  if (req.user.role !== 'super_admin') {
+    filter.schoolId = req.user.schoolId;
+  }
+  const total = await AuditLog.countDocuments(filter);
+  const logs = await AuditLog.find(filter)
+    .populate('user', 'firstName lastName email')
+    .populate('schoolId', 'name abbreviation')
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * limit)
+    .limit(Number(limit));
+
+  res.json({ success: true, total, logs, page: Number(page), pages: Math.ceil(total / limit) });
+});
+
+module.exports = { getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, getStudents, getStudentById, createStudent, updateStudent, transferStudent, dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats, createSchool, getSchools, getAuditLogs };

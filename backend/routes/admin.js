@@ -11,6 +11,8 @@ router.get('/dashboard/super', protect, authorize('super_admin'), ctrl.getSuperA
 
 // Schools (Tenant Management)
 router.post('/schools', protect, authorize('super_admin'), ctrl.createSchool);
+router.get('/schools', protect, authorize('super_admin'), ctrl.getSchools);
+router.get('/audit-logs', protect, authorize('super_admin'), ctrl.getAuditLogs);
 
 // Users
 router.get('/users', protect, authorize(...adminRoles), ctrl.getUsers);

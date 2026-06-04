@@ -127,46 +127,152 @@ router.post('/payments/cash', protect, authorize('cashier','accountant','super_a
   res.status(201).json({ success: true, payment });
 }));
 
-// PayMongo online payment
-router.post('/payments/online', protect, asyncHandler(async (req, res) => {
-  const { amount, description, student, assessmentId } = req.body;
+// PayMongo Checkout Session
+router.post('/payments/paymongo-checkout', protect, asyncHandler(async (req, res) => {
+  const { amount, description, student, assessmentId, gateway } = req.body;
+  
+  if (!amount || !gateway) {
+    return res.status(400).json({ success: false, message: 'Amount and gateway are required.' });
+  }
+
+  const paymongoGateways = {
+    gcash: 'gcash',
+    paymaya: 'paymaya',
+    grab_pay: 'grab_pay',
+    card: 'card'
+  };
+
+  const selectedGateway = paymongoGateways[gateway] || 'gcash';
 
   try {
-    const response = await axios.post('https://api.paymongo.com/v1/links', {
+    const successUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/my-payments?session_id={CHECKOUT_SESSION_ID}&status=success`;
+    const cancelUrl = `${process.env.CLIENT_URL || 'http://localhost:5173'}/my-payments?status=cancelled`;
+
+    const response = await axios.post('https://api.paymongo.com/v1/checkout_sessions', {
       data: {
         attributes: {
-          amount: Math.round(amount * 100), // in centavos
-          description: description || 'ISCP School Fee Payment',
-          remarks: `Student: ${student}`,
-        },
-      },
+          show_description: true,
+          show_line_items: true,
+          cancel_url: cancelUrl,
+          success_url: successUrl,
+          payment_method_types: [selectedGateway],
+          line_items: [
+            {
+              amount: Math.round(amount * 100), // in centavos
+              currency: 'PHP',
+              name: description || 'ISCP School Fee Payment',
+              quantity: 1
+            }
+          ],
+          description: description || 'ISCP School Fee Payment'
+        }
+      }
     }, {
-      headers: { Authorization: `Basic ${paymongoAuth}`, 'Content-Type': 'application/json' },
+      headers: { 
+        Authorization: `Basic ${paymongoAuth}`, 
+        'Content-Type': 'application/json' 
+      },
     });
 
-    const link = response.data.data;
+    const session = response.data.data;
+    const checkoutUrl = session.attributes.checkout_url;
+
+    // Create a pending payment record
     const payment = await Payment.create({
-      schoolId: req.user.schoolId, student: req.user._id,
-      assessment: assessmentId, amount,
-      method: 'paymongo', status: 'pending',
-      paymongoPaymentId: link.id,
-      paymongoCheckoutUrl: link.attributes.checkout_url,
-      createdBy: req.user._id,
+      schoolId: req.user.schoolId,
+      student: student || req.user._id,
+      assessment: assessmentId,
+      amount,
+      method: gateway, // gcash, paymaya, grab_pay, credit_card
+      status: 'pending',
+      paymongoPaymentId: session.id,
+      paymongoCheckoutUrl: checkoutUrl,
+      createdBy: req.user._id
     });
 
-    res.json({ success: true, checkoutUrl: link.attributes.checkout_url, payment });
+    res.json({ success: true, checkoutUrl, sessionId: session.id, payment });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'PayMongo error.', error: err.response?.data });
+    console.error('Paymongo Checkout Session Error:', err.response?.data || err);
+    res.status(500).json({ success: false, message: 'PayMongo session creation failed.', error: err.response?.data });
   }
 }));
 
-// PayMongo webhook
+// PayMongo Verify Checkout Session Status
+router.get('/payments/paymongo-verify/:sessionId', protect, asyncHandler(async (req, res) => {
+  const { sessionId } = req.params;
+
+  try {
+    const response = await axios.get(`https://api.paymongo.com/v1/checkout_sessions/${sessionId}`, {
+      headers: { Authorization: `Basic ${paymongoAuth}` }
+    });
+
+    const session = response.data.data;
+    const paymentStatus = session.attributes.status;
+    const paymentsList = session.attributes.payments || [];
+
+    const payment = await Payment.findOne({ paymongoPaymentId: sessionId });
+
+    if (!payment) {
+      return res.status(404).json({ success: false, message: 'Payment record not found for this session.' });
+    }
+
+    if (payment.status === 'completed') {
+      return res.json({ success: true, status: 'completed', payment });
+    }
+
+    if (paymentStatus === 'paid') {
+      payment.status = 'completed';
+      payment.paidAt = new Date();
+      if (paymentsList.length > 0) {
+        payment.orNumber = paymentsList[0].id;
+      }
+      await payment.save();
+
+      // Update assessment balance
+      if (payment.assessment) {
+        const assessment = await Assessment.findById(payment.assessment);
+        if (assessment) {
+          assessment.totalPaid += payment.amount;
+          assessment.balance = Math.max(0, assessment.netAmount - assessment.totalPaid);
+          assessment.status = assessment.balance <= 0 ? 'paid' : 'partial';
+          await assessment.save();
+        }
+      }
+
+      // Notify user
+      await Notification.create({
+        schoolId: payment.schoolId,
+        recipient: payment.student,
+        title: 'Payment Completed',
+        message: `Your online payment of ₱${payment.amount.toLocaleString()} was successfully processed. Reference: ${payment.referenceNumber}`,
+        type: 'payment',
+      });
+
+      return res.json({ success: true, status: 'completed', payment });
+    } else {
+      return res.json({ success: true, status: paymentStatus, payment });
+    }
+  } catch (err) {
+    console.error('Paymongo Verification Error:', err.response?.data || err);
+    res.status(500).json({ success: false, message: 'PayMongo verification failed.', error: err.response?.data });
+  }
+}));
+
+// PayMongo webhook (support both links and checkout sessions)
 router.post('/payments/webhook', asyncHandler(async (req, res) => {
   const event = req.body;
-  if (event.data?.attributes?.type === 'payment.paid') {
-    const paymentId = event.data?.attributes?.data?.id;
+  const type = event.data?.attributes?.type;
+  
+  if (type === 'payment.paid' || type === 'checkout_session.paid') {
+    let paymentId;
+    if (type === 'payment.paid') {
+      paymentId = event.data?.attributes?.data?.id;
+    } else {
+      paymentId = event.data?.id; // checkout session ID is on data.id
+    }
+
     const payment = await Payment.findOne({ paymongoPaymentId: paymentId });
-    if (payment) {
+    if (payment && payment.status !== 'completed') {
       payment.status = 'completed';
       payment.paidAt = new Date();
       await payment.save();

@@ -2,125 +2,185 @@ require('dotenv').config();
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const connectDB = require('../config/db');
+
+// Models
 const User = require('../models/User');
 const School = require('../models/School');
 const Subject = require('../models/Subject');
 const Program = require('../models/Program');
+const Curriculum = require('../models/Curriculum');
+const StudentProfile = require('../models/StudentProfile');
+const Enrollment = require('../models/Enrollment');
+const ClassSchedule = require('../models/ClassSchedule');
+const Grade = require('../models/Grade');
+const { Fee, Assessment, Payment } = require('../models/Financial');
+const { CampusLocation, EmployeeProfile, Room, Asset, AuditLog } = require('../models/Campus');
+const { Visitor, GatePass, IncidentReport } = require('../models/Services');
 
 const seed = async () => {
   await connectDB();
-  console.log('🌱 Seeding database...');
+  console.log('🌱 Connected to database. Preparing to reseed...');
 
-  // Create Schools / Campuses
-  let school = await School.findOne({ abbreviation: 'ISCP-MNL' });
-  if (!school) {
-    school = await School.create({
-      name: 'International State Colleges of the Philippines - Manila',
-      abbreviation: 'ISCP-MNL',
-      tagline: 'Filipinos Sultus Es',
-      logo: '/iscp-logo.jpg',
-      address: { city: 'Manila', province: 'Metro Manila', country: 'Philippines' },
-      contact: { email: 'manila@iscp.edu.ph', phone: '+63-2-8888-0001' },
-      settings: { schoolLevel: 'both', academicYear: '2025-2026', currentSemester: '1st' },
-    });
+  const collections = [
+    'users', 'schools', 'campuslocations', 'subjects', 'programs',
+    'curriculums', 'studentprofiles', 'enrollments', 'classschedules',
+    'grades', 'fees', 'assessments', 'payments', 'auditlogs',
+    'visitors', 'gatepasses', 'incidentreports'
+  ];
 
-    await School.create({
-      name: 'International State Colleges of the Philippines - Cebu',
-      abbreviation: 'ISCP-CEB',
-      tagline: 'Filipinos Sultus Es',
-      logo: '/iscp-logo.jpg',
-      address: { city: 'Cebu City', province: 'Cebu', country: 'Philippines' },
-      contact: { email: 'cebu@iscp.edu.ph', phone: '+63-32-8888-0002' },
-      settings: { schoolLevel: 'both', academicYear: '2025-2026', currentSemester: '1st' },
-    });
-    
-    await School.create({
-      name: 'International State Colleges of the Philippines - Davao',
-      abbreviation: 'ISCP-DVO',
-      tagline: 'Filipinos Sultus Es',
-      logo: '/iscp-logo.jpg',
-      address: { city: 'Davao City', province: 'Davao del Sur', country: 'Philippines' },
-      contact: { email: 'davao@iscp.edu.ph', phone: '+63-82-8888-0003' },
-      settings: { schoolLevel: 'both', academicYear: '2025-2026', currentSemester: '1st' },
-    });
-    console.log('✅ Schools/Campuses created (Manila, Cebu, Davao)');
+  for (const c of collections) {
+    try {
+      await mongoose.connection.collection(c).deleteMany({});
+      console.log(`🧹 Cleared collection: ${c}`);
+    } catch (err) {
+      console.log(`⚠️ Skip clear: ${c} - ${err.message}`);
+    }
   }
 
-  const defaultPass = process.env.SEED_DEFAULT_PASS;
+  console.log('✅ Collections cleared.');
 
-  // Create Super Admin
-  const superAdmin = await User.findOneAndUpdate({ email: 'superadmin@iscp.edu.ph' }, {
-    firstName: 'Super', lastName: 'Admin', email: 'superadmin@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_ADMIN_PASS || defaultPass, 12), role: 'super_admin', isActive: true, isEmailVerified: true,
+  // 1. Create School (Tenant)
+  const school = await School.create({
+    name: 'International State Colleges of the Philippines',
+    abbreviation: 'ISCP',
+    tagline: 'Filipinos Sultus Es',
+    logo: '/iscp-logo.jpg',
+    address: { city: 'Manila', province: 'Metro Manila', country: 'Philippines' },
+    contact: { email: 'info@iscp.edu.ph', phone: '+63-2-8888-0000', website: 'https://iscp.edu.ph' },
+    settings: {
+      schoolLevel: 'both',
+      academicYear: '2025-2026',
+      currentSemester: '1st',
+      gradingSystem: 'percentage',
+      passingGrade: 75,
+      currency: 'PHP',
+      enableOnlineEnrollment: true,
+      enableParentPortal: true,
+      enableLMS: true
+    }
+  });
+  console.log('✅ Main School tenant created: ISCP');
+
+  // 2. Create Campus Locations
+  const campusManila = await CampusLocation.create({
     schoolId: school._id,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Super Admin created: superadmin@iscp.edu.ph');
+    name: 'ISCP Manila Campus',
+    code: 'ISCP-MNL',
+    address: { street: 'Mendiola St', city: 'Manila', province: 'Metro Manila', zipCode: '1005', country: 'Philippines' },
+    contact: { email: 'manila@iscp.edu.ph', phone: '+63-2-8888-0001' },
+    imageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=60'
+  });
 
-  // Create Principal
-  await User.findOneAndUpdate({ email: 'principal@iscp.edu.ph' }, {
-    firstName: 'Maria', middleName: 'Santos', lastName: 'Cruz', email: 'principal@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_PRINCIPAL_PASS || defaultPass, 12), role: 'principal', schoolId: school._id, isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Principal created: principal@iscp.edu.ph');
+  const campusCebu = await CampusLocation.create({
+    schoolId: school._id,
+    name: 'ISCP Cebu Campus',
+    code: 'ISCP-CEB',
+    address: { street: 'Gorordo Ave', city: 'Cebu City', province: 'Cebu', zipCode: '6000', country: 'Philippines' },
+    contact: { email: 'cebu@iscp.edu.ph', phone: '+63-32-8888-0002' },
+    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=60'
+  });
 
-  // Create Registrar
-  await User.findOneAndUpdate({ email: 'registrar@iscp.edu.ph' }, {
+  const campusDavao = await CampusLocation.create({
+    schoolId: school._id,
+    name: 'ISCP Davao Campus',
+    code: 'ISCP-DVO',
+    address: { street: 'Roxas Ave', city: 'Davao City', province: 'Davao del Sur', zipCode: '8000', country: 'Philippines' },
+    contact: { email: 'davao@iscp.edu.ph', phone: '+63-82-8888-0003' },
+    imageUrl: 'https://images.unsplash.com/photo-1525921429624-479b6a26d84d?w=600&auto=format&fit=crop&q=60'
+  });
+
+  const campusMindanao = await CampusLocation.create({
+    schoolId: school._id,
+    name: 'ISCP Mindanao Campus',
+    code: 'ISCP-MIN',
+    address: { street: 'Aluba Rd', city: 'Cagayan de Oro', province: 'Misamis Oriental', zipCode: '9000', country: 'Philippines' },
+    contact: { email: 'mindanao@iscp.edu.ph', phone: '+63-88-8888-0004' },
+    imageUrl: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a5c?w=600&auto=format&fit=crop&q=60'
+  });
+
+  console.log('✅ Campus Locations created (Manila, Cebu, Davao, Mindanao)');
+
+  // 3. Create Users
+  const defaultPass = process.env.SEED_DEFAULT_PASS || 'Passw0rd123!';
+  const defaultHash = await bcrypt.hash(defaultPass, 12);
+
+  // Super Admin
+  const superAdmin = await User.create({
+    firstName: 'Super', lastName: 'Admin', email: 'superadmin@iscp.edu.ph',
+    password: defaultPass, role: 'super_admin', isActive: true, isEmailVerified: true,
+    schoolId: school._id, phone: '+639170000000'
+  });
+
+  // Principal
+  const principal = await User.create({
+    firstName: 'Maria', lastName: 'Cruz', email: 'principal@iscp.edu.ph',
+    password: defaultPass, role: 'principal', isActive: true, isEmailVerified: true,
+    schoolId: school._id
+  });
+
+  // Registrar
+  const registrar = await User.create({
     firstName: 'Ana', lastName: 'Reyes', email: 'registrar@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_REGISTRAR_PASS || defaultPass, 12), role: 'registrar', schoolId: school._id, isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Registrar created: registrar@iscp.edu.ph');
+    password: defaultPass, role: 'registrar', isActive: true, isEmailVerified: true,
+    schoolId: school._id
+  });
 
-  // Create Teacher
-  const teacher = await User.findOneAndUpdate({ email: 'teacher@iscp.edu.ph' }, {
-    firstName: 'Juan', middleName: 'dela', lastName: 'Cruz', email: 'teacher@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_TEACHER_PASS || defaultPass, 12), role: 'teacher', schoolId: school._id, isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Teacher created: teacher@iscp.edu.ph');
+  // Teacher
+  const teacher = await User.create({
+    firstName: 'Juan', lastName: 'dela Cruz', email: 'teacher@iscp.edu.ph',
+    password: defaultPass, role: 'teacher', isActive: true, isEmailVerified: true,
+    schoolId: school._id
+  });
 
-  // Create Student
-  const mainStudent = await User.findOneAndUpdate({ email: 'student@iscp.edu.ph' }, {
-    firstName: 'Jose', lastName: 'Rizal', email: 'student@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
-    studentId: '26060401', isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Student created: student@iscp.edu.ph');
-
-  const specialStudent = await User.findOneAndUpdate({ email: 'special@iscp.edu.ph' }, {
-    firstName: 'Andres', lastName: 'Bonifacio', email: 'special@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
-    studentId: '26060405', isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Special Student created: special@iscp.edu.ph');
-
-  // Create Cashier
-  await User.findOneAndUpdate({ email: 'cashier@iscp.edu.ph' }, {
+  // Cashier
+  const cashier = await User.create({
     firstName: 'Rosa', lastName: 'Garcia', email: 'cashier@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_CASHIER_PASS || defaultPass, 12), role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+    password: defaultPass, role: 'cashier', isActive: true, isEmailVerified: true,
+    schoolId: school._id
+  });
 
-  // Create Librarian
-  await User.findOneAndUpdate({ email: 'librarian@iscp.edu.ph' }, {
+  // Librarian
+  const librarian = await User.create({
     firstName: 'Leonor', lastName: 'Orosa', email: 'librarian@iscp.edu.ph',
-    password: await bcrypt.hash(defaultPass, 12), role: 'librarian', schoolId: school._id, isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+    password: defaultPass, role: 'librarian', isActive: true, isEmailVerified: true,
+    schoolId: school._id
+  });
 
-  // Create Nurse
-  await User.findOneAndUpdate({ email: 'nurse@iscp.edu.ph' }, {
+  // Nurse
+  const nurse = await User.create({
     firstName: 'Clara', lastName: 'Barton', email: 'nurse@iscp.edu.ph',
-    password: await bcrypt.hash(defaultPass, 12), role: 'nurse', schoolId: school._id, isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+    password: defaultPass, role: 'nurse', isActive: true, isEmailVerified: true,
+    schoolId: school._id
+  });
 
-  // Create HR
-  await User.findOneAndUpdate({ email: 'hr@iscp.edu.ph' }, {
+  // HR
+  const hr = await User.create({
     firstName: 'Michael', lastName: 'Scott', email: 'hr@iscp.edu.ph',
-    password: await bcrypt.hash(defaultPass, 12), role: 'hr_staff', schoolId: school._id, isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-  console.log('✅ Other Staff created (Cashier, Librarian, Nurse, HR)');
+    password: defaultPass, role: 'hr_staff', isActive: true, isEmailVerified: true,
+    schoolId: school._id
+  });
 
-  // Comprehensive Academic Structure Seeding
-  // Removed deleteMany to preserve existing data
+  // Student (Jose Rizal)
+  const student = await User.create({
+    firstName: 'Jose', lastName: 'Rizal', email: 'student@iscp.edu.ph',
+    password: defaultPass, role: 'student', isActive: true, isEmailVerified: true,
+    schoolId: school._id, studentId: '26060401'
+  });
 
-  // 1. Programs
+  // Parent (Francisco Rizal)
+  const parent = await User.create({
+    firstName: 'Francisco', lastName: 'Rizal', email: 'parent@iscp.edu.ph',
+    password: defaultPass, role: 'parent', isActive: true, isEmailVerified: true,
+    schoolId: school._id, children: [student._id]
+  });
+
+  // Link student back to parent
+  student.parentOf = [parent._id];
+  await student.save();
+
+  console.log('✅ Standard Users created');
+
+  // 4. Create Academic Programs
   const programsData = [
     { code: 'ELEM', name: 'Elementary Education', type: 'k12', level: 'elementary', duration: 6 },
     { code: 'JHS', name: 'Junior High School', type: 'k12', level: 'junior_high', duration: 4 },
@@ -131,443 +191,296 @@ const seed = async () => {
     { code: 'BSIT', name: 'Bachelor of Science in Information Technology', type: 'college', level: 'bachelor', duration: 4 },
     { code: 'BSED', name: 'Bachelor of Secondary Education', type: 'college', level: 'bachelor', duration: 4 },
     { code: 'BSN', name: 'Bachelor of Science in Nursing', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'BSCE', name: 'Bachelor of Science in Civil Engineering', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'BSARCH', name: 'Bachelor of Science in Architecture', type: 'college', level: 'bachelor', duration: 5 },
-    { code: 'BSBA', name: 'Bachelor of Science in Business Administration', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'BSPSYCH', name: 'Bachelor of Science in Psychology', type: 'college', level: 'bachelor', duration: 4 },
-    { code: 'ALS', name: 'Alternative Learning System (ALS)', type: 'special', level: 'special', duration: 1 },
-    { code: 'SPED', name: 'Special Education (SPED)', type: 'special', level: 'special', duration: 1 },
+    { code: 'ALS', name: 'Alternative Learning System (ALS)', type: 'vocational', level: 'junior_high', duration: 1 },
+    { code: 'SPED', name: 'Special Education (SPED)', type: 'vocational', level: 'elementary', duration: 1 }
   ];
 
   const createdPrograms = {};
   for (const p of programsData) {
-    const prog = await Program.findOneAndUpdate(
-      { code: p.code, schoolId: school._id },
-      { ...p, createdBy: superAdmin._id },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+    const prog = await Program.create({ ...p, schoolId: school._id, createdBy: superAdmin._id });
     createdPrograms[p.code] = prog._id;
   }
-  console.log(`✅ Programs created/updated (${programsData.length})`);
+  console.log(`✅ Programs created (${programsData.length})`);
 
-  // 2. Subjects
-  // Elementary
-  const elemSubjects = [
-    { code: 'ELEM-MATH1', name: 'Mathematics 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
-    { code: 'ELEM-ENG1', name: 'English 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
-    { code: 'ELEM-SCI3', name: 'Science 3', units: 3, level: 'k12', gradeLevel: ['3'], program: [createdPrograms.ELEM] },
-    { code: 'ELEM-FIL1', name: 'Filipino 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
-    { code: 'ELEM-AP1', name: 'Araling Panlipunan 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
-    { code: 'ELEM-MAPEH1', name: 'MAPEH 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
-    { code: 'ELEM-ESP1', name: 'Edukasyon sa Pagpapakatao 1', units: 3, level: 'k12', gradeLevel: ['1'], program: [createdPrograms.ELEM] },
-    { code: 'ELEM-TLE4', name: 'EPP 4', units: 3, level: 'k12', gradeLevel: ['4'], program: [createdPrograms.ELEM] },
-  ];
-
-  // JHS
-  const jhsSubjects = [
-    { code: 'JHS-MATH7', name: 'Mathematics 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-    { code: 'JHS-ENG7', name: 'English 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-    { code: 'JHS-SCI7', name: 'Science 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-    { code: 'JHS-FIL7', name: 'Filipino 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-    { code: 'JHS-AP7', name: 'Araling Panlipunan 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-    { code: 'JHS-MAPEH7', name: 'MAPEH 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-    { code: 'JHS-ESP7', name: 'Edukasyon sa Pagpapakatao 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-    { code: 'JHS-TLE7', name: 'TLE 7', units: 3, level: 'k12', gradeLevel: ['7'], program: [createdPrograms.JHS] },
-  ];
-
-  // SHS (Strand specific)
-  const shsSubjects = [
-    // Core (Shared)
-    { code: 'SHS-CORE1', name: 'Oral Communication in Context', units: 3, level: 'k12', gradeLevel: ['11','12'], program: [createdPrograms.STEM, createdPrograms.ABM, createdPrograms.HUMSS] },
-    { code: 'SHS-CORE2', name: 'Reading and Writing Skills', units: 3, level: 'k12', gradeLevel: ['11','12'], program: [createdPrograms.STEM, createdPrograms.ABM, createdPrograms.HUMSS] },
-    { code: 'SHS-CORE3', name: 'Komunikasyon at Pananaliksik', units: 3, level: 'k12', gradeLevel: ['11','12'], program: [createdPrograms.STEM, createdPrograms.ABM, createdPrograms.HUMSS] },
-    
-    // STEM
-    { code: 'SHS-STEM1', name: 'Pre-Calculus', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM2', name: 'Basic Calculus', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM3', name: 'General Physics 1', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM4', name: 'General Physics 2', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM5', name: 'General Chemistry 1', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM6', name: 'General Chemistry 2', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM7', name: 'General Biology 1', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
-    { code: 'SHS-STEM8', name: 'General Biology 2', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.STEM] },
-    
-    // ABM
-    { code: 'SHS-ABM1', name: 'Fundamentals of ABM 1', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
-    { code: 'SHS-ABM2', name: 'Fundamentals of ABM 2', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
-    { code: 'SHS-ABM3', name: 'Business Math', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
-    { code: 'SHS-ABM4', name: 'Business Finance', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
-    { code: 'SHS-ABM5', name: 'Organization and Management', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.ABM] },
-    { code: 'SHS-ABM6', name: 'Principles of Marketing', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
-    { code: 'SHS-ABM7', name: 'Business Ethics and Social Responsibility', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
-    { code: 'SHS-ABM8', name: 'Applied Economics', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.ABM] },
-
-    // HUMSS
-    { code: 'SHS-HUMSS1', name: 'Creative Writing', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
-    { code: 'SHS-HUMSS2', name: 'Creative Nonfiction', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
-    { code: 'SHS-HUMSS3', name: 'Introduction to World Religions', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
-    { code: 'SHS-HUMSS4', name: 'Trends, Networks, and Critical Thinking', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
-    { code: 'SHS-HUMSS5', name: 'Philippine Politics and Governance', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
-    { code: 'SHS-HUMSS6', name: 'Community Engagement, Solidarity, and Citizenship', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
-    { code: 'SHS-HUMSS7', name: 'Disciplines and Ideas in the Social Sciences', units: 3, level: 'k12', gradeLevel: ['11'], program: [createdPrograms.HUMSS] },
-    { code: 'SHS-HUMSS8', name: 'Disciplines and Ideas in the Applied Social Sciences', units: 3, level: 'k12', gradeLevel: ['12'], program: [createdPrograms.HUMSS] },
-  ];
-
-  // College
+  // 5. Create Subjects
   const collegeSubjects = [
-    // Gen Ed
-    { code: 'GE101', name: 'Understanding the Self', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT, createdPrograms.BSED, createdPrograms.BSBA, createdPrograms.BSPSYCH] },
-    { code: 'MATH101', name: 'College Algebra', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT, createdPrograms.BSBA] },
-    { code: 'ENG101', name: 'Purposive Communication', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT, createdPrograms.BSBA, createdPrograms.BSPSYCH] },
-
-    // BSCS
-    { code: 'CS101', name: 'Introduction to Computing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS, createdPrograms.BSIT] },
+    { code: 'GE101', name: 'Understanding the Self', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSN] },
+    { code: 'MATH101', name: 'College Algebra', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS] },
+    { code: 'ENG101', name: 'Purposive Communication', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSN] },
+    { code: 'CS101', name: 'Introduction to Computing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] },
     { code: 'CS102', name: 'Programming Fundamentals', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] }, // prereq: CS101
     { code: 'CS201', name: 'Data Structures and Algorithms', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] }, // prereq: CS102
-    
-    // Additional Programs Core
-    { code: 'NUR101', name: 'Theoretical Foundations in Nursing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSN] },
-    { code: 'CE101', name: 'Engineering Drawing', units: 2, level: 'college', category: 'major', program: [createdPrograms.BSCE] },
-    { code: 'ARCH101', name: 'Architectural Design 1', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSARCH] },
-    { code: 'MGT101', name: 'Principles of Management', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSBA] },
-    { code: 'PSY101', name: 'Introduction to Psychology', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSPSYCH] },
+    { code: 'NUR101', name: 'Theoretical Foundations in Nursing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSN] }
   ];
 
-  const allSubjects = [...elemSubjects, ...jhsSubjects, ...shsSubjects, ...collegeSubjects];
   const createdSubjects = {};
-
-  for (const s of allSubjects) {
-    const subj = await Subject.findOneAndUpdate(
-      { code: s.code, schoolId: school._id },
-      { ...s, createdBy: superAdmin._id },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
+  for (const s of collegeSubjects) {
+    const subj = await Subject.create({ ...s, schoolId: school._id, createdBy: superAdmin._id });
     createdSubjects[s.code] = subj._id;
   }
 
-  // 3. Link Prerequisites
-  await Subject.findByIdAndUpdate(createdSubjects['SHS-STEM2'], { prerequisites: [createdSubjects['SHS-STEM1']] });
+  // Link prerequisites
   await Subject.findByIdAndUpdate(createdSubjects['CS102'], { prerequisites: [createdSubjects['CS101']] });
   await Subject.findByIdAndUpdate(createdSubjects['CS201'], { prerequisites: [createdSubjects['CS102']] });
 
-  console.log(`✅ Subjects created and prerequisites linked (${allSubjects.length})`);
+  console.log('✅ College Subjects created with prerequisite linkages');
 
-  // 4. Create Curriculums
-  const Curriculum = require('../models/Curriculum');
-  // Removed deleteMany to preserve existing data
-  const bscsCurriculum = await Curriculum.findOneAndUpdate(
-    { code: 'BSCS-NEW', schoolId: school._id },
-    {
-      program: createdPrograms.BSCS,
-      name: 'BSCS New Curriculum',
-      version: '1.0',
-      effectiveYear: '2025',
-      status: 'active',
-      subjects: [
-        { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
-        { subject: createdSubjects['MATH101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
-        { subject: createdSubjects['CS101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
-        { subject: createdSubjects['CS102'], yearLevel: 1, semester: '2nd', isRequired: true, order: 1 },
-        { subject: createdSubjects['CS201'], yearLevel: 2, semester: '1st', isRequired: true, order: 1 },
-      ],
-      totalUnits: 15,
-      createdBy: superAdmin._id
+  // 6. Create Curriculums
+  const bscsCurriculum = await Curriculum.create({
+    program: createdPrograms.BSCS,
+    schoolId: school._id,
+    code: 'BSCS-2025',
+    name: 'BSCS New Curriculum',
+    version: '1.0',
+    effectiveYear: '2025',
+    status: 'active',
+    subjects: [
+      { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
+      { subject: createdSubjects['MATH101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
+      { subject: createdSubjects['CS101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
+      { subject: createdSubjects['CS102'], yearLevel: 1, semester: '2nd', isRequired: true, order: 1 },
+      { subject: createdSubjects['CS201'], yearLevel: 2, semester: '1st', isRequired: true, order: 1 }
+    ],
+    totalUnits: 15,
+    createdBy: superAdmin._id
+  });
+
+  const bsnCurriculum = await Curriculum.create({
+    program: createdPrograms.BSN,
+    schoolId: school._id,
+    code: 'BSN-2025',
+    name: 'BSN New Curriculum',
+    version: '1.0',
+    effectiveYear: '2025',
+    status: 'active',
+    subjects: [
+      { subject: createdSubjects['NUR101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
+      { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
+      { subject: createdSubjects['ENG101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 }
+    ],
+    totalUnits: 9,
+    createdBy: superAdmin._id
+  });
+
+  console.log('✅ Curriculums created (BSCS, BSN)');
+
+  // 7. Create Class Schedules
+  const scheduleCS101 = await ClassSchedule.create({
+    schoolId: school._id,
+    subject: createdSubjects['CS101'],
+    teacher: teacher._id,
+    academicYear: '2025-2026',
+    semester: '1st',
+    section: 'CS1-A',
+    schedule: [
+      { day: 'Monday', startTime: '09:00', endTime: '10:30', room: 'Lab 101' },
+      { day: 'Wednesday', startTime: '09:00', endTime: '10:30', room: 'Lab 101' }
+    ],
+    maxStudents: 40,
+    status: 'open'
+  });
+
+  const scheduleMATH101 = await ClassSchedule.create({
+    schoolId: school._id,
+    subject: createdSubjects['MATH101'],
+    teacher: teacher._id,
+    academicYear: '2025-2026',
+    semester: '1st',
+    section: 'CS1-A',
+    schedule: [
+      { day: 'Tuesday', startTime: '10:30', endTime: '12:00', room: 'Room 302' },
+      { day: 'Thursday', startTime: '10:30', endTime: '12:00', room: 'Room 302' }
+    ],
+    maxStudents: 40,
+    status: 'open'
+  });
+
+  console.log('✅ Class Schedules created');
+
+  // 8. Create Student Profile
+  const studentProfile = await StudentProfile.create({
+    userId: student._id,
+    schoolId: school._id,
+    studentId: '26060401',
+    program: createdPrograms.BSCS,
+    yearLevel: 1,
+    academicStatus: 'active',
+    enrollmentStatus: 'enrolled',
+    course: 'BSCS',
+    birthPlace: 'Calamba, Laguna',
+    citizenship: 'Filipino',
+    guardian: {
+      name: 'Francisco Rizal',
+      relationship: 'Father',
+      contactNumber: '+639171112222',
+      email: 'parent@iscp.edu.ph',
+      address: 'Calamba, Laguna'
     },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+    documents: [
+      { type: 'birth_certificate', url: '/mock-files/birth_certificate.pdf', verified: true },
+      { type: 'report_card', url: '/mock-files/report_card.pdf', verified: true }
+    ],
+    createdBy: superAdmin._id
+  });
 
-  const bsnCurriculum = await Curriculum.findOneAndUpdate(
-    { code: 'BSN-NEW', schoolId: school._id },
-    {
-      program: createdPrograms.BSN,
-      name: 'BSN New Curriculum',
-      version: '1.0',
-      effectiveYear: '2025',
-      status: 'active',
-      subjects: [
-        { subject: createdSubjects['NUR101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
-        { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
-        { subject: createdSubjects['ENG101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
-      ],
-      totalUnits: 9,
-      createdBy: superAdmin._id
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  // 9. Create Enrollment
+  const enrollment = await Enrollment.create({
+    schoolId: school._id,
+    student: student._id,
+    studentProfile: studentProfile._id,
+    enrollmentNumber: 'ENR-25-00001',
+    academicYear: '2025-2026',
+    semester: '1st',
+    type: 'new',
+    levelType: 'college',
+    campus: campusManila._id,
+    program: createdPrograms.BSCS,
+    yearLevel: 1,
+    status: 'enrolled',
+    subjects: [
+      { subject: createdSubjects['CS101'], schedule: scheduleCS101._id, units: 3, status: 'enrolled' },
+      { subject: createdSubjects['MATH101'], schedule: scheduleMATH101._id, units: 3, status: 'enrolled' }
+    ],
+    totalUnits: 6,
+    steps: [
+      { step: 'application', status: 'completed', completedAt: new Date() },
+      { step: 'verification', status: 'completed', completedAt: new Date() },
+      { step: 'assessment', status: 'completed', completedAt: new Date() },
+      { step: 'payment', status: 'completed', completedAt: new Date() },
+      { step: 'subject_assignment', status: 'completed', completedAt: new Date() },
+      { step: 'confirmation', status: 'completed', completedAt: new Date() }
+    ],
+    createdBy: superAdmin._id
+  });
 
-  console.log('✅ Curriculums created/updated');
+  // 10. Create Grades
+  await Grade.create({
+    schoolId: school._id, student: student._id, subject: createdSubjects['CS101'],
+    teacher: teacher._id, schedule: scheduleCS101._id, enrollment: enrollment._id,
+    academicYear: '2025-2026', semester: '1st',
+    quizAverage: 95, activityAverage: 92, projectAverage: 96, finalRating: 94.5,
+    remarks: 'Passed', status: 'released', releasedAt: new Date()
+  });
 
-  // 5. Create Pre-enrolled Students
-  const StudentProfile = require('../models/StudentProfile');
-  const Enrollment = require('../models/Enrollment');
-  const ClassSchedule = require('../models/ClassSchedule');
+  await Grade.create({
+    schoolId: school._id, student: student._id, subject: createdSubjects['MATH101'],
+    teacher: teacher._id, schedule: scheduleMATH101._id, enrollment: enrollment._id,
+    academicYear: '2025-2026', semester: '1st',
+    quizAverage: 88, activityAverage: 85, projectAverage: 90, finalRating: 87.6,
+    remarks: 'Passed', status: 'released', releasedAt: new Date()
+  });
 
-  // Removed deleteMany to preserve existing data
+  console.log('✅ Student Profile, Enrollment, and Grades created');
 
-  // Create a class schedule for CS101
-  const cs101Schedule = await ClassSchedule.findOneAndUpdate(
-    { section: 'CS1A', subject: createdSubjects['CS101'], schoolId: school._id },
-    {
-      teacher: teacher._id,
-      academicYear: '2025-2026',
-      semester: '1st',
-      schedule: [{ day: 'Monday', startTime: '09:00', endTime: '10:30' }, { day: 'Wednesday', startTime: '09:00', endTime: '10:30' }],
-      maxStudents: 40,
-      status: 'open'
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  // 11. Create Fees, Assessment, and Payments
+  const tuitionFee = await Fee.create({ name: 'Tuition Fee (Per Unit)', category: 'tuition', amount: 1500, frequency: 'per_unit', schoolId: school._id });
+  const miscFee = await Fee.create({ name: 'Miscellaneous Fee', category: 'miscellaneous', amount: 5000, frequency: 'per_semester', schoolId: school._id });
 
-  // Create BSCS Student (College)
-  const collegeStudent = mainStudent;
-  
-  await StudentProfile.findOneAndUpdate(
-    { userId: collegeStudent._id },
-    {
-      schoolId: school._id, studentId: '26060401',
-      program: createdPrograms.BSCS, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
-      course: 'BSCS'
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  const assessment = await Assessment.create({
+    schoolId: school._id,
+    student: student._id,
+    enrollment: enrollment._id,
+    academicYear: '2025-2026',
+    semester: '1st',
+    fees: [
+      { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 9000, units: 6 },
+      { fee: miscFee._id, feeName: miscFee.name, category: miscFee.category, amount: 5000 }
+    ],
+    totalAmount: 14000,
+    netAmount: 14000,
+    totalPaid: 10000,
+    balance: 4000,
+    status: 'partial',
+    createdBy: superAdmin._id
+  });
 
-  const studentEnrollment = await Enrollment.findOneAndUpdate(
-    { student: collegeStudent._id, academicYear: '2025-2026', semester: '1st' },
-    {
-      schoolId: school._id, levelType: 'college', program: createdPrograms.BSCS, yearLevel: 1, type: 'new',
-      status: 'enrolled',
-      subjects: [
-        { subject: createdSubjects['CS101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' },
-        { subject: createdSubjects['MATH101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }
-      ],
-      totalUnits: 6,
-      steps: [
-        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-      ]
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  await Payment.create({
+    schoolId: school._id,
+    student: student._id,
+    assessment: assessment._id,
+    referenceNumber: 'PAY-25-000001',
+    amount: 10000,
+    method: 'cash',
+    status: 'completed',
+    processedBy: cashier._id,
+    paidAt: new Date(),
+    createdBy: cashier._id
+  });
 
-  // Create Grades for mainStudent
-  const Grade = require('../models/Grade');
-  // Removed deleteMany
-  await Grade.findOneAndUpdate(
-    { student: collegeStudent._id, subject: createdSubjects['CS101'] },
-    {
-      schoolId: school._id, teacher: teacher._id,
-      schedule: cs101Schedule._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
-      quizAverage: 95, activityAverage: 92, projectAverage: 96, finalRating: 94.5, remarks: 'Passed', status: 'released',
-      releasedAt: new Date()
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
-  await Grade.findOneAndUpdate(
-    { student: collegeStudent._id, subject: createdSubjects['MATH101'] },
-    {
-      schoolId: school._id, teacher: teacher._id,
-      schedule: cs101Schedule._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
-      quizAverage: 88, activityAverage: 85, projectAverage: 90, finalRating: 87.6, remarks: 'Passed', status: 'released',
-      releasedAt: new Date()
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true }
-  );
+  console.log('✅ Fees, Assessment, and partial Payment seeded (for student checkout testing)');
 
-  // Create Financials for mainStudent
-  const { Fee, Assessment, Payment } = require('../models/Financial');
-  // Removed deleteMany
+  // 12. Create Audit Logs
+  const auditLogsData = [
+    { action: 'LOGIN', module: 'Auth', description: 'Super Admin logged in', ip: '192.168.1.1', status: 'success' },
+    { action: 'CREATE', module: 'School', description: 'Main School tenant created: ISCP', ip: '192.168.1.1', status: 'success' },
+    { action: 'CREATE', module: 'Campus', description: 'ISCP Manila Campus registered', ip: '192.168.1.1', status: 'success' },
+    { action: 'CREATE', module: 'User', description: 'Created student account: student@iscp.edu.ph', ip: '192.168.1.20', status: 'success' },
+    { action: 'ENROLL', module: 'Enrollment', description: 'Enrolled student in BSCS', ip: '192.168.1.30', status: 'success' },
+    { action: 'PAY', module: 'Financial', description: 'Seeded initial payment of 10,000 PHP', ip: '192.168.1.5', status: 'success' }
+  ];
 
-  const tuitionFee = await Fee.findOneAndUpdate({ name: 'Tuition Fee (Per Unit)' }, { schoolId: school._id, category: 'tuition', amount: 1500, frequency: 'per_unit' }, { upsert: true, new: true });
-  const miscFee = await Fee.findOneAndUpdate({ name: 'Miscellaneous Fee' }, { schoolId: school._id, category: 'miscellaneous', amount: 5000, frequency: 'per_semester' }, { upsert: true, new: true });
+  for (const log of auditLogsData) {
+    await AuditLog.create({
+      ...log,
+      schoolId: school._id,
+      user: superAdmin._id
+    });
+  }
+  console.log('✅ Audit Logs seeded');
 
-  const assessment = await Assessment.findOneAndUpdate(
-    { student: collegeStudent._id, academicYear: '2025-2026', semester: '1st' },
-    {
-      schoolId: school._id, enrollment: studentEnrollment._id,
-      fees: [
-        { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 9000 },
-        { fee: miscFee._id, feeName: miscFee.name, category: miscFee.category, amount: 5000 }
-      ],
-      totalAmount: 14000, discount: 0, scholarship: 0, netAmount: 14000, balance: 0, totalPaid: 14000, status: 'paid'
-    },
-    { upsert: true, new: true }
-  );
+  // 13. Create Visitors & Gate Passes
+  await Visitor.create({
+    schoolId: school._id,
+    firstName: 'Juan',
+    lastName: 'Perez',
+    phone: '09187778888',
+    purpose: 'Inquire about admission requirements',
+    personToVisit: 'Admission Office',
+    department: 'Registrar',
+    idType: 'Driver\'s License',
+    idNumber: 'D01-99-123456',
+    vehiclePlate: 'XYZ-9876',
+    timeIn: new Date(),
+    status: 'checked_in',
+    approvedBy: registrar._id
+  });
 
-  await Payment.findOneAndUpdate(
-    { referenceNumber: 'CASH-001' },
-    {
-      schoolId: school._id, student: collegeStudent._id, assessment: assessment._id, amount: 14000, method: 'cash', status: 'completed',
-      paidAt: new Date(), processedBy: superAdmin._id
-    },
-    { upsert: true, new: true }
-  );
+  await Visitor.create({
+    schoolId: school._id,
+    firstName: 'Maria',
+    lastName: 'Santos',
+    phone: '09192223333',
+    purpose: 'Deliver school supplies',
+    personToVisit: 'Property Office',
+    department: 'Admin',
+    idType: 'SSS ID',
+    idNumber: '03-1234567-8',
+    timeIn: new Date(Date.now() - 3600000 * 3),
+    timeOut: new Date(Date.now() - 3600000 * 2),
+    status: 'checked_out',
+    approvedBy: registrar._id
+  });
 
-  // Create Nursing Student
-  const nursingStudent = await User.findOneAndUpdate({ email: 'nursing_student@iscp.edu.ph' }, {
-    firstName: 'Florence', lastName: 'Nightingale', email: 'nursing_student@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
-    studentId: '060426006', isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+  await GatePass.create({
+    schoolId: school._id,
+    person: student._id,
+    personType: 'student',
+    reason: 'Dental Appointment',
+    destination: 'Dental Clinic',
+    timeOut: new Date(),
+    status: 'approved',
+    approvedBy: principal._id,
+    approvedAt: new Date(),
+    qrCode: 'MOCK-QR-GATEPASS-CODE'
+  });
 
-  await StudentProfile.findOneAndUpdate(
-    { userId: nursingStudent._id },
-    {
-      schoolId: school._id, studentId: '060426006',
-      program: createdPrograms.BSN, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
-      course: 'BSN'
-    },
-    { upsert: true, new: true }
-  );
-
-  await Enrollment.findOneAndUpdate(
-    { student: nursingStudent._id, academicYear: '2025-2026' },
-    {
-      enrollmentNumber: 'ENR-25-NUR01',
-      schoolId: school._id, semester: '1st',
-      levelType: 'college', program: createdPrograms.BSN, yearLevel: 1, type: 'new',
-      status: 'enrolled',
-      subjects: [{ subject: createdSubjects['NUR101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-      totalUnits: 3,
-      steps: [
-        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-      ]
-    },
-    { upsert: true, new: true }
-  );
-
-  // Create JHS Student (K-12)
-  const jhsStudent = await User.findOneAndUpdate({ email: 'jhs_student@iscp.edu.ph' }, {
-    firstName: 'Maria', lastName: 'Junior', email: 'jhs_student@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
-    studentId: '26060402', isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-
-  await StudentProfile.findOneAndUpdate(
-    { userId: jhsStudent._id },
-    {
-      schoolId: school._id, studentId: '26060402',
-      program: createdPrograms.JHS, gradeLevel: '7', academicStatus: 'active', enrollmentStatus: 'enrolled'
-    },
-    { upsert: true, new: true }
-  );
-
-  await Enrollment.findOneAndUpdate(
-    { student: jhsStudent._id, academicYear: '2025-2026' },
-    {
-      enrollmentNumber: 'ENR-25-JHS01',
-      schoolId: school._id, semester: '1st',
-      levelType: 'k12', program: createdPrograms.JHS, gradeLevel: '7', type: 'new',
-      status: 'enrolled',
-      subjects: [{ subject: createdSubjects['JHS-MATH7'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-      steps: [
-        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-      ]
-    },
-    { upsert: true, new: true }
-  );
-
-  // Create Elem Student (K-12)
-  const elemStudent = await User.findOneAndUpdate({ email: 'elem_student@iscp.edu.ph' }, {
-    firstName: 'Pedro', lastName: 'Elementary', email: 'elem_student@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
-    studentId: '26060403', isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-
-  await StudentProfile.findOneAndUpdate(
-    { userId: elemStudent._id },
-    {
-      schoolId: school._id, studentId: '26060403',
-      program: createdPrograms.ELEM, gradeLevel: '1', academicStatus: 'active', enrollmentStatus: 'enrolled'
-    },
-    { upsert: true, new: true }
-  );
-
-  await Enrollment.findOneAndUpdate(
-    { student: elemStudent._id, academicYear: '2025-2026' },
-    {
-      enrollmentNumber: 'ENR-25-ELE01',
-      schoolId: school._id, semester: '1st',
-      levelType: 'k12', program: createdPrograms.ELEM, gradeLevel: '1', type: 'new',
-      status: 'enrolled',
-      subjects: [{ subject: createdSubjects['ELEM-MATH1'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-      steps: [
-        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-      ]
-    },
-    { upsert: true, new: true }
-  );
-
-  // Create SHS Student (K-12)
-  const shsStudent = await User.findOneAndUpdate({ email: 'shs_student@iscp.edu.ph' }, {
-    firstName: 'Clara', lastName: 'Senior', email: 'shs_student@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
-    studentId: '26060404', isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-
-  await StudentProfile.findOneAndUpdate(
-    { userId: shsStudent._id },
-    {
-      schoolId: school._id, studentId: '26060404',
-      program: createdPrograms.STEM, gradeLevel: '11', academicStatus: 'active', enrollmentStatus: 'enrolled'
-    },
-    { upsert: true, new: true }
-  );
-
-  await Enrollment.findOneAndUpdate(
-    { student: shsStudent._id, academicYear: '2025-2026' },
-    {
-      enrollmentNumber: 'ENR-25-SHS01',
-      schoolId: school._id, semester: '1st',
-      levelType: 'k12', program: createdPrograms.STEM, gradeLevel: '11', type: 'new',
-      status: 'enrolled',
-      subjects: [{ subject: createdSubjects['SHS-STEM1'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-      steps: [
-        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-      ]
-    },
-    { upsert: true, new: true }
-  );
-  console.log('✅ Pre-enrolled students created (College, JHS, Elem, SHS)');
-
-  await StudentProfile.findOneAndUpdate(
-    { userId: specialStudent._id },
-    {
-      schoolId: school._id, studentId: '26060405',
-      program: createdPrograms.ALS, gradeLevel: 'ALS', academicStatus: 'active', enrollmentStatus: 'enrolled'
-    },
-    { upsert: true, new: true }
-  );
-
-  await Enrollment.findOneAndUpdate(
-    { student: specialStudent._id, academicYear: '2025-2026' },
-    {
-      enrollmentNumber: 'ENR-25-ALS01',
-      schoolId: school._id, semester: '1st',
-      levelType: 'special', program: createdPrograms.ALS, gradeLevel: 'ALS', type: 'new',
-      status: 'enrolled',
-      subjects: [],
-      totalUnits: 0,
-      steps: [
-        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-      ]
-    },
-    { upsert: true, new: true }
-  );
-  console.log('✅ Pre-enrolled Special Program student created');
+  console.log('✅ Visitors and Gate Passes seeded');
 
   await mongoose.connection.close();
-  console.log('\n🎉 Seeding complete!');
+  console.log('\n🎉 Reseed operations complete!');
 };
 
-seed().catch(err => { console.error('❌ Seed error:', err); process.exit(1); });
+seed().catch(err => {
+  console.error('❌ Reseed error:', err);
+  process.exit(1);
+});

@@ -19,6 +19,35 @@ export default function FinancialPage() {
   const [formData, setFormData] = useState({});
   const [activeTab, setActiveTab] = useState(path.includes('fees') ? 'fees' : path.includes('assessments') ? 'assessments' : path.includes('summary') ? 'summary' : 'payments');
 
+  const queryParams = new URLSearchParams(location.search);
+  const sessionId = queryParams.get('session_id');
+  const paymentStatus = queryParams.get('status');
+
+  useEffect(() => {
+    if (sessionId && paymentStatus === 'success') {
+      const verifyPayment = async () => {
+        const loadingToast = toast.loading('Verifying PayMongo transaction...');
+        try {
+          const { data } = await api.get(`/financial/payments/paymongo-verify/${sessionId}`);
+          if (data.status === 'completed') {
+            toast.success('Payment completed successfully!', { id: loadingToast });
+            fetchData();
+          } else {
+            toast.error('Payment verification pending or failed.', { id: loadingToast });
+          }
+        } catch (err) {
+          toast.error('Error verifying payment.', { id: loadingToast });
+        } finally {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      };
+      verifyPayment();
+    } else if (paymentStatus === 'cancelled') {
+      toast.error('Payment cancelled.');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+  }, [sessionId, paymentStatus]);
+
   const isStudent = user?.role === 'student';
 
   useEffect(() => {
@@ -233,7 +262,7 @@ export default function FinancialPage() {
       {/* Pay Modal */}
       {showPayModal && (
         <div className="modal-overlay" onClick={e => e.target === e.currentTarget && setShowPayModal(null)}>
-          <div className="modal animate-slide" style={{ background: 'rgba(15, 17, 26, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: 400 }}>
+          <div className="modal animate-slide" style={{ background: 'rgba(15, 17, 26, 0.95)', backdropFilter: 'blur(20px)', border: '1px solid rgba(255, 255, 255, 0.1)', maxWidth: 420 }}>
             <div className="modal-header">
               <h3 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}><CreditCard size={18} /> Make Payment</h3>
               <button className="btn btn-ghost btn-icon" onClick={() => setShowPayModal(null)}>✕</button>
@@ -243,22 +272,50 @@ export default function FinancialPage() {
                 <div style={{ fontSize: 13, color: 'var(--text-muted)' }}>Amount Due</div>
                 <div style={{ fontSize: 32, fontWeight: 800, color: '#3b82f6' }}>₱{(showPayModal.balance || 0).toLocaleString()}</div>
               </div>
-              <div className="form-group">
-                <label className="form-label">Payment Method</label>
-                <select className="form-input">
-                  <option>Credit / Debit Card</option>
-                  <option>GCash</option>
-                  <option>Maya</option>
-                  <option>Online Bank Transfer</option>
-                </select>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20, gap: 12 }}>
-                <button className="btn btn-secondary" onClick={() => setShowPayModal(null)}>Cancel</button>
-                <button className="btn btn-primary" onClick={() => {
-                  toast.success('Payment processed successfully! (Simulated)');
-                  setShowPayModal(null);
-                  fetchData(); // Refresh data
-                }}>Confirm Payment</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                <label className="form-label">Select Payment Gateway</label>
+                {[
+                  { id: 'gcash', label: 'GCash', color: '#107cbb', desc: 'Instant transfer via mobile number' },
+                  { id: 'paymaya', label: 'Maya (PayMaya)', color: '#8ac43f', desc: 'Secure payment using your Maya app' },
+                  { id: 'grab_pay', label: 'GrabPay', color: '#00b14f', desc: 'Quick check out using Grab Wallet' },
+                  { id: 'card', label: 'Credit / Debit Card', color: '#6366f1', desc: 'Visa, Mastercard, JCB, or AMEX' }
+                ].map(gateway => (
+                  <button
+                    key={gateway.id}
+                    disabled={loading}
+                    onClick={async () => {
+                      const loadToast = toast.loading(`Initiating ${gateway.label} Checkout...`);
+                      try {
+                        const { data: payData } = await api.post('/financial/payments/paymongo-checkout', {
+                          amount: showPayModal.balance,
+                          description: `Tuition Fee Payment - ${showPayModal.academicYear} ${showPayModal.semester} Sem`,
+                          student: user._id,
+                          assessmentId: showPayModal._id,
+                          gateway: gateway.id
+                        });
+                        toast.success('Redirecting to secure gateway...', { id: loadToast });
+                        setTimeout(() => {
+                          window.location.href = payData.checkoutUrl;
+                        }, 800);
+                      } catch (err) {
+                        toast.error(err.response?.data?.message || 'Failed to initiate payment.', { id: loadToast });
+                      }
+                    }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 14, width: '100%', padding: '14px 16px',
+                      background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: 12,
+                      textAlign: 'left', cursor: 'pointer', transition: 'all 0.2s', color: 'inherit'
+                    }}
+                    onMouseEnter={e => { e.currentTarget.style.borderColor = gateway.color; e.currentTarget.style.background = `${gateway.color}0a`; }}
+                    onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}
+                  >
+                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: gateway.color }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: 700, fontSize: 13 }}>{gateway.label}</div>
+                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>{gateway.desc}</div>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
           </div>

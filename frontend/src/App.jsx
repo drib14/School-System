@@ -68,6 +68,7 @@ const JobApplicationPage = lazy(() => import('./pages/landing/JobApplicationPage
 const PublicEnrollmentPage = lazy(() => import('./pages/landing/PublicEnrollmentPage'));
 const TermsPage = lazy(() => import('./pages/landing/TermsPage'));
 const PrivacyPage = lazy(() => import('./pages/landing/PrivacyPage'));
+const PublicVisitorGatePassPage = lazy(() => import('./pages/landing/PublicVisitorGatePassPage'));
 
 // Loading spinner
 function PageLoader() {
@@ -137,6 +138,7 @@ export default function App() {
           <Route path="/enroll/new" element={<PublicEnrollmentPage />} />
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/visitor-gate-pass" element={<PublicVisitorGatePassPage />} />
 
           {/* Public Auth Routes */}
           <Route path="/login/staff" element={<AuthRoute><StaffLoginPage /></AuthRoute>} />

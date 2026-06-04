@@ -143,6 +143,14 @@ export default function LandingPage() {
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
           <button
+            onClick={() => navigate('/visitor-gate-pass')}
+            style={{ padding: '9px 18px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#94a3b8', fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s' }}
+            onMouseEnter={e => e.target.style.background = 'rgba(255,255,255,0.1)'}
+            onMouseLeave={e => e.target.style.background = 'rgba(255,255,255,0.05)'}
+          >
+            Visitor Pass
+          </button>
+          <button
             onClick={() => navigate('/login/student')}
             style={{ padding: '9px 22px', borderRadius: 8, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: '#60a5fa', fontWeight: 600, fontSize: 13, cursor: 'pointer', transition: 'all 0.2s' }}
             onMouseEnter={e => e.target.style.background = 'rgba(59,130,246,0.2)'}

@@ -81,7 +81,7 @@ export default function PublicEnrollmentPage() {
 
   useEffect(() => {
     api.get('/public/campuses')
-      .then(res => setCampuses(res.data.data))
+      .then(res => setCampuses(res.data.campuses || []))
       .catch(err => console.error('Error fetching campuses', err));
   }, []);
 

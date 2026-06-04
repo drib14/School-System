@@ -49,10 +49,26 @@ function StudentEnrollmentTracker() {
 
   if (!isEnrolled) {
     return (
-      <div className="card" style={{ marginBottom: 24 }}>
+      <div className="card" style={{ marginBottom: 24, borderLeft: '4px solid #f59e0b' }}>
         <div className="card-header">
-          <div className="card-title">Enrollment Status Tracker</div>
-          <div className="card-sub">Please contact the registrar for your enrollment processing.</div>
+          <div className="card-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <ClipboardList size={20} style={{ color: '#f59e0b' }} />
+            Admission Checklist
+          </div>
+          <div className="card-sub" style={{ color: '#f59e0b' }}>Your enrollment is currently pending. Please submit the following legal requirements to the Admission Office for approval:</div>
+        </div>
+        <div className="card-body" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
+          {[
+            'Original Form 138 (Report Card)',
+            'Certificate of Good Moral Character',
+            'PSA / NSO Birth Certificate (Photocopy)',
+            '2x2 ID Pictures (2 pieces with white background)'
+          ].map((req, idx) => (
+            <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 16, background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)', borderRadius: 12 }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#f59e0b', marginTop: 6, flexShrink: 0 }} />
+              <span style={{ fontSize: 13, color: '#f1f5f9', lineHeight: 1.5 }}>{req}</span>
+            </div>
+          ))}
         </div>
       </div>
     );

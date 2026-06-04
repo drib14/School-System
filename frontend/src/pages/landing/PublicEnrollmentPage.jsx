@@ -241,12 +241,16 @@ export default function PublicEnrollmentPage() {
                   <Field label="Enrollment Type" required>
                     <CustomSelect value={form.enrollmentType} onChange={set('enrollmentType')} options={ENROLLMENT_TYPES} />
                   </Field>
-                  <Field label="Academic Year" required>
-                    <CustomSelect value={form.academicYear} onChange={set('academicYear')} options={['2025-2026', '2026-2027'].map(y => ({ value: y, label: y }))} />
-                  </Field>
-                  <Field label="Semester">
-                    <CustomSelect value={form.semester} onChange={set('semester')} options={[{ value: '1st', label: '1st Semester' }, { value: '2nd', label: '2nd Semester' }, { value: 'Summer', label: 'Summer' }]} />
-                  </Field>
+                  <FieldGroup cols={2}>
+                    <Field label="Academic Year" required>
+                      <CustomSelect value={form.academicYear} onChange={set('academicYear')} options={[{ value: '2025-2026', label: 'A.Y. 2025-2026' }]} />
+                    </Field>
+                    {form.level !== 'elementary' && form.level !== 'jhs' && (
+                      <Field label="Semester" required>
+                        <CustomSelect value={form.semester} onChange={set('semester')} options={[{ value: '1st', label: '1st Semester' }, { value: '2nd', label: '2nd Semester' }, { value: 'Summer', label: 'Summer' }]} />
+                      </Field>
+                    )}
+                  </FieldGroup>
                 </div>
               )}
             </div>
@@ -389,10 +393,10 @@ export default function PublicEnrollmentPage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
                 {[
                   ['Academic Level', levelInfo?.label || '—'],
+                  ['Level & Track', `${levelInfo?.label || ''} ${form.track ? `— ${form.track}` : ''} ${form.program ? `— ${form.program}` : ''}`],
                   ['Grade / Year', form.grade],
-                  ['Track / Program', form.track || form.program || '—'],
-                  ['Enrollment Type', form.enrollmentType?.replace(/_/g, ' ')],
-                  ['Academic Year', `${form.academicYear} — ${form.semester} Semester`],
+                  ['Academic Year', (form.level === 'elementary' || form.level === 'jhs') ? form.academicYear : `${form.academicYear} — ${form.semester} Semester`],
+                  ['Enrollment Type', ENROLLMENT_TYPES.find(t => t.value === form.enrollmentType)?.label],
                   ['Full Name', `${form.firstName} ${form.middleName ? form.middleName + ' ' : ''}${form.lastName}`],
                   ['Date of Birth', form.birthDate],
                   ['Gender', form.gender],

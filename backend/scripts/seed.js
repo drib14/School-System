@@ -114,14 +114,20 @@ const seed = async () => {
     { code: 'BSN', name: 'Bachelor of Science in Nursing', type: 'college', level: 'bachelor', duration: 4 },
     { code: 'BSCE', name: 'Bachelor of Science in Civil Engineering', type: 'college', level: 'bachelor', duration: 4 },
     { code: 'BSARCH', name: 'Bachelor of Science in Architecture', type: 'college', level: 'bachelor', duration: 5 },
+    { code: 'BSBA', name: 'Bachelor of Science in Business Administration', type: 'college', level: 'bachelor', duration: 4 },
+    { code: 'BSPSYCH', name: 'Bachelor of Science in Psychology', type: 'college', level: 'bachelor', duration: 4 },
   ];
 
   const createdPrograms = {};
   for (const p of programsData) {
-    const prog = await Program.create({ ...p, schoolId: school._id, createdBy: superAdmin._id });
+    const prog = await Program.findOneAndUpdate(
+      { code: p.code, schoolId: school._id },
+      { ...p, createdBy: superAdmin._id },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
     createdPrograms[p.code] = prog._id;
   }
-  console.log(`✅ Programs created (${programsData.length})`);
+  console.log(`✅ Programs created/updated (${programsData.length})`);
 
   // 2. Subjects
   // Elementary
@@ -152,8 +158,9 @@ const seed = async () => {
   // College
   const collegeSubjects = [
     // Gen Ed
-    { code: 'GE101', name: 'Understanding the Self', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT, createdPrograms.BSED] },
-    { code: 'MATH101', name: 'College Algebra', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT] },
+    { code: 'GE101', name: 'Understanding the Self', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT, createdPrograms.BSED, createdPrograms.BSBA, createdPrograms.BSPSYCH] },
+    { code: 'MATH101', name: 'College Algebra', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT, createdPrograms.BSBA] },
+    { code: 'ENG101', name: 'Purposive Communication', units: 3, level: 'college', category: 'core', program: [createdPrograms.BSCS, createdPrograms.BSIT, createdPrograms.BSBA, createdPrograms.BSPSYCH] },
 
     // BSCS
     { code: 'CS101', name: 'Introduction to Computing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS, createdPrograms.BSIT] },
@@ -164,13 +171,19 @@ const seed = async () => {
     { code: 'NUR101', name: 'Theoretical Foundations in Nursing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSN] },
     { code: 'CE101', name: 'Engineering Drawing', units: 2, level: 'college', category: 'major', program: [createdPrograms.BSCE] },
     { code: 'ARCH101', name: 'Architectural Design 1', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSARCH] },
+    { code: 'MGT101', name: 'Principles of Management', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSBA] },
+    { code: 'PSY101', name: 'Introduction to Psychology', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSPSYCH] },
   ];
 
   const allSubjects = [...elemSubjects, ...jhsSubjects, ...shsSubjects, ...collegeSubjects];
   const createdSubjects = {};
 
   for (const s of allSubjects) {
-    const subj = await Subject.create({ ...s, schoolId: school._id, createdBy: superAdmin._id });
+    const subj = await Subject.findOneAndUpdate(
+      { code: s.code, schoolId: school._id },
+      { ...s, createdBy: superAdmin._id },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
     createdSubjects[s.code] = subj._id;
   }
 
@@ -181,28 +194,50 @@ const seed = async () => {
 
   console.log(`✅ Subjects created and prerequisites linked (${allSubjects.length})`);
 
-  // 4. Create Curriculum for College (BSCS)
+  // 4. Create Curriculums
   const Curriculum = require('../models/Curriculum');
   // Removed deleteMany to preserve existing data
-  const bscsCurriculum = await Curriculum.create({
-    schoolId: school._id,
-    program: createdPrograms.BSCS,
-    name: 'BSCS New Curriculum',
-    code: 'BSCS-NEW',
-    version: '1.0',
-    effectiveYear: '2025',
-    status: 'active',
-    subjects: [
-      { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
-      { subject: createdSubjects['MATH101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
-      { subject: createdSubjects['CS101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
-      { subject: createdSubjects['CS102'], yearLevel: 1, semester: '2nd', isRequired: true, order: 1 },
-      { subject: createdSubjects['CS201'], yearLevel: 2, semester: '1st', isRequired: true, order: 1 },
-    ],
-    totalUnits: 15,
-    createdBy: superAdmin._id
-  });
-  console.log('✅ Curriculums created (1)');
+  const bscsCurriculum = await Curriculum.findOneAndUpdate(
+    { code: 'BSCS-NEW', schoolId: school._id },
+    {
+      program: createdPrograms.BSCS,
+      name: 'BSCS New Curriculum',
+      version: '1.0',
+      effectiveYear: '2025',
+      status: 'active',
+      subjects: [
+        { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
+        { subject: createdSubjects['MATH101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
+        { subject: createdSubjects['CS101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
+        { subject: createdSubjects['CS102'], yearLevel: 1, semester: '2nd', isRequired: true, order: 1 },
+        { subject: createdSubjects['CS201'], yearLevel: 2, semester: '1st', isRequired: true, order: 1 },
+      ],
+      totalUnits: 15,
+      createdBy: superAdmin._id
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  const bsnCurriculum = await Curriculum.findOneAndUpdate(
+    { code: 'BSN-NEW', schoolId: school._id },
+    {
+      program: createdPrograms.BSN,
+      name: 'BSN New Curriculum',
+      version: '1.0',
+      effectiveYear: '2025',
+      status: 'active',
+      subjects: [
+        { subject: createdSubjects['NUR101'], yearLevel: 1, semester: '1st', isRequired: true, order: 1 },
+        { subject: createdSubjects['GE101'], yearLevel: 1, semester: '1st', isRequired: true, order: 2 },
+        { subject: createdSubjects['ENG101'], yearLevel: 1, semester: '1st', isRequired: true, order: 3 },
+      ],
+      totalUnits: 9,
+      createdBy: superAdmin._id
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+
+  console.log('✅ Curriculums created/updated');
 
   // 5. Create Pre-enrolled Students
   const StudentProfile = require('../models/StudentProfile');
@@ -212,81 +247,103 @@ const seed = async () => {
   // Removed deleteMany to preserve existing data
 
   // Create a class schedule for CS101
-  const cs101Schedule = await ClassSchedule.create({
-    schoolId: school._id,
-    subject: createdSubjects['CS101'],
-    teacher: teacher._id,
-    section: 'CS1A',
-    academicYear: '2025-2026',
-    semester: '1st',
-    schedule: [{ day: 'Monday', startTime: '09:00', endTime: '10:30' }, { day: 'Wednesday', startTime: '09:00', endTime: '10:30' }],
-    maxStudents: 40,
-    status: 'open'
-  });
+  const cs101Schedule = await ClassSchedule.findOneAndUpdate(
+    { section: 'CS1A', subject: createdSubjects['CS101'], schoolId: school._id },
+    {
+      teacher: teacher._id,
+      academicYear: '2025-2026',
+      semester: '1st',
+      schedule: [{ day: 'Monday', startTime: '09:00', endTime: '10:30' }, { day: 'Wednesday', startTime: '09:00', endTime: '10:30' }],
+      maxStudents: 40,
+      status: 'open'
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
   // Create BSCS Student (College)
   const collegeStudent = mainStudent;
   
-  await StudentProfile.create({
-    userId: collegeStudent._id, schoolId: school._id, studentId: '26060401',
-    program: createdPrograms.BSCS, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
-    course: 'BSCS'
-  });
+  await StudentProfile.findOneAndUpdate(
+    { userId: collegeStudent._id },
+    {
+      schoolId: school._id, studentId: '26060401',
+      program: createdPrograms.BSCS, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
+      course: 'BSCS'
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
-  const studentEnrollment = await Enrollment.create({
-    schoolId: school._id, student: collegeStudent._id, academicYear: '2025-2026', semester: '1st',
-    levelType: 'college', program: createdPrograms.BSCS, yearLevel: 1, type: 'new',
-    status: 'enrolled',
-    subjects: [
-      { subject: createdSubjects['CS101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' },
-      { subject: createdSubjects['MATH101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }
-    ],
-    totalUnits: 6,
-    steps: [
-      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-    ]
-  });
+  const studentEnrollment = await Enrollment.findOneAndUpdate(
+    { student: collegeStudent._id, academicYear: '2025-2026', semester: '1st' },
+    {
+      schoolId: school._id, levelType: 'college', program: createdPrograms.BSCS, yearLevel: 1, type: 'new',
+      status: 'enrolled',
+      subjects: [
+        { subject: createdSubjects['CS101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' },
+        { subject: createdSubjects['MATH101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }
+      ],
+      totalUnits: 6,
+      steps: [
+        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+      ]
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
   // Create Grades for mainStudent
   const Grade = require('../models/Grade');
   // Removed deleteMany
-  await Grade.create([
+  await Grade.findOneAndUpdate(
+    { student: collegeStudent._id, subject: createdSubjects['CS101'] },
     {
-      schoolId: school._id, student: collegeStudent._id, teacher: teacher._id, subject: createdSubjects['CS101'],
+      schoolId: school._id, teacher: teacher._id,
       schedule: cs101Schedule._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
       quizAverage: 95, activityAverage: 92, projectAverage: 96, finalRating: 94.5, remarks: 'Passed', status: 'released',
       releasedAt: new Date()
     },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
+  await Grade.findOneAndUpdate(
+    { student: collegeStudent._id, subject: createdSubjects['MATH101'] },
     {
-      schoolId: school._id, student: collegeStudent._id, teacher: teacher._id, subject: createdSubjects['MATH101'],
+      schoolId: school._id, teacher: teacher._id,
       schedule: cs101Schedule._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
       quizAverage: 88, activityAverage: 85, projectAverage: 90, finalRating: 87.6, remarks: 'Passed', status: 'released',
       releasedAt: new Date()
-    }
-  ]);
+    },
+    { upsert: true, new: true, setDefaultsOnInsert: true }
+  );
 
   // Create Financials for mainStudent
   const { Fee, Assessment, Payment } = require('../models/Financial');
   // Removed deleteMany
 
-  const tuitionFee = await Fee.create({ schoolId: school._id, name: 'Tuition Fee (Per Unit)', category: 'tuition', amount: 1500, frequency: 'per_unit' });
-  const miscFee = await Fee.create({ schoolId: school._id, name: 'Miscellaneous Fee', category: 'miscellaneous', amount: 5000, frequency: 'per_semester' });
+  const tuitionFee = await Fee.findOneAndUpdate({ name: 'Tuition Fee (Per Unit)' }, { schoolId: school._id, category: 'tuition', amount: 1500, frequency: 'per_unit' }, { upsert: true, new: true });
+  const miscFee = await Fee.findOneAndUpdate({ name: 'Miscellaneous Fee' }, { schoolId: school._id, category: 'miscellaneous', amount: 5000, frequency: 'per_semester' }, { upsert: true, new: true });
 
-  const assessment = await Assessment.create({
-    schoolId: school._id, student: collegeStudent._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
-    fees: [
-      { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 9000 },
-      { fee: miscFee._id, feeName: miscFee.name, category: miscFee.category, amount: 5000 }
-    ],
-    totalAmount: 14000, discount: 0, scholarship: 0, netAmount: 14000, balance: 4000, totalPaid: 10000, status: 'partial'
-  });
+  const assessment = await Assessment.findOneAndUpdate(
+    { student: collegeStudent._id, academicYear: '2025-2026', semester: '1st' },
+    {
+      schoolId: school._id, enrollment: studentEnrollment._id,
+      fees: [
+        { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 9000 },
+        { fee: miscFee._id, feeName: miscFee.name, category: miscFee.category, amount: 5000 }
+      ],
+      totalAmount: 14000, discount: 0, scholarship: 0, netAmount: 14000, balance: 4000, totalPaid: 10000, status: 'partial'
+    },
+    { upsert: true, new: true }
+  );
 
-  await Payment.create({
-    schoolId: school._id, student: collegeStudent._id, assessment: assessment._id, amount: 10000, method: 'cash', status: 'completed',
-    paidAt: new Date(), processedBy: superAdmin._id, referenceNumber: 'CASH-001'
-  });
+  await Payment.findOneAndUpdate(
+    { referenceNumber: 'CASH-001' },
+    {
+      schoolId: school._id, student: collegeStudent._id, assessment: assessment._id, amount: 10000, method: 'cash', status: 'completed',
+      paidAt: new Date(), processedBy: superAdmin._id
+    },
+    { upsert: true, new: true }
+  );
 
   // Create Nursing Student
   const nursingStudent = await User.findOneAndUpdate({ email: 'nursing_student@iscp.edu.ph' }, {
@@ -295,24 +352,32 @@ const seed = async () => {
     studentId: '060426006', isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
-  await StudentProfile.create({
-    userId: nursingStudent._id, schoolId: school._id, studentId: '060426006',
-    program: createdPrograms.BSN, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
-    course: 'BSN'
-  });
+  await StudentProfile.findOneAndUpdate(
+    { userId: nursingStudent._id },
+    {
+      schoolId: school._id, studentId: '060426006',
+      program: createdPrograms.BSN, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
+      course: 'BSN'
+    },
+    { upsert: true, new: true }
+  );
 
-  await Enrollment.create({
-    schoolId: school._id, student: nursingStudent._id, academicYear: '2025-2026', semester: '1st',
-    levelType: 'college', program: createdPrograms.BSN, yearLevel: 1, type: 'new',
-    status: 'enrolled',
-    subjects: [{ subject: createdSubjects['NUR101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-    totalUnits: 3,
-    steps: [
-      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-    ]
-  });
+  await Enrollment.findOneAndUpdate(
+    { student: nursingStudent._id, academicYear: '2025-2026' },
+    {
+      schoolId: school._id, semester: '1st',
+      levelType: 'college', program: createdPrograms.BSN, yearLevel: 1, type: 'new',
+      status: 'enrolled',
+      subjects: [{ subject: createdSubjects['NUR101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
+      totalUnits: 3,
+      steps: [
+        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+      ]
+    },
+    { upsert: true, new: true }
+  );
 
   // Create JHS Student (K-12)
   const jhsStudent = await User.findOneAndUpdate({ email: 'jhs_student@iscp.edu.ph' }, {
@@ -321,22 +386,30 @@ const seed = async () => {
     studentId: '26060402', isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
-  await StudentProfile.create({
-    userId: jhsStudent._id, schoolId: school._id, studentId: '26060402',
-    program: createdPrograms.JHS, gradeLevel: '7', academicStatus: 'active', enrollmentStatus: 'enrolled'
-  });
+  await StudentProfile.findOneAndUpdate(
+    { userId: jhsStudent._id },
+    {
+      schoolId: school._id, studentId: '26060402',
+      program: createdPrograms.JHS, gradeLevel: '7', academicStatus: 'active', enrollmentStatus: 'enrolled'
+    },
+    { upsert: true, new: true }
+  );
 
-  await Enrollment.create({
-    schoolId: school._id, student: jhsStudent._id, academicYear: '2025-2026', semester: '1st',
-    levelType: 'k12', program: createdPrograms.JHS, gradeLevel: '7', type: 'new',
-    status: 'enrolled',
-    subjects: [{ subject: createdSubjects['JHS-MATH7'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-    steps: [
-      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-    ]
-  });
+  await Enrollment.findOneAndUpdate(
+    { student: jhsStudent._id, academicYear: '2025-2026' },
+    {
+      schoolId: school._id, semester: '1st',
+      levelType: 'k12', program: createdPrograms.JHS, gradeLevel: '7', type: 'new',
+      status: 'enrolled',
+      subjects: [{ subject: createdSubjects['JHS-MATH7'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
+      steps: [
+        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+      ]
+    },
+    { upsert: true, new: true }
+  );
 
   // Create Elem Student (K-12)
   const elemStudent = await User.findOneAndUpdate({ email: 'elem_student@iscp.edu.ph' }, {
@@ -345,22 +418,30 @@ const seed = async () => {
     studentId: '26060403', isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
-  await StudentProfile.create({
-    userId: elemStudent._id, schoolId: school._id, studentId: '26060403',
-    program: createdPrograms.ELEM, gradeLevel: '1', academicStatus: 'active', enrollmentStatus: 'enrolled'
-  });
+  await StudentProfile.findOneAndUpdate(
+    { userId: elemStudent._id },
+    {
+      schoolId: school._id, studentId: '26060403',
+      program: createdPrograms.ELEM, gradeLevel: '1', academicStatus: 'active', enrollmentStatus: 'enrolled'
+    },
+    { upsert: true, new: true }
+  );
 
-  await Enrollment.create({
-    schoolId: school._id, student: elemStudent._id, academicYear: '2025-2026', semester: '1st',
-    levelType: 'k12', program: createdPrograms.ELEM, gradeLevel: '1', type: 'new',
-    status: 'enrolled',
-    subjects: [{ subject: createdSubjects['ELEM-MATH1'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-    steps: [
-      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-    ]
-  });
+  await Enrollment.findOneAndUpdate(
+    { student: elemStudent._id, academicYear: '2025-2026' },
+    {
+      schoolId: school._id, semester: '1st',
+      levelType: 'k12', program: createdPrograms.ELEM, gradeLevel: '1', type: 'new',
+      status: 'enrolled',
+      subjects: [{ subject: createdSubjects['ELEM-MATH1'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
+      steps: [
+        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+      ]
+    },
+    { upsert: true, new: true }
+  );
 
   // Create SHS Student (K-12)
   const shsStudent = await User.findOneAndUpdate({ email: 'shs_student@iscp.edu.ph' }, {
@@ -369,22 +450,30 @@ const seed = async () => {
     studentId: '26060404', isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
-  await StudentProfile.create({
-    userId: shsStudent._id, schoolId: school._id, studentId: '26060404',
-    program: createdPrograms.STEM, gradeLevel: '11', academicStatus: 'active', enrollmentStatus: 'enrolled'
-  });
+  await StudentProfile.findOneAndUpdate(
+    { userId: shsStudent._id },
+    {
+      schoolId: school._id, studentId: '26060404',
+      program: createdPrograms.STEM, gradeLevel: '11', academicStatus: 'active', enrollmentStatus: 'enrolled'
+    },
+    { upsert: true, new: true }
+  );
 
-  await Enrollment.create({
-    schoolId: school._id, student: shsStudent._id, academicYear: '2025-2026', semester: '1st',
-    levelType: 'k12', program: createdPrograms.STEM, gradeLevel: '11', type: 'new',
-    status: 'enrolled',
-    subjects: [{ subject: createdSubjects['SHS-STEM1'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-    steps: [
-      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
-      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
-      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
-    ]
-  });
+  await Enrollment.findOneAndUpdate(
+    { student: shsStudent._id, academicYear: '2025-2026' },
+    {
+      schoolId: school._id, semester: '1st',
+      levelType: 'k12', program: createdPrograms.STEM, gradeLevel: '11', type: 'new',
+      status: 'enrolled',
+      subjects: [{ subject: createdSubjects['SHS-STEM1'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
+      steps: [
+        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+      ]
+    },
+    { upsert: true, new: true }
+  );
   console.log('✅ Pre-enrolled students created (College, JHS, Elem, SHS)');
 
 

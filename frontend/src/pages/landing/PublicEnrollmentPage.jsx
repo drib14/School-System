@@ -67,7 +67,48 @@ export default function PublicEnrollmentPage() {
     remarks: '',
   });
 
+  const [addressSuggestions, setAddressSuggestions] = useState([]);
+  const [isSearchingAddress, setIsSearchingAddress] = useState(false);
+  const [addressTimer, setAddressTimer] = useState(null);
+
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: typeof e === 'string' ? e : e.target.value }));
+
+  const handleAddressChange = (e) => {
+    const val = e.target.value;
+    setForm(f => ({ ...f, address: val }));
+    
+    if (addressTimer) clearTimeout(addressTimer);
+    if (!val.trim()) {
+      setAddressSuggestions([]);
+      return;
+    }
+    
+    setAddressTimer(setTimeout(async () => {
+      setIsSearchingAddress(true);
+      try {
+        const token = import.meta.env.VITE_LOCATIONIQ_ACCESS_TOKEN;
+        const res = await fetch(`https://api.locationiq.com/v1/autocomplete?key=${token}&q=${encodeURIComponent(val)}&limit=5&countrycodes=ph`);
+        const data = await res.json();
+        setAddressSuggestions(Array.isArray(data) ? data : []);
+      } catch (err) {
+        console.error('LocationIQ Error:', err);
+      } finally {
+        setIsSearchingAddress(false);
+      }
+    }, 600));
+  };
+
+  const selectAddress = (item) => {
+    const addr = item.address || {};
+    setForm(f => ({
+      ...f,
+      address: item.display_name,
+      city: addr.city || addr.town || addr.county || '',
+      province: addr.state || addr.region || '',
+      zip: addr.postcode || '',
+    }));
+    setAddressSuggestions([]);
+  };
 
   const levelInfo = YEAR_LEVELS[form.level];
 
@@ -256,8 +297,33 @@ export default function PublicEnrollmentPage() {
             <div>
               <h3 style={{ fontSize: 18, fontWeight: 700, marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}><FileText size={18} style={{ color: '#f59e0b' }} /> Family & Contact Information</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <Field label="Home Address" required>
-                  <input value={form.address} onChange={set('address')} placeholder="House No., Street, Barangay" style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
+                <Field label="Home Address" required col={2}>
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      value={form.address} 
+                      onChange={handleAddressChange} 
+                      placeholder="Start typing your address to autocomplete..." 
+                      style={inputStyle('#f59e0b')} 
+                      onFocus={e => e.target.style.borderColor = '#f59e0b'} 
+                      onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} 
+                    />
+                    {isSearchingAddress && <div style={{ position: 'absolute', right: 12, top: 10, fontSize: 12, color: '#94a3b8' }}>Searching...</div>}
+                    {addressSuggestions.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e293b', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 8, marginTop: 4, zIndex: 50, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.5)' }}>
+                        {addressSuggestions.map((item, idx) => (
+                          <div 
+                            key={idx} 
+                            onClick={() => selectAddress(item)}
+                            style={{ padding: '10px 14px', fontSize: 12, borderBottom: idx < addressSuggestions.length - 1 ? '1px solid rgba(148,163,184,0.1)' : 'none', cursor: 'pointer', color: '#f1f5f9' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,158,11,0.1)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            {item.display_name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </Field>
                 <FieldGroup cols={3}>
                   {[['city', 'City / Municipality'], ['province', 'Province'], ['zip', 'ZIP Code']].map(([k, lb]) => (

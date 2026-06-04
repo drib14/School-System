@@ -61,8 +61,16 @@ router.post('/applications', asyncHandler(async (req, res) => {
   // 2. Fetch default School if not provided
   if (!schoolId) {
     const School = require('../models/School');
-    const school = await School.findOne();
-    if (school) schoolId = school._id;
+    let school = await School.findOne();
+    if (!school) {
+      school = await School.create({
+        name: 'International State Colleges of the Philippines',
+        code: 'ISCP',
+        address: { city: 'Quezon City', country: 'Philippines' },
+        contactEmail: 'info@iscp.edu.ph'
+      });
+    }
+    schoolId = school._id;
   }
 
   // 3. Application Type
@@ -83,6 +91,16 @@ router.post('/applications', asyncHandler(async (req, res) => {
   
   if (!desiredProgramDoc) {
     desiredProgramDoc = await Program.findOne(); // Fallback to avoid error
+  }
+  if (!desiredProgramDoc) {
+    desiredProgramDoc = await Program.create({
+      schoolId: schoolId,
+      name: program || track || level || 'General Admission',
+      code: 'GEN',
+      type: 'bachelor',
+      level: 'college',
+      totalUnits: 120
+    });
   }
 
   const application = await Application.create({

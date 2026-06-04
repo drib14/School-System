@@ -79,9 +79,27 @@ const seed = async () => {
     password: await bcrypt.hash(process.env.SEED_CASHIER_PASS || defaultPass, 12), role: 'cashier', schoolId: school._id, isActive: true, isEmailVerified: true,
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
 
+  // Create Librarian
+  await User.findOneAndUpdate({ email: 'librarian@iscp.edu.ph' }, {
+    firstName: 'Leonor', lastName: 'Orosa', email: 'librarian@iscp.edu.ph',
+    password: await bcrypt.hash(defaultPass, 12), role: 'librarian', schoolId: school._id, isActive: true, isEmailVerified: true,
+  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+
+  // Create Nurse
+  await User.findOneAndUpdate({ email: 'nurse@iscp.edu.ph' }, {
+    firstName: 'Clara', lastName: 'Barton', email: 'nurse@iscp.edu.ph',
+    password: await bcrypt.hash(defaultPass, 12), role: 'nurse', schoolId: school._id, isActive: true, isEmailVerified: true,
+  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+
+  // Create HR
+  await User.findOneAndUpdate({ email: 'hr@iscp.edu.ph' }, {
+    firstName: 'Michael', lastName: 'Scott', email: 'hr@iscp.edu.ph',
+    password: await bcrypt.hash(defaultPass, 12), role: 'hr_staff', schoolId: school._id, isActive: true, isEmailVerified: true,
+  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+  console.log('✅ Other Staff created (Cashier, Librarian, Nurse, HR)');
+
   // Comprehensive Academic Structure Seeding
-  await Program.deleteMany({ schoolId: school._id });
-  await Subject.deleteMany({ schoolId: school._id });
+  // Removed deleteMany to preserve existing data
 
   // 1. Programs
   const programsData = [
@@ -165,7 +183,7 @@ const seed = async () => {
 
   // 4. Create Curriculum for College (BSCS)
   const Curriculum = require('../models/Curriculum');
-  await Curriculum.deleteMany({ schoolId: school._id });
+  // Removed deleteMany to preserve existing data
   const bscsCurriculum = await Curriculum.create({
     schoolId: school._id,
     program: createdPrograms.BSCS,
@@ -191,9 +209,7 @@ const seed = async () => {
   const Enrollment = require('../models/Enrollment');
   const ClassSchedule = require('../models/ClassSchedule');
 
-  await StudentProfile.deleteMany({ schoolId: school._id });
-  await Enrollment.deleteMany({ schoolId: school._id });
-  await ClassSchedule.deleteMany({ schoolId: school._id });
+  // Removed deleteMany to preserve existing data
 
   // Create a class schedule for CS101
   const cs101Schedule = await ClassSchedule.create({
@@ -235,7 +251,7 @@ const seed = async () => {
 
   // Create Grades for mainStudent
   const Grade = require('../models/Grade');
-  await Grade.deleteMany({ schoolId: school._id });
+  // Removed deleteMany
   await Grade.create([
     {
       schoolId: school._id, student: collegeStudent._id, teacher: teacher._id, subject: createdSubjects['CS101'],
@@ -253,9 +269,7 @@ const seed = async () => {
 
   // Create Financials for mainStudent
   const { Fee, Assessment, Payment } = require('../models/Financial');
-  await Fee.deleteMany({ schoolId: school._id });
-  await Assessment.deleteMany({ schoolId: school._id });
-  await Payment.deleteMany({ schoolId: school._id });
+  // Removed deleteMany
 
   const tuitionFee = await Fee.create({ schoolId: school._id, name: 'Tuition Fee (Per Unit)', category: 'tuition', amount: 1500, frequency: 'per_unit' });
   const miscFee = await Fee.create({ schoolId: school._id, name: 'Miscellaneous Fee', category: 'miscellaneous', amount: 5000, frequency: 'per_semester' });

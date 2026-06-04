@@ -98,9 +98,8 @@ export default function LandingPage() {
 
   useEffect(() => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    const baseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl;
     
-    fetch(`${baseUrl}/api/public/stats`)
+    fetch(`${apiUrl}/public/stats`)
       .then(res => res.json())
       .then(data => {
         if (data.success && data.data) {
@@ -229,7 +228,7 @@ export default function LandingPage() {
       </section>
 
       {/* ───── DEMO CREDENTIALS ───── */}
-      <section style={{ padding: '0 40px 60px', maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+      <section style={{ padding: '0 40px 60px', maxWidth: 1400, margin: '0 auto', position: 'relative', zIndex: 10 }}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 24, fontWeight: 700 }}>Seed Credentials</h2>
           <p style={{ color: '#94a3b8', fontSize: 14 }}>Use these accounts to test the different portals (Password: <strong>Passw0rd123!</strong>)</p>
@@ -242,6 +241,9 @@ export default function LandingPage() {
             { role: 'Student', email: 'student@iscp.edu.ph', color: '#f59e0b' },
             { role: 'Teacher', email: 'teacher@iscp.edu.ph', color: '#ef4444' },
             { role: 'Cashier', email: 'cashier@iscp.edu.ph', color: '#14b8a6' },
+            { role: 'Librarian', email: 'librarian@iscp.edu.ph', color: '#84cc16' },
+            { role: 'Nurse', email: 'nurse@iscp.edu.ph', color: '#f43f5e' },
+            { role: 'HR', email: 'hr@iscp.edu.ph', color: '#a855f7' },
           ].map(c => (
             <div key={c.role} style={{ padding: '12px 20px', background: 'rgba(30,41,59,0.8)', border: `1px solid ${c.color}40`, borderRadius: 12, backdropFilter: 'blur(8px)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: c.color, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 4 }}>{c.role}</div>
@@ -252,7 +254,7 @@ export default function LandingPage() {
       </section>
 
       {/* ───── HERO STATS ───── */}
-      <section style={{ padding: '0 40px 100px', maxWidth: 1200, margin: '0 auto', position: 'relative', zIndex: 10 }}>
+      <section style={{ padding: '0 40px 100px', maxWidth: 1400, margin: '0 auto', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
           {HERO_STATS_DYNAMIC.map(({ value, label }) => (
             <div key={label} style={{ textAlign: 'center', padding: '28px 20px', background: 'rgba(30,41,59,0.6)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: 16, backdropFilter: 'blur(8px)', transition: 'all 0.25s' }}
@@ -268,7 +270,7 @@ export default function LandingPage() {
 
       {/* ───── STUDENT SECTION ───── */}
       <section style={{ padding: '60px 40px', background: 'rgba(15,23,42,0.5)', borderTop: '1px solid rgba(148,163,184,0.08)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 50 }}>
             <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 36, fontWeight: 800, marginBottom: 12 }}>For Students</h2>
             <p style={{ color: '#64748b', fontSize: 15 }}>Access your academic journey seamlessly</p>
@@ -316,7 +318,7 @@ export default function LandingPage() {
       </section>
 
       {/* ───── YEAR LEVELS ───── */}
-      <section style={{ padding: '80px 40px', maxWidth: 1200, margin: '0 auto' }}>
+      <section style={{ padding: '80px 40px', maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 50 }}>
           <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 36, fontWeight: 800, marginBottom: 12 }}>Academic Programs</h2>
           <p style={{ color: '#64748b', fontSize: 15 }}>From Elementary to Graduate School — we have a program for every learner</p>
@@ -350,7 +352,7 @@ export default function LandingPage() {
 
       {/* ───── SPECIAL PROGRAMS ───── */}
       <section style={{ padding: '60px 40px', background: 'rgba(15,23,42,0.5)', borderTop: '1px solid rgba(148,163,184,0.08)', borderBottom: '1px solid rgba(148,163,184,0.08)' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           <div style={{ textAlign: 'center', marginBottom: 50 }}>
             <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 36, fontWeight: 800, marginBottom: 12 }}>Special Programs</h2>
             <p style={{ color: '#64748b', fontSize: 15 }}>Government-recognized special education programs in the Philippines</p>
@@ -377,7 +379,7 @@ export default function LandingPage() {
       </section>
 
       {/* ───── JOB OPENINGS ───── */}
-      <section style={{ padding: '80px 40px', maxWidth: 1200, margin: '0 auto' }}>
+      <section style={{ padding: '80px 40px', maxWidth: 1400, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 50 }}>
           <h2 style={{ fontFamily: 'Outfit, sans-serif', fontSize: 36, fontWeight: 800, marginBottom: 12 }}>Join Our Team</h2>
           <p style={{ color: '#64748b', fontSize: 15 }}>Be part of a world-class educational institution. Apply for any position below.</p>
@@ -416,7 +418,7 @@ export default function LandingPage() {
 
       {/* ───── FOOTER ───── */}
       <footer style={{ background: '#0a0f1a', borderTop: '1px solid rgba(148,163,184,0.08)', padding: '48px 40px 32px' }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+        <div style={{ maxWidth: 1400, margin: '0 auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 40, marginBottom: 40 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>

@@ -199,6 +199,7 @@ export default function App() {
             {/* Profile & Settings */}
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/*" element={<SettingsPage />} />
 
             {/* Parent routes */}
             <Route path="parent/*" element={<DashboardPage />} />
@@ -225,6 +226,9 @@ export default function App() {
             <Route path="organizations/*" element={<DashboardPage />} />
             <Route path="scholarships/*" element={<DashboardPage />} />
             <Route path="ojt" element={<DashboardPage />} />
+            <Route path="research" element={<DashboardPage />} />
+            <Route path="alumni" element={<DashboardPage />} />
+            <Route path="events" element={<DashboardPage />} />
             <Route path="qr-system" element={<DashboardPage />} />
 
             {/* LMS */}

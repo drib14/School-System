@@ -18,6 +18,7 @@ const applicationSchema = new mongoose.Schema({
 
   // Academic Info
   applicationType: { type: String, enum: ['new', 'transferee', 'returnee', 'foreign'], required: true },
+  desiredCampus: { type: mongoose.Schema.Types.ObjectId, ref: 'CampusLocation' },
   desiredProgram: { type: mongoose.Schema.Types.ObjectId, ref: 'Program', required: true },
   desiredYearLevel: Number,
   previousSchool: { name: String, address: String, lastGradeLevel: String },

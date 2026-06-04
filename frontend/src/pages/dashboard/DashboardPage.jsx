@@ -54,7 +54,8 @@ function StudentEnrollmentTracker() {
 
   if (loading) return <div className="card skeleton" style={{ height: 200, marginBottom: 24 }} />;
 
-  const isEnrolled = user?.profile?.enrollmentStatus === 'enrolled' || enrollment?.status === 'enrolled';
+  const isVerified = user?.isEmailVerified;
+  const isEnrolled = user?.profile?.enrollmentStatus === 'enrolled' || enrollment?.status === 'enrolled' || isVerified;
 
   const handleFileChange = (doc, e) => {
     if (e.target.files[0]) {

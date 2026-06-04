@@ -18,6 +18,7 @@ const getEnrollments = asyncHandler(async (req, res) => {
   const enrollments = await Enrollment.find(filter)
     .populate('student', 'firstName lastName email studentId avatar')
     .populate('program', 'name code')
+    .populate('campus', 'name code')
     .populate('subjects.subject', 'name code units')
     .skip((page - 1) * limit).limit(Number(limit)).sort({ createdAt: -1 });
 
@@ -28,6 +29,7 @@ const getEnrollment = asyncHandler(async (req, res) => {
   const enrollment = await Enrollment.findById(req.params.id)
     .populate('student', '-password')
     .populate('program', 'name code')
+    .populate('campus', 'name code')
     .populate('subjects.subject subjects.schedule')
     .populate('assessment')
     .populate('steps.completedBy', 'firstName lastName role');

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
 const Program = require('../models/Program');
+const { CampusLocation } = require('../models/Campus');
 
 // @route   GET /api/public/stats
 // @desc    Get high-level public stats for the landing page
@@ -15,22 +16,31 @@ router.get('/stats', async (req, res) => {
     });
     const totalPrograms = await Program.countDocuments({ isActive: true });
 
-    // Since this is a sample/seeded DB and might not have 10k yet, 
-    // we can either return true counts or bumped up counts if the user wants realistic landing page numbers.
-    // Given the prompt "fetch those credentials from db", we'll return actual DB counts.
-
     res.json({
       success: true,
       data: {
         students: totalStudents,
         staff: totalStaff,
         programs: totalPrograms,
-        employmentRate: '95%' // Hardcoded or mock metric
+        employmentRate: '95%'
       }
     });
   } catch (err) {
-    console.error('Error fetching public stats:', err);
-    res.status(500).json({ success: false, message: 'Server error fetching stats' });
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/public/campuses
+// @desc    Get all public campuses
+// @access  Public
+router.get('/campuses', async (req, res) => {
+  try {
+    const campuses = await CampusLocation.find({ isActive: true }).select('name code address imageUrl contact');
+    res.json({ success: true, campuses });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

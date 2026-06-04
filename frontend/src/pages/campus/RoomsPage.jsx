@@ -8,6 +8,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { format } from 'date-fns';
+import CampusModal from './CampusModal';
 
 const ROOM_TYPES = ['classroom', 'laboratory', 'library', 'gym', 'office', 'auditorium', 'cafeteria', 'clinic', 'other'];
 const ASSET_STATUS_COLOR = { good: 'badge-green', for_repair: 'badge-yellow', under_repair: 'badge-red', disposed: 'badge-gray' };
@@ -202,7 +203,8 @@ function AssetModal({ asset, rooms, onClose, onSave }) {
 
 export default function RoomsPage() {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState('rooms');
+  const [activeTab, setActiveTab] = useState('campuses');
+  const [campuses, setCampuses] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [assets, setAssets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -213,6 +215,8 @@ export default function RoomsPage() {
   const [editAsset, setEditAsset] = useState(null);
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [assetSummary, setAssetSummary] = useState(null);
+  const [editCampus, setEditCampus] = useState(null);
+  const [showCampusModal, setShowCampusModal] = useState(false);
 
   const canManage = ['registrar', 'principal', 'super_admin', 'school_owner'].includes(user?.role);
 
@@ -221,7 +225,10 @@ export default function RoomsPage() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      if (activeTab === 'rooms') {
+      if (activeTab === 'campuses') {
+        const { data } = await api.get('/campus/locations');
+        setCampuses(data.campuses || []);
+      } else if (activeTab === 'rooms') {
         const { data } = await api.get('/campus/rooms');
         setRooms(data.rooms || []);
       } else {
@@ -234,6 +241,11 @@ export default function RoomsPage() {
       }
     } catch { } finally { setLoading(false); }
   };
+
+  const filteredCampuses = campuses.filter(c => {
+    const s = search.toLowerCase();
+    return (!s || c.name?.toLowerCase().includes(s) || c.code?.toLowerCase().includes(s));
+  });
 
   const filteredRooms = rooms.filter(r => {
     const s = search.toLowerCase();
@@ -255,6 +267,9 @@ export default function RoomsPage() {
           <p className="page-sub">Manage rooms and assets</p>
         </div>
         <div className="page-actions">
+          <button className={`btn btn-sm ${activeTab === 'campuses' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setActiveTab('campuses')}>
+            <MapPin size={14} /> Campuses
+          </button>
           <button className={`btn btn-sm ${activeTab === 'rooms' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setActiveTab('rooms')}>
             <Building2 size={14} /> Rooms
           </button>
@@ -262,8 +277,8 @@ export default function RoomsPage() {
             <Package size={14} /> Assets
           </button>
           {canManage && (
-            <button className="btn btn-primary btn-sm" onClick={() => activeTab === 'rooms' ? setShowRoomModal(true) : setShowAssetModal(true)}>
-              <Plus size={14} /> Add {activeTab === 'rooms' ? 'Room' : 'Asset'}
+            <button className="btn btn-primary btn-sm" onClick={() => activeTab === 'campuses' ? setShowCampusModal(true) : activeTab === 'rooms' ? setShowRoomModal(true) : setShowAssetModal(true)}>
+              <Plus size={14} /> Add {activeTab === 'campuses' ? 'Campus' : activeTab === 'rooms' ? 'Room' : 'Asset'}
             </button>
           )}
         </div>
@@ -287,14 +302,60 @@ export default function RoomsPage() {
           <Search size={14} className="search-icon" />
           <input className="search-input" placeholder={`Search ${activeTab}...`} value={search} onChange={e => setSearch(e.target.value)} />
         </div>
-        <select className="filter-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
-          <option value="">All Types</option>
-          {(activeTab === 'rooms' ? ROOM_TYPES : ['computer', 'projector', 'furniture', 'equipment', 'vehicle', 'book', 'other']).map(t => (
-            <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-          ))}
-        </select>
+        {activeTab !== 'campuses' && (
+          <select className="filter-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
+            <option value="">All Types</option>
+            {(activeTab === 'rooms' ? ROOM_TYPES : ['computer', 'projector', 'furniture', 'equipment', 'vehicle', 'book', 'other']).map(t => (
+              <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
+            ))}
+          </select>
+        )}
         <button className="btn btn-secondary btn-sm btn-icon" onClick={fetchAll}><RefreshCw size={14} /></button>
       </div>
+
+      {/* CAMPUSES TAB */}
+      {activeTab === 'campuses' && (
+        <div className="grid-3" style={{ gap: 20 }}>
+          {loading ? Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="card skeleton" style={{ height: 200 }} />
+          )) : filteredCampuses.length === 0 ? (
+            <div className="card" style={{ gridColumn: '1 / -1', padding: 40, textAlign: 'center' }}>
+              <MapPin size={48} style={{ margin: '0 auto 16px', color: 'var(--text-muted)', opacity: 0.5 }} />
+              <div style={{ fontSize: 16, fontWeight: 600 }}>No Campuses Found</div>
+              <div style={{ color: 'var(--text-muted)', marginTop: 4 }}>Add a campus to manage locations.</div>
+            </div>
+          ) : filteredCampuses.map(campus => (
+            <div key={campus._id} className="card" style={{ overflow: 'hidden', padding: 0 }}>
+              {campus.imageUrl ? (
+                <div style={{ height: 140, backgroundImage: `url(${campus.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />
+              ) : (
+                <div style={{ height: 140, background: 'var(--bg-secondary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Building2 size={48} style={{ opacity: 0.2 }} />
+                </div>
+              )}
+              <div style={{ padding: 20 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+                  <div>
+                    <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>{campus.name}</h3>
+                    <div style={{ fontSize: 12, color: 'var(--text-muted)' }}>{campus.code}</div>
+                  </div>
+                  {canManage && (
+                    <button className="btn btn-ghost btn-sm btn-icon" onClick={() => { setEditCampus(campus); setShowCampusModal(true); }}>
+                      <Edit2 size={14} />
+                    </button>
+                  )}
+                </div>
+                <div style={{ fontSize: 13, color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                    <MapPin size={14} style={{ marginTop: 2, flexShrink: 0 }} />
+                    <span>{campus.address?.street}, {campus.address?.city}, {campus.address?.province} {campus.address?.zipCode}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {/* ROOMS TAB */}
       {activeTab === 'rooms' && (
@@ -391,6 +452,7 @@ export default function RoomsPage() {
         </div>
       )}
 
+      {showCampusModal && <CampusModal campus={editCampus} onClose={() => { setShowCampusModal(false); setEditCampus(null); }} onSave={() => { setShowCampusModal(false); setEditCampus(null); fetchAll(); }} />}
       {showRoomModal && <RoomModal room={editRoom} onClose={() => { setShowRoomModal(false); setEditRoom(null); }} onSave={() => { setShowRoomModal(false); setEditRoom(null); fetchAll(); }} />}
       {showAssetModal && <AssetModal asset={editAsset} rooms={rooms} onClose={() => { setShowAssetModal(false); setEditAsset(null); }} onSave={() => { setShowAssetModal(false); setEditAsset(null); fetchAll(); }} />}
     </div>

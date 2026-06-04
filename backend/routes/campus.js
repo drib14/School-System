@@ -2,9 +2,32 @@ const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const { asyncHandler } = require('../middleware/errorHandler');
-const { Room, Asset } = require('../models/Campus');
+const { CampusLocation, Room, Asset } = require('../models/Campus');
 
 const CAMPUS_ROLES = ['registrar', 'principal', 'super_admin', 'school_owner'];
+
+// ---- CAMPUS LOCATIONS ----
+router.get('/locations', protect, asyncHandler(async (req, res) => {
+  const filter = { schoolId: req.user.schoolId, isActive: true };
+  const campuses = await CampusLocation.find(filter).sort({ name: 1 });
+  res.json({ success: true, campuses });
+}));
+
+router.post('/locations', protect, authorize('principal', 'super_admin', 'school_owner'), asyncHandler(async (req, res) => {
+  const campus = await CampusLocation.create({ ...req.body, schoolId: req.user.schoolId, createdBy: req.user._id });
+  res.status(201).json({ success: true, campus });
+}));
+
+router.put('/locations/:id', protect, authorize('principal', 'super_admin', 'school_owner'), asyncHandler(async (req, res) => {
+  const campus = await CampusLocation.findByIdAndUpdate(req.params.id, req.body, { new: true });
+  res.json({ success: true, campus });
+}));
+
+router.delete('/locations/:id', protect, authorize('principal', 'super_admin', 'school_owner'), asyncHandler(async (req, res) => {
+  await CampusLocation.findByIdAndUpdate(req.params.id, { isActive: false });
+  res.json({ success: true, message: 'Campus deactivated.' });
+}));
+
 
 // ---- ROOMS ----
 router.get('/rooms', protect, asyncHandler(async (req, res) => {

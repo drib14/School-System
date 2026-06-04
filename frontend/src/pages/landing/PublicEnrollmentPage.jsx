@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ChevronLeft, ChevronRight, Check, School, User, BookOpen, FileText, CheckCircle, ArrowLeft, Star, Award, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -68,6 +68,7 @@ export default function PublicEnrollmentPage() {
     remarks: '',
   });
 
+  const [campuses, setCampuses] = useState([]);
   const [addressSuggestions, setAddressSuggestions] = useState([]);
   const [isSearchingAddress, setIsSearchingAddress] = useState(false);
   const [addressTimer, setAddressTimer] = useState(null);
@@ -77,6 +78,12 @@ export default function PublicEnrollmentPage() {
   const [schoolAddressTimer, setSchoolAddressTimer] = useState(null);
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: typeof e === 'string' ? e : e.target.value }));
+
+  useEffect(() => {
+    api.get('/public/campuses')
+      .then(res => setCampuses(res.data.data))
+      .catch(err => console.error('Error fetching campuses', err));
+  }, []);
 
   const handleAddressChange = (e) => {
     const val = e.target.value;
@@ -294,6 +301,23 @@ export default function PublicEnrollmentPage() {
                   </FieldGroup>
                 </div>
               )}
+
+              {form.level && (
+                <div style={{ marginTop: 24 }}>
+                  <h4 style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', marginBottom: 16 }}>Select Campus</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+                    {campuses.map(c => (
+                      <div key={c._id} onClick={() => setForm(f => ({ ...f, campus: c._id }))} style={{ padding: 16, borderRadius: 12, border: form.campus === c._id ? '2px solid #3b82f6' : '2px solid rgba(148,163,184,0.1)', cursor: 'pointer', background: form.campus === c._id ? 'rgba(59,130,246,0.1)' : 'transparent', position: 'relative', overflow: 'hidden' }}>
+                        {c.imageUrl && <div style={{ height: 100, marginBottom: 12, borderRadius: 8, backgroundImage: `url(${c.imageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }} />}
+                        {!c.imageUrl && <div style={{ height: 100, marginBottom: 12, borderRadius: 8, background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><MapPin size={24} color="#64748b" /></div>}
+                        <div style={{ fontWeight: 600, fontSize: 14, color: form.campus === c._id ? '#3b82f6' : '#fff' }}>{c.name}</div>
+                        <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>{c.code} • {c.address?.city || c.address?.street || 'Campus'}</div>
+                      </div>
+                    ))}
+                    {campuses.length === 0 && <div style={{ fontSize: 13, color: '#64748b', padding: '16px 0' }}>No campuses available.</div>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -486,6 +510,7 @@ export default function PublicEnrollmentPage() {
                 {[
                   ['Academic Level', levelInfo?.label || '—'],
                   ['Level & Track', `${levelInfo?.label || ''} ${form.track ? `— ${form.track}` : ''} ${form.program ? `— ${form.program}` : ''}`],
+                  ['Campus', campuses.find(c => c._id === form.campus)?.name || '—'],
                   ['Grade / Year', form.grade],
                   ['Academic Year', (form.level === 'elementary' || form.level === 'jhs') ? form.academicYear : `${form.academicYear} — ${form.semester} Semester`],
                   ['Enrollment Type', ENROLLMENT_TYPES.find(t => t.value === form.enrollmentType)?.label],

@@ -10,6 +10,7 @@ const enrollmentSchema = new mongoose.Schema({
   
   type: { type: String, enum: ['new','returning','transferee','returnee','cross_enrollee'], default: 'returning' },
   levelType: { type: String, enum: ['k12','college'], default: 'college' },
+  campus: { type: mongoose.Schema.Types.ObjectId, ref: 'CampusLocation' },
   program: { type: mongoose.Schema.Types.ObjectId, ref: 'Program' },
   yearLevel: { type: Number },
   gradeLevel: { type: String },

@@ -267,11 +267,51 @@ const fullAdminNav = [
   ]},
 ];
 
+const studentNav = [
+  { section: 'Overview', items: [
+    { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    { to: '/profile', icon: UserCircle, label: 'Profile' },
+  ]},
+  { section: 'Academics', items: [
+    { to: '/enrollment', icon: ClipboardCheck, label: 'Enrollment' },
+    { to: '/my-classes', icon: BookOpen, label: 'Classes & Subjects' },
+    { to: '/my-schedule', icon: Calendar, label: 'Class Schedule' },
+    { to: '/my-grades', icon: Award, label: 'Grades' },
+    { to: '/my-attendance', icon: UserCheck, label: 'Attendance' },
+    { to: '/lms', icon: MonitorPlay, label: 'LMS & Lessons' },
+  ]},
+  { section: 'Finance', items: [
+    { to: '/my-payments', icon: DollarSign, label: 'Billing & Payments' },
+    { to: '/scholarships', icon: Award, label: 'Scholarships' },
+  ]},
+  { section: 'Campus Life', items: [
+    { to: '/qr-system', icon: QrCode, label: 'Digital ID / QR' },
+    { to: '/library', icon: Library, label: 'Library' },
+    { to: '/organizations', icon: Users, label: 'Organizations' },
+    { to: '/events', icon: Calendar, label: 'Events' },
+    { to: '/clinic', icon: Heart, label: 'Clinic' },
+    { to: '/guidance', icon: UserCircle, label: 'Guidance' },
+  ]},
+  { section: 'Career & Exit', items: [
+    { to: '/ojt', icon: Briefcase, label: 'Internship / OJT' },
+    { to: '/research', icon: BookOpen, label: 'Research / Thesis' },
+    { to: '/clearance', icon: Shield, label: 'Clearance' },
+    { to: '/documents', icon: FileText, label: 'Document Requests' },
+    { to: '/alumni', icon: GraduationCap, label: 'Alumni' },
+  ]},
+  { section: 'Communication', items: [
+    { to: '/messages', icon: MessageSquare, label: 'Messages' },
+    { to: '/notifications', icon: Bell, label: 'Notifications' },
+    { to: '/announcements', icon: Megaphone, label: 'Announcements' },
+  ]},
+];
+
 const navConfig = {
   super_admin: superAdminNav,
   principal: fullAdminNav,
   registrar: fullAdminNav,
   school_owner: fullAdminNav,
+  student: studentNav,
   hr: [
     { section: 'Overview', items: [
       { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },

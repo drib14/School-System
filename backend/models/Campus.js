@@ -1,5 +1,19 @@
 const mongoose = require('mongoose');
 
+// Campus Schema
+const campusSchema = new mongoose.Schema({
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  name: { type: String, required: true },
+  code: { type: String, required: true },
+  address: {
+    street: String, city: String, province: String, zipCode: String, country: { type: String, default: 'Philippines' },
+  },
+  contact: { phone: String, email: String },
+  imageUrl: { type: String },
+  isActive: { type: Boolean, default: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+}, { timestamps: true });
+
 // Teacher/Employee Profile
 const employeeProfileSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
@@ -93,9 +107,10 @@ const auditLogSchema = new mongoose.Schema({
   status: { type: String, enum: ['success','failure'], default: 'success' },
 }, { timestamps: true });
 
+const CampusLocation = mongoose.model('CampusLocation', campusSchema);
 const EmployeeProfile = mongoose.model('EmployeeProfile', employeeProfileSchema);
 const Room = mongoose.model('Room', roomSchema);
 const Asset = mongoose.model('Asset', assetSchema);
 const AuditLog = mongoose.model('AuditLog', auditLogSchema);
 
-module.exports = { EmployeeProfile, Room, Asset, AuditLog };
+module.exports = { CampusLocation, EmployeeProfile, Room, Asset, AuditLog };

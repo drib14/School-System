@@ -222,9 +222,6 @@ const superAdminNav = [
   ]},
 ];
 
-
-];
-
 const studentNav = [
   { section: 'Overview', items: [
     { label: 'Dashboard', icon: LayoutDashboard, to: '/dashboard', subItems: [

@@ -21,6 +21,7 @@ const YEAR_LEVELS = {
     ]
   },
   graduate: { label: 'Graduate School', grades: ['1st Year', '2nd Year', '3rd Year'], icon: Layers, color: '#06b6d4', gradient: 'linear-gradient(135deg, #0284c7, #06b6d4)', programs: ['Master of Arts in Education', 'Master of Business Administration (MBA)', 'Master of Science in Information Technology', 'Master of Public Administration', 'Doctor of Education', 'Doctor of Philosophy'] },
+  special: { label: 'Special Programs', grades: ['Alternative Learning System (ALS)', 'Special Education (SPED)', 'Language Proficiency', 'Technical Vocational'], icon: Star, color: '#ec4899', gradient: 'linear-gradient(135deg, #db2777, #ec4899)' },
 };
 
 const GENDERS = [{ value: 'male', label: 'Male' }, { value: 'female', label: 'Female' }, { value: 'other', label: 'Other' }, { value: 'prefer_not_to_say', label: 'Prefer not to say' }];
@@ -55,7 +56,7 @@ export default function PublicEnrollmentPage() {
 
   const [form, setForm] = useState({
     // Step 0 — Level
-    level: '', grade: '', track: '', program: '', enrollmentType: 'new', academicYear: '2025-2026', semester: '1st',
+    level: '', grade: '', track: '', program: '', enrollmentType: 'new', academicYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, semester: '1st',
     // Step 1 — Personal
     firstName: '', lastName: '', middleName: '', suffix: '', birthDate: '', birthPlace: '', gender: '', civilStatus: 'single', nationality: 'Filipino', religion: '',
     // Step 2 — Family & Contact
@@ -223,7 +224,7 @@ export default function PublicEnrollmentPage() {
             <GraduationCap size={24} color="white" />
           </div>
           <h1 style={{ fontSize: 28, fontWeight: 800, fontFamily: 'Outfit, sans-serif', marginBottom: 8 }}>Student Enrollment Form</h1>
-          <p style={{ color: '#64748b', fontSize: 14 }}>A.Y. 2025-2026 · Fill out all required fields to complete your enrollment application</p>
+          <p style={{ color: '#64748b', fontSize: 14 }}>A.Y. {new Date().getFullYear()}-{new Date().getFullYear() + 1} · Fill out all required fields to complete your enrollment application</p>
         </div>
 
         {/* Step Indicator */}
@@ -280,9 +281,12 @@ export default function PublicEnrollmentPage() {
                   </Field>
                   <FieldGroup cols={2}>
                     <Field label="Academic Year" required>
-                      <CustomSelect value={form.academicYear} onChange={set('academicYear')} options={[{ value: '2025-2026', label: 'A.Y. 2025-2026' }]} />
+                      <CustomSelect value={form.academicYear} onChange={set('academicYear')} options={[
+                        { value: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, label: `A.Y. ${new Date().getFullYear()}-${new Date().getFullYear() + 1}` },
+                        { value: `${new Date().getFullYear() + 1}-${new Date().getFullYear() + 2}`, label: `A.Y. ${new Date().getFullYear() + 1}-${new Date().getFullYear() + 2}` }
+                      ]} />
                     </Field>
-                    {form.level !== 'elementary' && form.level !== 'jhs' && (
+                    {form.level !== 'elementary' && form.level !== 'jhs' && form.level !== 'special' && (
                       <Field label="Semester" required>
                         <CustomSelect value={form.semester} onChange={set('semester')} options={[{ value: '1st', label: '1st Semester' }, { value: '2nd', label: '2nd Semester' }, { value: 'Summer', label: 'Summer' }]} />
                       </Field>

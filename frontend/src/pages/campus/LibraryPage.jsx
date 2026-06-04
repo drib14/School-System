@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Book, ArrowLeft, ArrowRight } from 'lucide-react';
-import { useAuthStore } from '../../../store/authStore';
+import { useAuthStore } from '../../store/authStore';
 
 export default function LibraryPage() {
   const { user } = useAuthStore();

@@ -73,6 +73,13 @@ const seed = async () => {
   }, { upsert: true, new: true, setDefaultsOnInsert: true });
   console.log('✅ Student created: student@iscp.edu.ph');
 
+  const specialStudent = await User.findOneAndUpdate({ email: 'special@iscp.edu.ph' }, {
+    firstName: 'Andres', lastName: 'Bonifacio', email: 'special@iscp.edu.ph',
+    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
+    studentId: '26060405', isActive: true, isEmailVerified: true,
+  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+  console.log('✅ Special Student created: special@iscp.edu.ph');
+
   // Create Cashier
   await User.findOneAndUpdate({ email: 'cashier@iscp.edu.ph' }, {
     firstName: 'Rosa', lastName: 'Garcia', email: 'cashier@iscp.edu.ph',
@@ -116,6 +123,8 @@ const seed = async () => {
     { code: 'BSARCH', name: 'Bachelor of Science in Architecture', type: 'college', level: 'bachelor', duration: 5 },
     { code: 'BSBA', name: 'Bachelor of Science in Business Administration', type: 'college', level: 'bachelor', duration: 4 },
     { code: 'BSPSYCH', name: 'Bachelor of Science in Psychology', type: 'college', level: 'bachelor', duration: 4 },
+    { code: 'ALS', name: 'Alternative Learning System (ALS)', type: 'special', level: 'special', duration: 1 },
+    { code: 'SPED', name: 'Special Education (SPED)', type: 'special', level: 'special', duration: 1 },
   ];
 
   const createdPrograms = {};
@@ -368,7 +377,7 @@ const seed = async () => {
         { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 9000 },
         { fee: miscFee._id, feeName: miscFee.name, category: miscFee.category, amount: 5000 }
       ],
-      totalAmount: 14000, discount: 0, scholarship: 0, netAmount: 14000, balance: 4000, totalPaid: 10000, status: 'partial'
+      totalAmount: 14000, discount: 0, scholarship: 0, netAmount: 14000, balance: 0, totalPaid: 14000, status: 'paid'
     },
     { upsert: true, new: true }
   );
@@ -376,7 +385,7 @@ const seed = async () => {
   await Payment.findOneAndUpdate(
     { referenceNumber: 'CASH-001' },
     {
-      schoolId: school._id, student: collegeStudent._id, assessment: assessment._id, amount: 10000, method: 'cash', status: 'completed',
+      schoolId: school._id, student: collegeStudent._id, assessment: assessment._id, amount: 14000, method: 'cash', status: 'completed',
       paidAt: new Date(), processedBy: superAdmin._id
     },
     { upsert: true, new: true }
@@ -517,6 +526,33 @@ const seed = async () => {
   );
   console.log('✅ Pre-enrolled students created (College, JHS, Elem, SHS)');
 
+  await StudentProfile.findOneAndUpdate(
+    { userId: specialStudent._id },
+    {
+      schoolId: school._id, studentId: '26060405',
+      program: createdPrograms.ALS, gradeLevel: 'ALS', academicStatus: 'active', enrollmentStatus: 'enrolled'
+    },
+    { upsert: true, new: true }
+  );
+
+  await Enrollment.findOneAndUpdate(
+    { student: specialStudent._id, academicYear: '2025-2026' },
+    {
+      enrollmentNumber: 'ENR-25-ALS01',
+      schoolId: school._id, semester: '1st',
+      levelType: 'special', program: createdPrograms.ALS, gradeLevel: 'ALS', type: 'new',
+      status: 'enrolled',
+      subjects: [],
+      totalUnits: 0,
+      steps: [
+        { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+        { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+        { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+      ]
+    },
+    { upsert: true, new: true }
+  );
+  console.log('✅ Pre-enrolled Special Program student created');
 
   await mongoose.connection.close();
   console.log('\n🎉 Seeding complete!');

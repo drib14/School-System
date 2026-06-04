@@ -204,8 +204,13 @@ export default function EnrollmentPage() {
       const endpoint = isStudent ? '/enrollment/me' : '/enrollment';
       const params = new URLSearchParams({ limit: 30, ...filter });
       const { data } = await api.get(`${endpoint}?${params}`);
-      setEnrollments(data.enrollments || data);
-      setTotal(data.total || data.length);
+      if (isStudent) {
+        setEnrollments(data.enrollment ? [data.enrollment] : []);
+        setTotal(data.enrollment ? 1 : 0);
+      } else {
+        setEnrollments(data.enrollments || []);
+        setTotal(data.total || 0);
+      }
     } catch {
       toast.error('Failed to load enrollments');
     } finally {

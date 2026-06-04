@@ -98,7 +98,8 @@ function StudentEnrollmentTracker() {
                   {['Form 138', 'Good Moral', 'Birth Certificate', 'ID Picture'].map(doc => (
                     <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'rgba(255,255,255,0.02)', borderRadius: 8, border: '1px dashed rgba(255,255,255,0.1)' }}>
                       <span style={{ fontSize: 13, fontWeight: 600 }}>{doc}</span>
-                      <button className="btn btn-secondary btn-sm">Choose File</button>
+                      <input type="file" id={doc} style={{ display: 'none' }} accept=".pdf,.jpg,.jpeg,.png" />
+                      <label htmlFor={doc} className="btn btn-secondary btn-sm" style={{ cursor: 'pointer' }}>Choose File</label>
                     </div>
                   ))}
                 </div>

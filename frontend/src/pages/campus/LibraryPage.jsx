@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Plus, Search, Book, ArrowLeft, ArrowRight } from 'lucide-react';
-import api from '../../services/api';
-import { format } from 'date-fns';
+import { useAuthStore } from '../../../store/authStore';
 
 export default function LibraryPage() {
+  const { user } = useAuthStore();
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -13,7 +13,8 @@ export default function LibraryPage() {
     const fetchBooks = async () => {
       setLoading(true);
       try {
-        const query = search ? search : 'education';
+        const defaultQuery = user?.profile?.program?.name || 'education';
+        const query = search ? search : defaultQuery;
         const res = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(query)}&limit=12`);
         const data = await res.json();
 

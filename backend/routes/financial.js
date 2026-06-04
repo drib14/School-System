@@ -207,4 +207,13 @@ router.get('/summary', protect, authorize('cashier','accountant','principal','su
   res.json({ success: true, totalRevenue: totalRevenue[0]?.total || 0, byMethod, dailyRevenue, pendingBalance: pendingBalance[0]?.total || 0 });
 }));
 
+router.get('/my-statement', protect, authorize('student'), asyncHandler(async (req, res) => {
+  const assessments = await Assessment.find({ student: req.user._id })
+    .populate('fees.fee', 'name category')
+    .sort({ createdAt: -1 });
+  const payments = await Payment.find({ student: req.user._id }).sort({ createdAt: -1 });
+  
+  res.json({ success: true, assessments, payments });
+}));
+
 module.exports = router;

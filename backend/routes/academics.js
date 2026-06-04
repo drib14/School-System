@@ -147,4 +147,15 @@ router.get('/teacher-load/:teacherId', protect, asyncHandler(async (req, res) =>
   res.json({ success: true, schedules, totalUnits, classCount: schedules.length });
 }));
 
+// ---- STUDENT GRADES & ENROLLMENT ----
+router.get('/my-grades', protect, authorize('student'), asyncHandler(async (req, res) => {
+  const Enrollment = require('../models/Enrollment');
+  const enrollments = await Enrollment.find({ student: req.user._id, status: 'enrolled', isActive: true })
+    .populate('program', 'name code')
+    .populate('subjects.subject', 'name code units')
+    .sort({ academicYear: -1, semester: -1 })
+    .lean();
+  res.json({ success: true, enrollments });
+}));
+
 module.exports = router;

@@ -150,6 +150,34 @@ export default function FinancialPage() {
             </table>
           </div>
         </div>
+      {/* Assessments / Statement of Account */}
+      {activeTab === 'assessments' && (
+        <div className="card">
+          <div className="table-container">
+            <table className="table">
+              <thead><tr><th>Term</th>{ !isStudent && <th>Student</th> }<th>Net Amount</th><th>Paid</th><th>Balance</th><th>Status</th></tr></thead>
+              <tbody>
+                {loading ? Array.from({length:5}).map((_,i) => <tr key={i}>{Array.from({length: isStudent ? 5 : 6}).map((_,j) => <td key={j}><div className="skeleton" style={{height:14}} /></td>)}</tr>)
+                : data.length === 0 ? <tr><td colSpan={isStudent ? 5 : 6} className="table-empty">No assessments found</td></tr>
+                : data.map(a => (
+                  <tr key={a._id}>
+                    <td>
+                      <div style={{fontWeight:600}}>{a.academicYear}</div>
+                      <div style={{fontSize:12,color:'var(--text-muted)'}}>{a.semester} Semester</div>
+                    </td>
+                    { !isStudent && <td>{a.student?.firstName} {a.student?.lastName}</td> }
+                    <td style={{fontWeight:600}}>₱{(a.netAmount||0).toLocaleString()}</td>
+                    <td style={{color:'var(--success)'}}>₱{(a.totalPaid||0).toLocaleString()}</td>
+                    <td style={{fontWeight:700,color:'var(--danger)'}}>₱{(a.balance||0).toLocaleString()}</td>
+                    <td>
+                      <span className={`badge ${a.status === 'paid' ? 'badge-green' : a.status === 'partial' ? 'badge-yellow' : 'badge-red'}`} style={{textTransform:'capitalize'}}>{a.status}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
     </div>
   );

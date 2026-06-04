@@ -66,7 +66,7 @@ const seed = async () => {
   console.log('✅ Teacher created: teacher@iscp.edu.ph');
 
   // Create Student
-  await User.findOneAndUpdate({ email: 'student@iscp.edu.ph' }, {
+  const mainStudent = await User.findOneAndUpdate({ email: 'student@iscp.edu.ph' }, {
     firstName: 'Jose', lastName: 'Rizal', email: 'student@iscp.edu.ph',
     password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
     studentId: '26060401', isActive: true, isEmailVerified: true,
@@ -209,29 +209,69 @@ const seed = async () => {
   });
 
   // Create BSCS Student (College)
-  const collegeStudent = await User.findOneAndUpdate({ email: 'college_student@iscp.edu.ph' }, {
-    firstName: 'Juan', lastName: 'College', email: 'college_student@iscp.edu.ph',
-    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
-    studentId: '26060405', isActive: true, isEmailVerified: true,
-  }, { upsert: true, new: true, setDefaultsOnInsert: true });
-
+  const collegeStudent = mainStudent;
+  
   await StudentProfile.create({
-    userId: collegeStudent._id, schoolId: school._id, studentId: '26060405',
+    userId: collegeStudent._id, schoolId: school._id, studentId: '26060401',
     program: createdPrograms.BSCS, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
     course: 'BSCS'
   });
 
-  await Enrollment.create({
+  const studentEnrollment = await Enrollment.create({
     schoolId: school._id, student: collegeStudent._id, academicYear: '2025-2026', semester: '1st',
     levelType: 'college', program: createdPrograms.BSCS, yearLevel: 1, type: 'new',
     status: 'enrolled',
-    subjects: [{ subject: createdSubjects['CS101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
-    totalUnits: 3,
+    subjects: [
+      { subject: createdSubjects['CS101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' },
+      { subject: createdSubjects['MATH101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }
+    ],
+    totalUnits: 6,
     steps: [
       { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
       { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
       { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
     ]
+  });
+
+  // Create Grades for mainStudent
+  const Grade = require('../models/Grade');
+  await Grade.deleteMany({ schoolId: school._id });
+  await Grade.create([
+    {
+      schoolId: school._id, student: collegeStudent._id, teacher: teacher._id, subject: createdSubjects['CS101'],
+      schedule: cs101Schedule._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
+      quizAverage: 95, activityAverage: 92, projectAverage: 96, finalRating: 94.5, remarks: 'Passed', status: 'released',
+      releasedAt: new Date()
+    },
+    {
+      schoolId: school._id, student: collegeStudent._id, teacher: teacher._id, subject: createdSubjects['MATH101'],
+      schedule: cs101Schedule._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
+      quizAverage: 88, activityAverage: 85, projectAverage: 90, finalRating: 87.6, remarks: 'Passed', status: 'released',
+      releasedAt: new Date()
+    }
+  ]);
+
+  // Create Financials for mainStudent
+  const { Fee, Assessment, Payment } = require('../models/Financial');
+  await Fee.deleteMany({ schoolId: school._id });
+  await Assessment.deleteMany({ schoolId: school._id });
+  await Payment.deleteMany({ schoolId: school._id });
+
+  const tuitionFee = await Fee.create({ schoolId: school._id, name: 'Tuition Fee (Per Unit)', category: 'tuition', amount: 1500, frequency: 'per_unit' });
+  const miscFee = await Fee.create({ schoolId: school._id, name: 'Miscellaneous Fee', category: 'miscellaneous', amount: 5000, frequency: 'per_semester' });
+
+  const assessment = await Assessment.create({
+    schoolId: school._id, student: collegeStudent._id, enrollment: studentEnrollment._id, academicYear: '2025-2026', semester: '1st',
+    fees: [
+      { fee: tuitionFee._id, feeName: tuitionFee.name, category: tuitionFee.category, amount: 9000 },
+      { fee: miscFee._id, feeName: miscFee.name, category: miscFee.category, amount: 5000 }
+    ],
+    totalAmount: 14000, discount: 0, scholarship: 0, netAmount: 14000, balance: 4000, totalPaid: 10000, status: 'partial'
+  });
+
+  await Payment.create({
+    schoolId: school._id, student: collegeStudent._id, assessment: assessment._id, amount: 10000, method: 'cash', status: 'completed',
+    paidAt: new Date(), processedBy: superAdmin._id, referenceNumber: 'CASH-001'
   });
 
   // Create Nursing Student

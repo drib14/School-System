@@ -185,7 +185,6 @@ export default function GradesPage() {
         <div className="grid-3">
           {loading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="card skeleton" style={{ height: 100 }} />) :
           grades.map(g => {
-            // Philippine K-12 Transmutation logic logic mock
             const rating = g.finalRating || 0;
             let transmuted = rating;
             if (rating >= 96) transmuted = 1.0;

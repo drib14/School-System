@@ -270,7 +270,12 @@ const sendEmailOTP = asyncHandler(async (req, res) => {
 // @desc    Get current user
 // @route   GET /api/auth/me
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).populate('schoolId', 'name abbreviation logo settings');
+  const user = await User.findById(req.user._id).populate('schoolId', 'name abbreviation logo settings').lean();
+  if (user && user.role === 'student') {
+    const StudentProfile = require('../models/StudentProfile');
+    const profile = await StudentProfile.findOne({ userId: user._id }).populate('program', 'name code type level').lean();
+    user.profile = profile;
+  }
   res.json({ success: true, user });
 });
 

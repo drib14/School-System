@@ -72,7 +72,7 @@ export default function PublicEnrollmentPage() {
   const levelInfo = YEAR_LEVELS[form.level];
 
   const validate = () => {
-    if (step === 0) return form.level && form.grade && form.enrollmentType && ((form.level === 'shs' && form.track) || form.level !== 'shs') && ((['college','graduate'].includes(form.level) && form.program) || !['college','graduate'].includes(form.level));
+    if (step === 0) return form.level && form.grade && form.enrollmentType && ((form.level === 'shs' && form.track) || form.level !== 'shs') && ((['college', 'graduate'].includes(form.level) && form.program) || !['college', 'graduate'].includes(form.level));
     if (step === 1) return form.firstName && form.lastName && form.birthDate && form.gender;
     if (step === 2) return form.address && form.contactNumber;
     return true;
@@ -88,6 +88,11 @@ export default function PublicEnrollmentPage() {
         ref = data.referenceNumber || data.admissionNo || `ENR-${Date.now()}`;
       } catch {
         ref = `ENR-${Date.now()}`;
+        const { data } = await api.post('/admission/applications', payload);
+        ref = data.application?.applicationNumber || `APP-${Date.now()}`;
+      } catch (err) {
+        console.error(err);
+        ref = `APP-${Date.now()}`;
       }
       setReferenceNo(ref);
       setSubmitted(true);
@@ -264,14 +269,14 @@ export default function PublicEnrollmentPage() {
                   <input value={form.address} onChange={set('address')} placeholder="House No., Street, Barangay" style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                 </Field>
                 <FieldGroup cols={3}>
-                  {[['city','City / Municipality'], ['province','Province'], ['zip','ZIP Code']].map(([k, lb]) => (
+                  {[['city', 'City / Municipality'], ['province', 'Province'], ['zip', 'ZIP Code']].map(([k, lb]) => (
                     <Field key={k} label={lb}>
                       <input value={form[k]} onChange={set(k)} placeholder={lb} style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                     </Field>
                   ))}
                 </FieldGroup>
                 <FieldGroup>
-                  {[['contactNumber','Contact Number',true], ['email','Email Address (optional)',false]].map(([k, lb, req]) => (
+                  {[['contactNumber', 'Contact Number', true], ['email', 'Email Address (optional)', false]].map(([k, lb, req]) => (
                     <Field key={k} label={lb} required={req}>
                       <input value={form[k]} onChange={set(k)} placeholder={lb} style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                     </Field>
@@ -280,7 +285,7 @@ export default function PublicEnrollmentPage() {
                 <div style={{ borderTop: '1px solid rgba(148,163,184,0.1)', paddingTop: 20, marginTop: 4 }}>
                   <p style={{ fontSize: 12, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: 16 }}>Parent / Guardian</p>
                   <FieldGroup cols={3}>
-                    {[['guardianName','Guardian Full Name'], ['guardianRelation','Relationship'], ['guardianContact','Contact Number']].map(([k, lb]) => (
+                    {[['guardianName', 'Guardian Full Name'], ['guardianRelation', 'Relationship'], ['guardianContact', 'Contact Number']].map(([k, lb]) => (
                       <Field key={k} label={lb}>
                         <input value={form[k]} onChange={set(k)} placeholder={lb} style={inputStyle('#f59e0b')} onFocus={e => e.target.style.borderColor = '#f59e0b'} onBlur={e => e.target.style.borderColor = 'rgba(148,163,184,0.15)'} />
                       </Field>

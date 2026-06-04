@@ -341,6 +341,12 @@ const seed = async () => {
         { subject: createdSubjects['MATH101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }
       ],
       totalUnits: 6,
+      documents: [
+        { type: 'Form 138 (Report Card)', url: '/scans/form138.pdf', verified: true, verifiedBy: superAdmin._id },
+        { type: 'Certificate of Good Moral Character', url: '/scans/good_moral.pdf', verified: true, verifiedBy: superAdmin._id },
+        { type: 'PSA / NSO Birth Certificate', url: '/scans/birth_cert.pdf', verified: true, verifiedBy: superAdmin._id },
+        { type: '2x2 ID Picture', url: '/scans/id_photo.jpg', verified: true, verifiedBy: superAdmin._id }
+      ],
       steps: [
         { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
         { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },

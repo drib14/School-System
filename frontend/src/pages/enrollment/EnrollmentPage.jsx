@@ -199,15 +199,27 @@ function EnrollmentDetailModal({ enrollment, onClose, onUpdate, isStudent }) {
             <div style={{ padding: '0 0 20px' }}>
               <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>Review the documents submitted by {student?.firstName} for enrollment.</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12 }}>
-                {['Form 138 (Report Card)', 'Certificate of Good Moral Character', 'PSA / NSO Birth Certificate', '2x2 ID Picture'].map(doc => (
-                  <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
+                {(enrollment.documents && enrollment.documents.length > 0 ? enrollment.documents : [
+                  { type: 'Form 138 (Report Card)', url: '/scans/form138.pdf' },
+                  { type: 'Certificate of Good Moral Character', url: '/scans/good_moral.pdf' },
+                  { type: 'PSA / NSO Birth Certificate', url: '/scans/birth_cert.pdf' },
+                  { type: '2x2 ID Picture', url: '/scans/id_photo.jpg' }
+                ]).map((doc, idx) => (
+                  <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: 'rgba(255,255,255,0.03)', borderRadius: 8, border: '1px solid rgba(255,255,255,0.05)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <FileText size={16} style={{ color: 'var(--blue-400)' }} />
-                      <span style={{ fontSize: 13, fontWeight: 600 }}>{doc}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600 }}>{doc.type}</span>
                     </div>
-                    <button className="btn btn-secondary btn-sm" onClick={() => toast.success(`Viewing ${doc}`)}>
-                      <Eye size={12} /> View
-                    </button>
+                    <a 
+                      href={doc.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="btn btn-secondary btn-sm"
+                      style={{ display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none' }}
+                      onClick={() => toast.success(`Opening ${doc.type}`)}
+                    >
+                      <Eye size={12} /> View File
+                    </a>
                   </div>
                 ))}
               </div>
@@ -339,6 +351,7 @@ export default function EnrollmentPage() {
           enrollment={selected}
           onClose={() => setSelected(null)}
           onUpdate={fetchEnrollments}
+          isStudent={isStudent}
         />
       )}
     </div>

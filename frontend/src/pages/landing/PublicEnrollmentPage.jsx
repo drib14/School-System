@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GraduationCap, ChevronLeft, ChevronRight, Check, School, User, BookOpen, FileText, CheckCircle, ArrowLeft, Star, Award, Layers } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -53,10 +53,23 @@ export default function PublicEnrollmentPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [referenceNo, setReferenceNo] = useState('');
+  const [campuses, setCampuses] = useState([]);
+  const [campusDropdownOpen, setCampusDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    api.get('/public/schools')
+      .then(({ data }) => {
+        setCampuses(data.schools || []);
+        if (data.schools?.length > 0) {
+          setForm(f => ({ ...f, schoolId: data.schools[0]._id }));
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   const [form, setForm] = useState({
     // Step 0 — Level
-    level: '', grade: '', track: '', program: '', enrollmentType: 'new', academicYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, semester: '1st',
+    schoolId: '', level: '', grade: '', track: '', program: '', enrollmentType: 'new', academicYear: `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`, semester: '1st',
     // Step 1 — Personal
     firstName: '', lastName: '', middleName: '', suffix: '', birthDate: '', birthPlace: '', gender: '', civilStatus: 'single', nationality: 'Filipino', religion: '',
     // Step 2 — Family & Contact
@@ -151,7 +164,7 @@ export default function PublicEnrollmentPage() {
   const levelInfo = YEAR_LEVELS[form.level];
 
   const validate = () => {
-    if (step === 0) return form.level && form.grade && form.enrollmentType && ((form.level === 'shs' && form.track) || form.level !== 'shs') && ((['college', 'graduate'].includes(form.level) && form.program) || !['college', 'graduate'].includes(form.level));
+    if (step === 0) return form.schoolId && form.level && form.grade && form.enrollmentType && ((form.level === 'shs' && form.track) || form.level !== 'shs') && ((['college', 'graduate'].includes(form.level) && form.program) || !['college', 'graduate'].includes(form.level));
     if (step === 1) return form.firstName && form.lastName && form.birthDate && form.gender;
     if (step === 2) return form.address && form.contactNumber;
     return true;
@@ -263,6 +276,58 @@ export default function PublicEnrollmentPage() {
 
               {form.level && (
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 16 }}>
+                  <Field label="Desired Campus / Branch" required col={2}>
+                    <div style={{ position: 'relative' }}>
+                      <div 
+                        onClick={() => setCampusDropdownOpen(!campusDropdownOpen)}
+                        style={{ ...inputStyle('#10b981'), display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer', background: '#0f172a', border: '1px solid rgba(148,163,184,0.15)', padding: '8px 12px', minHeight: 46 }}
+                      >
+                        {form.schoolId ? (
+                          (() => {
+                            const selected = campuses.find(c => c._id === form.schoolId);
+                            return selected ? (
+                              <>
+                                <img src={selected.logo || '/iscp-logo.jpg'} alt="" style={{ width: 28, height: 28, borderRadius: '50%', objectFit: 'cover', background: 'rgba(255,255,255,0.05)' }} />
+                                <div>
+                                  <div style={{ fontWeight: 600, fontSize: 13, color: '#f1f5f9' }}>{selected.name}</div>
+                                  <div style={{ fontSize: 11, color: '#64748b' }}>{selected.address?.city || 'Philippines'}</div>
+                                </div>
+                              </>
+                            ) : <span>Select Campus</span>;
+                          })()
+                        ) : (
+                          <span>Select Campus</span>
+                        )}
+                        <ChevronRight size={16} style={{ marginLeft: 'auto', transform: campusDropdownOpen ? 'rotate(90deg)' : 'none', transition: '0.2s', color: '#64748b' }} />
+                      </div>
+                      
+                      {campusDropdownOpen && (
+                        <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#1e293b', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 12, marginTop: 4, zIndex: 50, overflow: 'hidden', boxShadow: '0 10px 25px rgba(0,0,0,0.5)', maxHeight: 220, overflowY: 'auto' }}>
+                          {campuses.map((c) => (
+                            <div 
+                              key={c._id}
+                              onClick={() => {
+                                setForm(f => ({ ...f, schoolId: c._id }));
+                                setCampusDropdownOpen(false);
+                              }}
+                              style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', borderBottom: '1px solid rgba(148,163,184,0.08)', cursor: 'pointer', background: form.schoolId === c._id ? 'rgba(16,185,129,0.08)' : 'transparent' }}
+                              onMouseEnter={e => e.currentTarget.style.background = 'rgba(16,185,129,0.05)'}
+                              onMouseLeave={e => e.currentTarget.style.background = form.schoolId === c._id ? 'rgba(16,185,129,0.08)' : 'transparent'}
+                            >
+                              <img src={c.logo || '/iscp-logo.jpg'} alt="" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover', background: 'rgba(255,255,255,0.05)' }} />
+                              <div>
+                                <div style={{ fontWeight: 700, fontSize: 13, color: '#f1f5f9' }}>{c.name}</div>
+                                <div style={{ fontSize: 11, color: '#94a3b8' }}>{c.tagline || c.address?.city || 'ISCP Campus'}</div>
+                              </div>
+                            </div>
+                          ))}
+                          {campuses.length === 0 && (
+                            <div style={{ padding: 16, textAlign: 'center', color: '#64748b', fontSize: 13 }}>No campuses found</div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </Field>
                   <Field label="Grade / Year Level" required>
                     <CustomSelect value={form.grade} onChange={set('grade')} options={(levelInfo?.grades || []).map(g => ({ value: g, label: g }))} placeholder="Select grade" />
                   </Field>

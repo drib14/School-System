@@ -199,6 +199,34 @@ export default function App() {
             {/* Profile & Settings */}
             <Route path="profile" element={<ProfilePage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/*" element={<SettingsPage />} />
+
+            {/* Student Hub Routes */}
+            <Route path="student/profile/*" element={<ProfilePage />} />
+            <Route path="student/enrollment/*" element={<EnrollmentPage />} />
+            <Route path="student/academics/*" element={<AcademicsPage />} />
+            <Route path="student/schedule/*" element={<AcademicsPage />} />
+            <Route path="student/lms/*" element={<LMSPage />} />
+            <Route path="student/grades/*" element={<GradesPage />} />
+            <Route path="student/attendance/*" element={<AttendancePage />} />
+            <Route path="student/billing/*" element={<FinancialPage />} />
+            <Route path="student/payments/*" element={<FinancialPage />} />
+            <Route path="student/scholarships/*" element={<FinancialPage />} />
+            <Route path="student/library/*" element={<LibraryPage />} />
+            <Route path="student/clinic/*" element={<ClinicPage />} />
+            <Route path="student/guidance/*" element={<GuidancePage />} />
+            <Route path="student/orgs/*" element={<DashboardPage />} />
+            <Route path="student/events/*" element={<DashboardPage />} />
+            <Route path="student/id/*" element={<ProfilePage />} />
+            <Route path="student/qr/*" element={<ProfilePage />} />
+            <Route path="student/ojt/*" element={<DashboardPage />} />
+            <Route path="student/thesis/*" element={<DashboardPage />} />
+            <Route path="student/clearance/*" element={<ClearancePage />} />
+            <Route path="student/docs/*" element={<ClearancePage />} />
+            <Route path="student/alumni/*" element={<DashboardPage />} />
+            <Route path="student/messages/*" element={<MessagesPage />} />
+            <Route path="student/announcements/*" element={<AnnouncementsPage />} />
+            <Route path="student/notifications/*" element={<NotificationsPage />} />
 
             {/* Parent routes */}
             <Route path="parent/*" element={<DashboardPage />} />

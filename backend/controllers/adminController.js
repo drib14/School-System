@@ -203,18 +203,67 @@ const getSuperAdminStats = asyncHandler(async (req, res) => {
 });
 
 const createSchool = asyncHandler(async (req, res) => {
-  const { name, abbreviation, plan = 'starter' } = req.body;
+  const { name, abbreviation, tagline, logo, address, contact, plan = 'starter' } = req.body;
   
   if (!name || !abbreviation) {
     return res.status(400).json({ success: false, message: 'Name and abbreviation are required.' });
   }
 
   const newSchool = await School.create({
-    name, abbreviation, 
+    name, abbreviation, tagline, logo: logo || '/iscp-logo.jpg', address, contact,
     plan, subscription: { status: 'active', plan }
   });
 
   res.status(201).json({ success: true, message: 'School created.', school: newSchool });
 });
 
-module.exports = { getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, getStudents, getStudentById, createStudent, updateStudent, transferStudent, dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats, createSchool };
+const getSchools = asyncHandler(async (req, res) => {
+  const schools = await School.find().sort({ createdAt: -1 });
+  const schoolsWithCounts = await Promise.all(schools.map(async (s) => {
+    const studentCount = await StudentProfile.countDocuments({ schoolId: s._id });
+    const teacherCount = await User.countDocuments({ schoolId: s._id, role: 'teacher', isActive: true });
+    return {
+      ...s.toObject(),
+      students: studentCount,
+      teachers: teacherCount,
+      studentCount, // fallback
+    };
+  }));
+  res.json({ success: true, schools: schoolsWithCounts });
+});
+
+const getAuditLogs = asyncHandler(async (req, res) => {
+  const limit = req.query.limit ? Number(req.query.limit) : 20;
+  const page = req.query.page ? Number(req.query.page) : 1;
+  const skip = (page - 1) * limit;
+
+  const logs = await AuditLog.find()
+    .populate('user', 'firstName lastName email')
+    .populate('schoolId', 'name abbreviation')
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const total = await AuditLog.countDocuments();
+
+  res.json({
+    success: true,
+    total,
+    pages: Math.ceil(total / limit),
+    page,
+    logs: logs.map(l => ({
+      ...l,
+      userEmail: l.user?.email,
+      schoolName: l.schoolId?.name,
+      resource: l.module ? `${l.module} - ${l.action}` : l.description
+    }))
+  });
+});
+
+module.exports = { 
+  getUsers, getUser, createUser, updateUser, toggleUserStatus, deleteUser, 
+  getStudents, getStudentById, createStudent, updateStudent, transferStudent, 
+  dropStudent, graduateStudent, getDashboardStats, getSuperAdminStats, 
+  createSchool, getSchools, getAuditLogs 
+};

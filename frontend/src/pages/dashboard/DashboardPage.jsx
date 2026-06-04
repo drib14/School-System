@@ -54,7 +54,12 @@ function StudentEnrollmentTracker() {
 
   if (loading) return <div className="card skeleton" style={{ height: 200, marginBottom: 24 }} />;
 
-  const isEnrolled = user?.profile?.enrollmentStatus === 'enrolled' || enrollment?.status === 'enrolled';
+  const isEnrolled = 
+    user?.profile?.enrollmentStatus === 'enrolled' || 
+    user?.profile?.enrollmentStatus === 'active' ||
+    user?.profile?.academicStatus === 'active' ||
+    enrollment?.status === 'enrolled' ||
+    enrollment?.status === 'active';
 
   const handleFileChange = (doc, e) => {
     if (e.target.files[0]) {
@@ -114,18 +119,21 @@ function StudentEnrollmentTracker() {
               <div style={{ padding: '0 0 20px 0' }}>
                 <p style={{ fontSize: 13, color: 'var(--text-muted)', marginBottom: 16 }}>Upload your scanned documents below. Allowed formats: PDF, JPG, PNG.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {['Form 138', 'Good Moral', 'Birth Certificate', 'ID Picture'].map(doc => (
-                    <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: uploadedDocs[doc] ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.02)', borderRadius: 8, border: `1px dashed ${uploadedDocs[doc] ? 'var(--success)' : 'rgba(255,255,255,0.1)'}` }}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <span style={{ fontSize: 13, fontWeight: 600, color: uploadedDocs[doc] ? 'var(--success)' : 'inherit' }}>{doc}</span>
-                        {uploadedDocs[doc] && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{uploadedDocs[doc]}</span>}
+                  {['Form 138', 'Good Moral', 'Birth Certificate', 'ID Picture'].map(doc => {
+                    const docId = doc.replace(/\s+/g, '-').toLowerCase();
+                    return (
+                      <div key={doc} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 12, background: uploadedDocs[doc] ? 'rgba(16, 185, 129, 0.1)' : 'rgba(255,255,255,0.02)', borderRadius: 8, border: `1px dashed ${uploadedDocs[doc] ? 'var(--success)' : 'rgba(255,255,255,0.1)'}` }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                          <span style={{ fontSize: 13, fontWeight: 600, color: uploadedDocs[doc] ? 'var(--success)' : 'inherit' }}>{doc}</span>
+                          {uploadedDocs[doc] && <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>{uploadedDocs[doc]}</span>}
+                        </div>
+                        <input type="file" id={docId} onChange={(e) => handleFileChange(doc, e)} style={{ display: 'none' }} accept=".pdf,.jpg,.jpeg,.png" />
+                        <label htmlFor={docId} className={`btn btn-sm ${uploadedDocs[doc] ? 'btn-ghost' : 'btn-secondary'}`} style={{ cursor: 'pointer', color: uploadedDocs[doc] ? 'var(--success)' : 'inherit' }}>
+                          {uploadedDocs[doc] ? 'Change File' : 'Choose File'}
+                        </label>
                       </div>
-                      <input type="file" id={doc} onChange={(e) => handleFileChange(doc, e)} style={{ display: 'none' }} accept=".pdf,.jpg,.jpeg,.png" />
-                      <label htmlFor={doc} className={`btn btn-sm ${uploadedDocs[doc] ? 'btn-ghost' : 'btn-secondary'}`} style={{ cursor: 'pointer', color: uploadedDocs[doc] ? 'var(--success)' : 'inherit' }}>
-                        {uploadedDocs[doc] ? 'Change File' : 'Choose File'}
-                      </label>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 20 }}>
                   <button className="btn btn-primary" onClick={handleSubmitRequirements}>Submit All</button>

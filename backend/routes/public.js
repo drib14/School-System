@@ -34,4 +34,18 @@ router.get('/stats', async (req, res) => {
   }
 });
 
+// @route   GET /api/public/schools
+// @desc    Get active schools/campuses
+// @access  Public
+router.get('/schools', async (req, res) => {
+  try {
+    const School = require('../models/School');
+    const schools = await School.find({ isActive: true }).select('name abbreviation logo address tagline settings');
+    res.json({ success: true, schools });
+  } catch (err) {
+    console.error('Error fetching schools:', err);
+    res.status(500).json({ success: false, message: 'Server error fetching schools' });
+  }
+});
+
 module.exports = router;

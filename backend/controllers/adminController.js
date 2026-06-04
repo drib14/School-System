@@ -100,10 +100,13 @@ const getStudentById = asyncHandler(async (req, res) => {
 const createStudent = asyncHandler(async (req, res) => {
   const { firstName, middleName, lastName, email, password = 'iscp@1234', ...profileData } = req.body;
 
-  // Generate Student ID
+  const now = new Date();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const yearStr = now.getFullYear().toString().slice(-2);
   const count = await User.countDocuments({ role: 'student', schoolId: req.user.schoolId });
-  const year = new Date().getFullYear().toString().slice(-2);
-  const studentId = `${year}-${String(count + 1).padStart(5, '0')}`;
+  const sequence = String(count + 1).padStart(3, '0');
+  const studentId = `${month}${day}${yearStr}${sequence}`;
 
   const user = await User.create({
     firstName, middleName, lastName, email, password, role: 'student',

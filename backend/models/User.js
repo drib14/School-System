@@ -85,4 +85,7 @@ userSchema.methods.isLocked = function () {
 
 userSchema.set('toJSON', { virtuals: true, transform: (_, ret) => { delete ret.password; return ret; } });
 
+userSchema.index({ schoolId: 1 });
+userSchema.index({ role: 1 });
+
 module.exports = mongoose.model('User', userSchema);

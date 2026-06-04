@@ -66,6 +66,8 @@ const AdmissionPage = lazy(() => import('./pages/admission/AdmissionPage'));
 const LandingPage = lazy(() => import('./pages/landing/LandingPage'));
 const JobApplicationPage = lazy(() => import('./pages/landing/JobApplicationPage'));
 const PublicEnrollmentPage = lazy(() => import('./pages/landing/PublicEnrollmentPage'));
+const TermsPage = lazy(() => import('./pages/landing/TermsPage'));
+const PrivacyPage = lazy(() => import('./pages/landing/PrivacyPage'));
 
 // Loading spinner
 function PageLoader() {
@@ -133,6 +135,8 @@ export default function App() {
           <Route path="/" element={<LandingRoute />} />
           <Route path="/apply-job" element={<JobApplicationPage />} />
           <Route path="/enroll/new" element={<PublicEnrollmentPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
 
           {/* Public Auth Routes */}
           <Route path="/login/staff" element={<AuthRoute><StaffLoginPage /></AuthRoute>} />

@@ -93,6 +93,9 @@ const seed = async () => {
     { code: 'BSCS', name: 'Bachelor of Science in Computer Science', type: 'college', level: 'bachelor', duration: 4 },
     { code: 'BSIT', name: 'Bachelor of Science in Information Technology', type: 'college', level: 'bachelor', duration: 4 },
     { code: 'BSED', name: 'Bachelor of Secondary Education', type: 'college', level: 'bachelor', duration: 4 },
+    { code: 'BSN', name: 'Bachelor of Science in Nursing', type: 'college', level: 'bachelor', duration: 4 },
+    { code: 'BSCE', name: 'Bachelor of Science in Civil Engineering', type: 'college', level: 'bachelor', duration: 4 },
+    { code: 'BSARCH', name: 'Bachelor of Science in Architecture', type: 'college', level: 'bachelor', duration: 5 },
   ];
 
   const createdPrograms = {};
@@ -138,6 +141,11 @@ const seed = async () => {
     { code: 'CS101', name: 'Introduction to Computing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS, createdPrograms.BSIT] },
     { code: 'CS102', name: 'Programming Fundamentals', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] }, // prereq: CS101
     { code: 'CS201', name: 'Data Structures and Algorithms', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSCS] }, // prereq: CS102
+    
+    // Additional Programs Core
+    { code: 'NUR101', name: 'Theoretical Foundations in Nursing', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSN] },
+    { code: 'CE101', name: 'Engineering Drawing', units: 2, level: 'college', category: 'major', program: [createdPrograms.BSCE] },
+    { code: 'ARCH101', name: 'Architectural Design 1', units: 3, level: 'college', category: 'major', program: [createdPrograms.BSARCH] },
   ];
 
   const allSubjects = [...elemSubjects, ...jhsSubjects, ...shsSubjects, ...collegeSubjects];
@@ -218,6 +226,32 @@ const seed = async () => {
     levelType: 'college', program: createdPrograms.BSCS, yearLevel: 1, type: 'new',
     status: 'enrolled',
     subjects: [{ subject: createdSubjects['CS101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
+    totalUnits: 3,
+    steps: [
+      { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },
+      { step: 'assessment', status: 'completed' }, { step: 'payment', status: 'completed' },
+      { step: 'subject_assignment', status: 'completed' }, { step: 'confirmation', status: 'completed' }
+    ]
+  });
+
+  // Create Nursing Student
+  const nursingStudent = await User.findOneAndUpdate({ email: 'nursing_student@iscp.edu.ph' }, {
+    firstName: 'Florence', lastName: 'Nightingale', email: 'nursing_student@iscp.edu.ph',
+    password: await bcrypt.hash(process.env.SEED_STUDENT_PASS || defaultPass, 12), role: 'student', schoolId: school._id,
+    studentId: '060426006', isActive: true, isEmailVerified: true,
+  }, { upsert: true, new: true, setDefaultsOnInsert: true });
+
+  await StudentProfile.create({
+    userId: nursingStudent._id, schoolId: school._id, studentId: '060426006',
+    program: createdPrograms.BSN, yearLevel: 1, academicStatus: 'active', enrollmentStatus: 'enrolled',
+    course: 'BSN'
+  });
+
+  await Enrollment.create({
+    schoolId: school._id, student: nursingStudent._id, academicYear: '2025-2026', semester: '1st',
+    levelType: 'college', program: createdPrograms.BSN, yearLevel: 1, type: 'new',
+    status: 'enrolled',
+    subjects: [{ subject: createdSubjects['NUR101'], schedule: cs101Schedule._id, units: 3, status: 'enrolled' }],
     totalUnits: 3,
     steps: [
       { step: 'application', status: 'completed' }, { step: 'verification', status: 'completed' },

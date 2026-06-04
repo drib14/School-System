@@ -59,7 +59,7 @@ export default function LoginPage() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '40px 20px' }}>
           <div style={{ position: 'relative', marginBottom: 24 }}>
             <div style={{ width: 120, height: 120, borderRadius: '50%', background: 'linear-gradient(135deg, rgba(59,130,246,0.2), rgba(124,58,237,0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '2px solid rgba(59,130,246,0.3)', margin: '0 auto 20px' }}>
-              <img src="/platform-seal.png" alt="ISCP Platform Seal" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} onError={e => { e.target.style.display='none'; }} />
+              <img src="/iscp-logo.jpg" alt="ISCP Platform Seal" style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover' }} onError={e => { e.target.style.display='none'; }} />
             </div>
           </div>
           <h1 style={{ fontSize: 32, fontWeight: 900, background: 'linear-gradient(135deg, #60a5fa, #a78bfa, #f472b6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', marginBottom: 12 }}>

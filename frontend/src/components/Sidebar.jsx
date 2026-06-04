@@ -11,7 +11,7 @@ import {
   Receipt, HeartHandshake, Building, DoorOpen, AlertCircle
 } from 'lucide-react';
 
-const ISCP_LOGO = '/platform-seal.png';
+const ISCP_LOGO = '/iscp-logo.jpg';
 
 const navConfig = {
   super_admin: [
@@ -206,6 +206,14 @@ const navConfig = {
       { to: '/hr/evaluation', icon: BarChart3, label: 'Evaluation' },
     ]},
   ],
+  default: [
+    { section: 'Overview', items: [
+      { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+    ]},
+    { section: 'Account', items: [
+      { to: '/profile', icon: UserCheck, label: 'Profile' },
+    ]},
+  ]
 };
 
 // Full admin nav (shared by principal, school_owner)
@@ -259,7 +267,7 @@ export default function Sidebar({ collapsed, onToggle }) {
   const { user, logout } = useAuthStore();
   const location = useLocation();
 
-  const navSections = navConfig[user?.role] || navConfig.registrar;
+  const navSections = navConfig[user?.role] || navConfig.default;
 
   const handleLogout = async () => {
     await logout();

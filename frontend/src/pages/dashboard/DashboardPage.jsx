@@ -94,7 +94,7 @@ function StudentEnrollmentTracker() {
         )}
 
         {step === 4 && (
-          <div style={{ textAlign: 'center', padding: 20, position: 'relative', overflow: 'hidden' }}>
+          <div style={{ textAlign: 'center', padding: 40, position: 'relative', overflow: 'hidden' }}>
             <img src="/iscp-logo.jpg" alt="Watermark" style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', opacity: 0.05, width: 200, height: 200, pointerEvents: 'none' }} />
             <div style={{ position: 'relative', zIndex: 1 }}>
               <div style={{ fontSize: 40, color: '#10b981', marginBottom: 10 }}>🎉</div>
@@ -247,7 +247,7 @@ export default function DashboardPage() {
         <StatCard icon={Users} value={stats?.totalTeachers || 0} label="Teachers" color="green" change={2} />
         <StatCard icon={UserCheck} value={stats?.enrolledThisSem || 0} label="Enrolled This Sem" color="purple" change={8} />
         <StatCard icon={ClipboardList} value={stats?.pendingEnrollments || 0} label="Pending Enrollments" color="gold" />
-        {(user?.role !== 'teacher' && user?.role !== 'student') && (
+        {['super_admin', 'school_owner', 'principal', 'accountant', 'cashier', 'hr_staff'].includes(user?.role) && (
           <>
             <StatCard icon={DollarSign} value={`₱${((stats?.totalRevenue || 0) / 1000).toFixed(0)}K`} label="Total Revenue" color="green" change={12} />
             <StatCard icon={Users} value={stats?.totalStaff || 0} label="Staff Members" color="blue" />
@@ -258,15 +258,15 @@ export default function DashboardPage() {
       {/* Charts Row 1 */}
       <div className="grid-2" style={{ marginBottom: 24, display: user?.role === 'student' ? 'none' : 'grid' }}>
         {/* Revenue Chart */}
-        <div className="card">
-          <div className="card-header">
-            <div>
-              <div className="card-title">Revenue Trend</div>
-              <div className="card-sub">Last 30 days</div>
+        {['super_admin', 'school_owner', 'principal', 'accountant', 'cashier'].includes(user?.role) && (
+          <div className="card">
+            <div className="card-header">
+              <div>
+                <div className="card-title">Revenue Trend</div>
+                <div className="card-sub">Last 30 days</div>
+              </div>
             </div>
-          </div>
-          <div className="chart-container" style={{ height: 300, minWidth: 0 }}>
-            {user?.role !== 'student' && (
+            <div className="chart-container" style={{ height: 300, minWidth: 0 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={revenueData.length > 0 ? revenueData : Array.from({ length: 10 }, (_, i) => ({ date: `Day ${i+1}`, amount: Math.random() * 50000 + 10000 }))}>
                   <defs>
@@ -282,9 +282,9 @@ export default function DashboardPage() {
                   <Area type="monotone" dataKey="amount" stroke="#3b82f6" strokeWidth={2} fill="url(#revGrad)" />
                 </AreaChart>
               </ResponsiveContainer>
-            )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Enrollment Distribution */}
         <div className="card">

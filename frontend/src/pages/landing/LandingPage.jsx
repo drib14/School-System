@@ -89,6 +89,35 @@ const HERO_STATS = [
 export default function LandingPage() {
   const navigate = useNavigate();
   const [hovered, setHovered] = useState(null);
+  const [stats, setStats] = useState({
+    students: '10,000+',
+    staff: '500+',
+    programs: '50+',
+    employmentRate: '95%'
+  });
+
+  useEffect(() => {
+    fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/public/stats`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.success && data.data) {
+          setStats({
+            students: data.data.students > 0 ? data.data.students.toLocaleString() : '10,000+',
+            staff: data.data.staff > 0 ? data.data.staff.toLocaleString() : '500+',
+            programs: data.data.programs > 0 ? data.data.programs.toLocaleString() : '50+',
+            employmentRate: data.data.employmentRate || '95%'
+          });
+        }
+      })
+      .catch(err => console.error('Error fetching stats:', err));
+  }, []);
+
+  const HERO_STATS_DYNAMIC = [
+    { value: stats.students, label: 'Students Enrolled' },
+    { value: stats.staff, label: 'Faculty & Staff' },
+    { value: stats.programs, label: 'Programs Offered' },
+    { value: stats.employmentRate, label: 'Graduate Employment' },
+  ];
 
   return (
     <div style={{ minHeight: '100vh', background: '#0f172a', color: '#f1f5f9', fontFamily: "'Inter', sans-serif", overflowX: 'hidden' }}>
@@ -102,12 +131,12 @@ export default function LandingPage() {
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <img src="/platform-seal.png" alt="Platform Seal" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
+          <img src="/iscp-logo.jpg" alt="ISCP Logo" style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover' }} />
           <div>
             <div style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 16, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-              ISCP
+              International State Colleges of the Philippines
             </div>
-            <div style={{ fontSize: 10, color: '#64748b' }}>International State Colleges of the Philippines</div>
+            <div style={{ fontSize: 10, color: '#64748b' }}>ISCP</div>
           </div>
         </div>
         <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
@@ -139,17 +168,16 @@ export default function LandingPage() {
       </nav>
 
       {/* ───── HERO ───── */}
-      <section style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '120px 40px 80px', overflow: 'hidden' }}>
-        {/* Background blobs & Image */}
-        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
-          <div style={{ position: 'absolute', inset: 0, backgroundImage: 'url(/hero-study.png)', backgroundSize: 'cover', backgroundPosition: 'center', opacity: 0.4 }} />
-          <div style={{ position: 'absolute', top: '10%', left: '15%', width: 500, height: 500, borderRadius: '50%', background: 'rgba(59,130,246,0.3)', filter: 'blur(80px)' }} />
-          <div style={{ position: 'absolute', bottom: '10%', right: '10%', width: 400, height: 400, borderRadius: '50%', background: 'rgba(139,92,246,0.3)', filter: 'blur(80px)' }} />
-          <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', width: 600, height: 600, borderRadius: '50%', background: 'rgba(16,185,129,0.2)', filter: 'blur(100px)' }} />
-        </div>
+      <section style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '160px 40px 100px', overflow: 'hidden' }}>
+        {/* Simple gradient background to replace the full glassmorphism image overlay */}
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, #0f172a, #1e293b)' }} />
+        
+        {/* Glow blobs */}
+        <div style={{ position: 'absolute', top: '-10%', left: '15%', width: 500, height: 500, borderRadius: '50%', background: 'rgba(59,130,246,0.15)', filter: 'blur(100px)' }} />
+        <div style={{ position: 'absolute', bottom: '-10%', right: '10%', width: 400, height: 400, borderRadius: '50%', background: 'rgba(139,92,246,0.15)', filter: 'blur(100px)' }} />
 
-        <div style={{ position: 'relative', zIndex: 1, maxWidth: 800, padding: '56px 40px', background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(20px)', borderRadius: '32px', border: '1px solid rgba(255,255,255,0.08)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-          <img src="/platform-seal.png" alt="ISCP Platform Seal" style={{ width: 120, height: 120, borderRadius: '50%', border: '4px solid rgba(59,130,246,0.3)', margin: '0 auto 24px', display: 'block', objectFit: 'cover' }} />
+        <div style={{ position: 'relative', zIndex: 1, maxWidth: 900, padding: '40px' }}>
+          <img src="/iscp-logo.jpg" alt="ISCP Logo" style={{ width: 140, height: 140, borderRadius: '50%', border: '4px solid rgba(59,130,246,0.3)', margin: '0 auto 32px', display: 'block', objectFit: 'cover', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }} />
 
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, padding: '6px 16px', borderRadius: 999, background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.25)', marginBottom: 28 }}>
             <Sparkles size={13} style={{ color: '#60a5fa' }} />
@@ -191,9 +219,9 @@ export default function LandingPage() {
       </section>
 
       {/* ───── HERO STATS ───── */}
-      <section style={{ padding: '0 40px 80px', maxWidth: 1200, margin: '0 auto' }}>
+      <section style={{ padding: '0 40px 100px', maxWidth: 1200, margin: '-40px auto 0', position: 'relative', zIndex: 10 }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
-          {HERO_STATS.map(({ value, label }) => (
+          {HERO_STATS_DYNAMIC.map(({ value, label }) => (
             <div key={label} style={{ textAlign: 'center', padding: '28px 20px', background: 'rgba(30,41,59,0.6)', border: '1px solid rgba(148,163,184,0.1)', borderRadius: 16, backdropFilter: 'blur(8px)', transition: 'all 0.25s' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(59,130,246,0.3)'; e.currentTarget.style.transform = 'translateY(-4px)'; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(148,163,184,0.1)'; e.currentTarget.style.transform = 'none'; }}
@@ -359,7 +387,7 @@ export default function LandingPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 40, marginBottom: 40 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
-                <img src="/platform-seal.png" alt="Platform Seal" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
+                <img src="/iscp-logo.jpg" alt="ISCP Logo" style={{ width: 36, height: 36, borderRadius: '50%', objectFit: 'cover' }} />
                 <span style={{ fontFamily: 'Outfit, sans-serif', fontWeight: 800, fontSize: 15, background: 'linear-gradient(135deg, #60a5fa, #a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Int'l State Colleges of the PH</span>
               </div>
               <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.7 }}>Empowering education through technology. From elementary to graduate school, we support every step of the learning journey.</p>
@@ -370,8 +398,8 @@ export default function LandingPage() {
                 { label: 'Student Login', path: '/login/student' },
                 { label: 'New Enrollment', path: '/enroll/new' },
                 { label: 'Apply for Position', path: '/apply-job' },
-                { label: 'Academic Programs', path: '#' },
-                { label: 'Special Programs', path: '#' }
+                { label: 'Academic Programs', path: '/' },
+                { label: 'Special Programs', path: '/' }
               ].map(({ label, path }) => (
                 <div key={label} onClick={() => navigate(path)} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
                   onMouseEnter={e => e.target.style.color = '#94a3b8'}
@@ -382,8 +410,8 @@ export default function LandingPage() {
             <div>
               <h4 style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Legal</h4>
               {[
-                { label: 'Terms of Service', path: '#' },
-                { label: 'Privacy Policy', path: '#' }
+                { label: 'Terms of Service', path: '/terms' },
+                { label: 'Privacy Policy', path: '/privacy' }
               ].map(({ label, path }) => (
                 <div key={label} onClick={() => navigate(path)} style={{ fontSize: 13, color: '#475569', marginBottom: 10, cursor: 'pointer', transition: 'color 0.15s' }}
                   onMouseEnter={e => e.target.style.color = '#94a3b8'}
@@ -403,6 +431,14 @@ export default function LandingPage() {
                   <span style={{ fontSize: 13, color: '#475569', lineHeight: 1.5 }}>{text}</span>
                 </div>
               ))}
+            </div>
+            <div>
+              <h4 style={{ fontSize: 13, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 16 }}>Newsletter</h4>
+              <p style={{ fontSize: 13, color: '#475569', lineHeight: 1.5, marginBottom: 16 }}>Subscribe to get the latest updates and news from ISCP.</p>
+              <form onSubmit={e => { e.preventDefault(); alert('Subscribed successfully!'); }} style={{ display: 'flex', gap: 8 }}>
+                <input type="email" placeholder="Enter your email" required style={{ flex: 1, padding: '10px 14px', borderRadius: 8, background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', color: '#f1f5f9', fontSize: 13, outline: 'none' }} />
+                <button type="submit" style={{ padding: '10px 16px', borderRadius: 8, background: '#3b82f6', color: 'white', fontWeight: 600, fontSize: 13, border: 'none', cursor: 'pointer' }}>Subscribe</button>
+              </form>
             </div>
           </div>
           <div style={{ borderTop: '1px solid rgba(148,163,184,0.08)', paddingTop: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>

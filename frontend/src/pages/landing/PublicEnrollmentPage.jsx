@@ -85,11 +85,7 @@ export default function PublicEnrollmentPage() {
       let ref = '';
       try {
         const { data } = await api.post('/admission/applications', payload);
-        ref = data.referenceNumber || data.admissionNo || `ENR-${Date.now()}`;
-      } catch {
-        ref = `ENR-${Date.now()}`;
-        const { data } = await api.post('/admission/applications', payload);
-        ref = data.application?.applicationNumber || `APP-${Date.now()}`;
+        ref = data.referenceNumber || data.admissionNo || data.application?.applicationNumber || `ENR-${Date.now()}`;
       } catch (err) {
         console.error(err);
         ref = `APP-${Date.now()}`;

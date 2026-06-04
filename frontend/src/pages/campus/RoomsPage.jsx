@@ -9,6 +9,7 @@ import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
 import { format } from 'date-fns';
 import CampusModal from './CampusModal';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const ROOM_TYPES = ['classroom', 'laboratory', 'library', 'gym', 'office', 'auditorium', 'cafeteria', 'clinic', 'other'];
 const ASSET_STATUS_COLOR = { good: 'badge-green', for_repair: 'badge-yellow', under_repair: 'badge-red', disposed: 'badge-gray' };
@@ -72,9 +73,11 @@ function RoomModal({ room, onClose, onSave, schoolId }) {
               </div>
               <div className="form-group">
                 <label className="form-label">Room Type</label>
-                <select className="form-input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                  {ROOM_TYPES.map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.type}
+                  onChange={val => setForm(f => ({ ...f, type: val }))}
+                  options={ROOM_TYPES.map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Capacity</label>
@@ -152,15 +155,24 @@ function AssetModal({ asset, rooms, onClose, onSave }) {
               </div>
               <div className="form-group">
                 <label className="form-label">Type</label>
-                <select className="form-input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                  {['computer', 'projector', 'furniture', 'equipment', 'vehicle', 'book', 'other'].map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.type}
+                  onChange={val => setForm(f => ({ ...f, type: val }))}
+                  options={['computer', 'projector', 'furniture', 'equipment', 'vehicle', 'book', 'other'].map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Status</label>
-                <select className="form-input" value={form.status} onChange={e => setForm(f => ({ ...f, status: e.target.value }))}>
-                  {['good', 'for_repair', 'under_repair', 'disposed'].map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.status}
+                  onChange={val => setForm(f => ({ ...f, status: val }))}
+                  options={[
+                    { value: 'good', label: 'Good' },
+                    { value: 'for_repair', label: 'For Repair' },
+                    { value: 'under_repair', label: 'Under Repair' },
+                    { value: 'disposed', label: 'Disposed' }
+                  ]}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Brand</label>
@@ -176,10 +188,14 @@ function AssetModal({ asset, rooms, onClose, onSave }) {
               </div>
               <div className="form-group">
                 <label className="form-label">Location (Room)</label>
-                <select className="form-input" value={form.location} onChange={e => setForm(f => ({ ...f, location: e.target.value }))}>
-                  <option value="">— Select Room —</option>
-                  {rooms.map(r => <option key={r._id} value={r._id}>{r.name} ({r.code})</option>)}
-                </select>
+                <CustomSelect
+                  value={form.location}
+                  onChange={val => setForm(f => ({ ...f, location: val }))}
+                  options={[
+                    { value: '', label: '— Select Room —' },
+                    ...rooms.map(r => ({ value: r._id, label: `${r.name} (${r.code})` }))
+                  ]}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Purchase Cost (₱)</label>
@@ -303,12 +319,18 @@ export default function RoomsPage() {
           <input className="search-input" placeholder={`Search ${activeTab}...`} value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         {activeTab !== 'campuses' && (
-          <select className="filter-select" value={filterType} onChange={e => setFilterType(e.target.value)}>
-            <option value="">All Types</option>
-            {(activeTab === 'rooms' ? ROOM_TYPES : ['computer', 'projector', 'furniture', 'equipment', 'vehicle', 'book', 'other']).map(t => (
-              <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>
-            ))}
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={filterType}
+            onChange={val => setFilterType(val)}
+            options={[
+              { value: '', label: 'All Types' },
+              ...(activeTab === 'rooms' ? ROOM_TYPES : ['computer', 'projector', 'furniture', 'equipment', 'vehicle', 'book', 'other']).map(t => ({
+                value: t,
+                label: t.charAt(0).toUpperCase() + t.slice(1)
+              }))
+            ]}
+          />
         )}
         <button className="btn btn-secondary btn-sm btn-icon" onClick={fetchAll}><RefreshCw size={14} /></button>
       </div>

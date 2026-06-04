@@ -5,6 +5,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { useLocation } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 export default function SuperDashboardPage() {
   const location = useLocation();
@@ -189,11 +190,15 @@ export default function SuperDashboardPage() {
               </div>
               <div className="form-group">
                 <label className="form-label">Plan</label>
-                <select className="form-select" value={formData.plan || 'starter'} onChange={e => setFormData({ ...formData, plan: e.target.value })}>
-                  <option value="starter">Starter</option>
-                  <option value="professional">Professional</option>
-                  <option value="enterprise">Enterprise</option>
-                </select>
+                <CustomSelect
+                  value={formData.plan || 'starter'}
+                  onChange={val => setFormData({ ...formData, plan: val })}
+                  options={[
+                    { value: 'starter', label: 'Starter' },
+                    { value: 'professional', label: 'Professional' },
+                    { value: 'enterprise', label: 'Enterprise' }
+                  ]}
+                />
               </div>
             </div>
             <div className="modal-footer">

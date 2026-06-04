@@ -4,6 +4,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const STAGE_COLOR = {
   submitted: 'badge-gray', document_review: 'badge-blue', exam_scheduled: 'badge-yellow',
@@ -115,10 +116,15 @@ export default function AdmissionPage() {
                 <Search size={14} className="search-icon" />
                 <input className="search-input" placeholder="Search by name, email, application #..." value={search} onChange={e => setSearch(e.target.value)} />
               </div>
-              <select className="filter-select" value={filterStage} onChange={e => setFilterStage(e.target.value)}>
-                <option value="">All Stages</option>
-                {STAGES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-              </select>
+              <CustomSelect
+                className="filter-cs"
+                value={filterStage}
+                onChange={val => setFilterStage(val)}
+                options={[
+                  { value: '', label: 'All Stages' },
+                  ...STAGES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))
+                ]}
+              />
             </div>
           )}
 
@@ -318,9 +324,11 @@ export default function AdmissionPage() {
             <div className="modal-body">
               <div className="form-group">
                 <label className="form-label">New Stage</label>
-                <select className="form-input" value={newStage} onChange={e => setNewStage(e.target.value)}>
-                  {STAGES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
-                </select>
+                <CustomSelect
+                  value={newStage}
+                  onChange={val => setNewStage(val)}
+                  options={STAGES.map(s => ({ value: s, label: s.replace(/_/g, ' ') }))}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Remarks</label>

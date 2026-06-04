@@ -3,6 +3,7 @@ import { CheckCircle, Clock, XCircle, Eye, Edit2, Send, ThumbsUp } from 'lucide-
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const GRADE_REMARKS_COLOR = { Passed: 'badge-green', Failed: 'badge-red', Incomplete: 'badge-yellow', Dropped: 'badge-gray', INC: 'badge-yellow' };
 
@@ -97,9 +98,12 @@ function GradeModal({ grade, onClose, onSave, isNew }) {
                 <tr key={i}>
                   <td><input className="form-input" style={{ width: 130 }} value={c.name} onChange={e => updateComponent(i, 'name', e.target.value)} /></td>
                   <td>
-                    <select className="form-input" style={{ width: 110 }} value={c.category} onChange={e => updateComponent(i, 'category', e.target.value)}>
-                      {['quiz','activity','assignment','project','exam','participation'].map(cat => <option key={cat} value={cat}>{cat}</option>)}
-                    </select>
+                    <CustomSelect
+                      value={c.category}
+                      onChange={val => updateComponent(i, 'category', val)}
+                      options={['quiz','activity','assignment','project','exam','participation']}
+                      size="sm"
+                    />
                   </td>
                   <td><input className="form-input" type="number" style={{ width: 70 }} min={0} max={c.maxScore} value={c.score} onChange={e => updateComponent(i, 'score', e.target.value)} /></td>
                   <td><input className="form-input" type="number" style={{ width: 70 }} value={c.maxScore} onChange={e => updateComponent(i, 'maxScore', e.target.value)} /></td>
@@ -175,12 +179,22 @@ export default function GradesPage() {
           <div><h1 className="page-title">My Grades (Transmuted)</h1></div>
         </div>
         <div className="filter-bar">
-          <select className="filter-select" value={filter.semester} onChange={e => setFilter(p => ({ ...p, semester: e.target.value }))}>
-            <option value="1st">1st Semester</option><option value="2nd">2nd Semester</option><option value="Summer">Summer</option>
-          </select>
-          <select className="filter-select" value={filter.academicYear} onChange={e => setFilter(p => ({ ...p, academicYear: e.target.value }))}>
-            <option>2025-2026</option><option>2024-2025</option>
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={filter.semester}
+            onChange={val => setFilter(p => ({ ...p, semester: val }))}
+            options={[
+              { value: '1st', label: '1st Semester' },
+              { value: '2nd', label: '2nd Semester' },
+              { value: 'Summer', label: 'Summer' }
+            ]}
+          />
+          <CustomSelect
+            className="filter-cs"
+            value={filter.academicYear}
+            onChange={val => setFilter(p => ({ ...p, academicYear: val }))}
+            options={['2025-2026', '2024-2025']}
+          />
         </div>
         <div className="grid-3">
           {loading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="card skeleton" style={{ height: 100 }} />) :
@@ -247,13 +261,25 @@ export default function GradesPage() {
       <div className="page-header">
         <div><h1 className="page-title">Grading System</h1><p className="page-sub">{grades.length} grade records</p></div>
         <div className="page-actions">
-          <select className="filter-select" value={filter.status} onChange={e => setFilter(p => ({ ...p, status: e.target.value }))}>
-            <option value="">All Status</option>
-            {['draft','submitted','approved','released'].map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
-          <select className="filter-select" value={filter.semester} onChange={e => setFilter(p => ({ ...p, semester: e.target.value }))}>
-            <option value="1st">1st Sem</option><option value="2nd">2nd Sem</option><option value="Summer">Summer</option>
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={filter.status}
+            onChange={val => setFilter(p => ({ ...p, status: val }))}
+            options={[
+              { value: '', label: 'All Status' },
+              ...['draft','submitted','approved','released'].map(s => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) }))
+            ]}
+          />
+          <CustomSelect
+            className="filter-cs"
+            value={filter.semester}
+            onChange={val => setFilter(p => ({ ...p, semester: val }))}
+            options={[
+              { value: '1st', label: '1st Sem' },
+              { value: '2nd', label: '2nd Sem' },
+              { value: 'Summer', label: 'Summer' }
+            ]}
+          />
         </div>
       </div>
 

@@ -4,6 +4,8 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
+import CustomCheckbox from '../../components/forms/CustomCheckbox';
 
 const PRIORITY_COLOR = { normal: 'badge-gray', important: 'badge-yellow', urgent: 'badge-red' };
 
@@ -82,31 +84,40 @@ function CreateAnnouncementModal({ onClose, onSuccess }) {
           <div className="form-row cols-2">
             <div className="form-group">
               <label className="form-label">Type</label>
-              <select className="form-input" value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value }))}>
-                <option value="school">School-wide</option>
-                <option value="department">Department</option>
-                <option value="class">Class</option>
-                <option value="emergency">Emergency</option>
-              </select>
+              <CustomSelect
+                value={form.type}
+                onChange={val => setForm(p => ({ ...p, type: val }))}
+                options={[
+                  { value: 'school', label: 'School-wide' },
+                  { value: 'department', label: 'Department' },
+                  { value: 'class', label: 'Class' },
+                  { value: 'emergency', label: 'Emergency' }
+                ]}
+              />
             </div>
             <div className="form-group">
               <label className="form-label">Priority</label>
-              <select className="form-input" value={form.priority} onChange={e => setForm(p => ({ ...p, priority: e.target.value }))}>
-                <option value="normal">Normal</option>
-                <option value="important">Important</option>
-                <option value="urgent">Urgent</option>
-              </select>
+              <CustomSelect
+                value={form.priority}
+                onChange={val => setForm(p => ({ ...p, priority: val }))}
+                options={[
+                  { value: 'normal', label: 'Normal' },
+                  { value: 'important', label: 'Important' },
+                  { value: 'urgent', label: 'Urgent' }
+                ]}
+              />
             </div>
           </div>
           <div className="form-group">
             <label className="form-label">Audience</label>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
               {['all','students','teachers','parents','staff','admin'].map(a => (
-                <label key={a} style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
-                  <input type="checkbox" checked={form.audience.includes(a)}
-                    onChange={e => setForm(p => ({ ...p, audience: e.target.checked ? [...p.audience, a] : p.audience.filter(x => x !== a) }))} />
-                  {a}
-                </label>
+                <CustomCheckbox
+                  key={a}
+                  checked={form.audience.includes(a)}
+                  onChange={e => setForm(p => ({ ...p, audience: e.target.checked ? [...p.audience, a] : p.audience.filter(x => x !== a) }))}
+                  label={a.charAt(0).toUpperCase() + a.slice(1)}
+                />
               ))}
             </div>
           </div>

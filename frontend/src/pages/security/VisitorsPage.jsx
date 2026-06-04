@@ -7,6 +7,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format, formatDistanceToNow } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const SEVERITY_COLOR = { minor: 'badge-blue', moderate: 'badge-yellow', major: 'badge-red', critical: 'badge-red' };
 const STATUS_COLOR = { open: 'badge-yellow', under_investigation: 'badge-blue', resolved: 'badge-green', closed: 'badge-gray' };
@@ -59,9 +60,11 @@ function VisitorModal({ onClose, onSave }) {
               </div>
               <div className="form-group">
                 <label className="form-label">ID Type</label>
-                <select className="form-input" value={form.idType} onChange={e => setForm(f => ({ ...f, idType: e.target.value }))}>
-                  {['Government ID', 'Driver\'s License', 'Passport', 'SSS ID', 'PhilHealth ID', 'Voter\'s ID', 'Other'].map(t => <option key={t}>{t}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.idType}
+                  onChange={val => setForm(f => ({ ...f, idType: val }))}
+                  options={['Government ID', 'Driver\'s License', 'Passport', 'SSS ID', 'PhilHealth ID', 'Voter\'s ID', 'Other']}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">ID Number</label>
@@ -122,15 +125,19 @@ function IncidentModal({ incident, onClose, onSave }) {
             <div className="grid-2" style={{ gap: 16 }}>
               <div className="form-group">
                 <label className="form-label">Incident Type</label>
-                <select className="form-input" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                  {['behavioral', 'academic', 'physical', 'cyberbullying', 'vandalism', 'theft', 'drug', 'other'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.type}
+                  onChange={val => setForm(f => ({ ...f, type: val }))}
+                  options={['behavioral', 'academic', 'physical', 'cyberbullying', 'vandalism', 'theft', 'drug', 'other'].map(t => ({ value: t, label: t.charAt(0).toUpperCase() + t.slice(1) }))}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Severity</label>
-                <select className="form-input" value={form.severity} onChange={e => setForm(f => ({ ...f, severity: e.target.value }))}>
-                  {['minor', 'moderate', 'major', 'critical'].map(s => <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>)}
-                </select>
+                <CustomSelect
+                  value={form.severity}
+                  onChange={val => setForm(f => ({ ...f, severity: val }))}
+                  options={['minor', 'moderate', 'major', 'critical'].map(s => ({ value: s, label: s.charAt(0).toUpperCase() + s.slice(1) }))}
+                />
               </div>
               <div className="form-group">
                 <label className="form-label">Location</label>
@@ -285,20 +292,30 @@ export default function VisitorsPage() {
           <input className="search-input" placeholder="Search..." value={search} onChange={e => setSearch(e.target.value)} />
         </div>
         {activeTab === 'visitors' && (
-          <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="">All Status</option>
-            <option value="checked_in">Checked In</option>
-            <option value="checked_out">Checked Out</option>
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={filterStatus}
+            onChange={val => setFilterStatus(val)}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'checked_in', label: 'Checked In' },
+              { value: 'checked_out', label: 'Checked Out' }
+            ]}
+          />
         )}
         {activeTab === 'incidents' && (
-          <select className="filter-select" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-            <option value="">All Status</option>
-            <option value="open">Open</option>
-            <option value="under_investigation">Under Investigation</option>
-            <option value="resolved">Resolved</option>
-            <option value="closed">Closed</option>
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={filterStatus}
+            onChange={val => setFilterStatus(val)}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'open', label: 'Open' },
+              { value: 'under_investigation', label: 'Under Investigation' },
+              { value: 'resolved', label: 'Resolved' },
+              { value: 'closed', label: 'Closed' }
+            ]}
+          />
         )}
       </div>
 

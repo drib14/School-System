@@ -4,6 +4,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const STATUS_CONFIG = {
   present: { color: 'badge-green', icon: Check },
@@ -128,10 +129,15 @@ export default function AttendancePage() {
       <div className="filter-bar">
         <input type="date" className="filter-select" value={filter.date} onChange={e => setFilter(p => ({ ...p, date: e.target.value }))} />
         {isTeacher && (
-          <select className="filter-select" value={selectedClass} onChange={e => setSelectedClass(e.target.value)}>
-            <option value="">Select Class</option>
-            {classes.map(c => <option key={c._id} value={c._id}>{c.subject?.name} - {c.section}</option>)}
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={selectedClass}
+            onChange={val => setSelectedClass(val)}
+            options={[
+              { value: '', label: 'Select Class' },
+              ...classes.map(c => ({ value: c._id, label: `${c.subject?.name} - ${c.section}` }))
+            ]}
+          />
         )}
       </div>
 

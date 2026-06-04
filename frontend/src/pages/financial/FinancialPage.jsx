@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 export default function FinancialPage() {
   const { user } = useAuthStore();
@@ -340,9 +341,16 @@ export default function FinancialPage() {
                   <div className="form-group"><label className="form-label">Fee Name</label><input className="form-input" placeholder="e.g. Tuition Fee" value={formData.name || ''} onChange={e => setFormData({ ...formData, name: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Amount</label><input type="number" className="form-input" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Category</label>
-                    <select className="form-select" value={formData.category || 'tuition'} onChange={e => setFormData({ ...formData, category: e.target.value })}>
-                      <option value="tuition">Tuition</option><option value="miscellaneous">Miscellaneous</option><option value="laboratory">Laboratory</option><option value="other">Other</option>
-                    </select>
+                    <CustomSelect
+                      value={formData.category || 'tuition'}
+                      onChange={val => setFormData({ ...formData, category: val })}
+                      options={[
+                        { value: 'tuition', label: 'Tuition' },
+                        { value: 'miscellaneous', label: 'Miscellaneous' },
+                        { value: 'laboratory', label: 'Laboratory' },
+                        { value: 'other', label: 'Other' }
+                      ]}
+                    />
                   </div>
                 </>
               )}
@@ -358,9 +366,14 @@ export default function FinancialPage() {
                   <div className="form-group"><label className="form-label">Student ID</label><input className="form-input" placeholder="Enter student ID" value={formData.student || ''} onChange={e => setFormData({ ...formData, student: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Amount</label><input type="number" className="form-input" value={formData.amount || ''} onChange={e => setFormData({ ...formData, amount: e.target.value })} /></div>
                   <div className="form-group"><label className="form-label">Method</label>
-                    <select className="form-select" value={formData.method || 'cash'} onChange={e => setFormData({ ...formData, method: e.target.value })}>
-                      <option value="cash">Cash</option><option value="bank_transfer">Bank Transfer</option>
-                    </select>
+                    <CustomSelect
+                      value={formData.method || 'cash'}
+                      onChange={val => setFormData({ ...formData, method: val })}
+                      options={[
+                        { value: 'cash', label: 'Cash' },
+                        { value: 'bank_transfer', label: 'Bank Transfer' }
+                      ]}
+                    />
                   </div>
                 </>
               )}

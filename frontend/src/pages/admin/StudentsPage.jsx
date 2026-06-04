@@ -3,6 +3,7 @@ import { Plus, Search, Filter, Eye, Edit2, UserX, UserCheck, GraduationCap, Down
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const STATUS_BADGE = {
   active: 'badge-green', inactive: 'badge-gray', irregular: 'badge-yellow',
@@ -125,10 +126,16 @@ function AddStudentModal({ onClose, onSuccess }) {
                 <Field label="Email" name="email" type="email" required />
                 <div className="form-group">
                   <label className="form-label">Gender</label>
-                  <select className="form-input" value={form.gender} onChange={e => setForm(p => ({ ...p, gender: e.target.value }))}>
-                    <option value="">Select</option>
-                    <option>Male</option><option>Female</option><option>Other</option>
-                  </select>
+                  <CustomSelect
+                    value={form.gender}
+                    onChange={val => setForm(p => ({ ...p, gender: val }))}
+                    options={[
+                      { value: '', label: 'Select' },
+                      { value: 'Male', label: 'Male' },
+                      { value: 'Female', label: 'Female' },
+                      { value: 'Other', label: 'Other' }
+                    ]}
+                  />
                 </div>
                 <Field label="Birth Date" name="birthDate" type="date" />
               </div>
@@ -136,11 +143,17 @@ function AddStudentModal({ onClose, onSuccess }) {
                 <Field label="Phone Number" name="phone" />
                 <div className="form-group">
                   <label className="form-label">Year Level (College)</label>
-                  <select className="form-input" value={form.yearLevel} onChange={e => setForm(p => ({ ...p, yearLevel: e.target.value }))}>
-                    <option value="">Select Year</option>
-                    <option value="1">1st Year</option><option value="2">2nd Year</option>
-                    <option value="3">3rd Year</option><option value="4">4th Year</option>
-                  </select>
+                  <CustomSelect
+                    value={form.yearLevel}
+                    onChange={val => setForm(p => ({ ...p, yearLevel: val }))}
+                    options={[
+                      { value: '', label: 'Select Year' },
+                      { value: '1', label: '1st Year' },
+                      { value: '2', label: '2nd Year' },
+                      { value: '3', label: '3rd Year' },
+                      { value: '4', label: '4th Year' }
+                    ]}
+                  />
                 </div>
               </div>
             </div>
@@ -316,20 +329,30 @@ export default function StudentsPage() {
             <Search size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
             <input placeholder="Search by name, email, student ID..." value={search} onChange={handleSearch} />
           </div>
-          <select className="filter-select" value={filters.academicStatus} onChange={e => setFilters(p => ({ ...p, academicStatus: e.target.value }))}>
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="graduated">Graduated</option>
-            <option value="dropped">Dropped</option>
-            <option value="transferee">Transferee</option>
-            <option value="archived">Archived</option>
-          </select>
-          <select className="filter-select" value={filters.enrollmentStatus} onChange={e => setFilters(p => ({ ...p, enrollmentStatus: e.target.value }))}>
-            <option value="">All Enrollment</option>
-            <option value="enrolled">Enrolled</option>
-            <option value="not_enrolled">Not Enrolled</option>
-            <option value="pending">Pending</option>
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={filters.academicStatus}
+            onChange={val => setFilters(p => ({ ...p, academicStatus: val }))}
+            options={[
+              { value: '', label: 'All Status' },
+              { value: 'active', label: 'Active' },
+              { value: 'graduated', label: 'Graduated' },
+              { value: 'dropped', label: 'Dropped' },
+              { value: 'transferee', label: 'Transferee' },
+              { value: 'archived', label: 'Archived' }
+            ]}
+          />
+          <CustomSelect
+            className="filter-cs"
+            value={filters.enrollmentStatus}
+            onChange={val => setFilters(p => ({ ...p, enrollmentStatus: val }))}
+            options={[
+              { value: '', label: 'All Enrollment' },
+              { value: 'enrolled', label: 'Enrolled' },
+              { value: 'not_enrolled', label: 'Not Enrolled' },
+              { value: 'pending', label: 'Pending' }
+            ]}
+          />
         </div>
       </div>
 

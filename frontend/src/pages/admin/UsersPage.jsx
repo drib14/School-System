@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
 import { useLocation } from 'react-router-dom';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const ROLES = ['super_admin','school_owner','principal','registrar','teacher','student','parent','cashier','accountant','librarian','nurse','guidance_counselor','hr_staff','employee','alumni'];
 const ROLE_COLORS = {
@@ -44,9 +45,11 @@ function InviteUserModal({ onClose, onSuccess }) {
           <div className="form-group"><label className="form-label">Email *</label><input className="form-input" type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} required /></div>
           <div className="form-group">
             <label className="form-label">Role *</label>
-            <select className="form-input" value={form.role} onChange={e => setForm(p => ({ ...p, role: e.target.value }))}>
-              {ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g,' ')}</option>)}
-            </select>
+            <CustomSelect
+              value={form.role}
+              onChange={val => setForm(p => ({ ...p, role: val }))}
+              options={ROLES.map(r => ({ value: r, label: r.replace(/_/g,' ') }))}
+            />
           </div>
           <div className="form-group"><label className="form-label">Temporary Password *</label><input className="form-input" type="password" placeholder="Min. 8 characters" value={form.password} onChange={e => setForm(p => ({ ...p, password: e.target.value }))} required /></div>
           <div className="modal-footer">
@@ -118,10 +121,15 @@ export default function UsersPage() {
         <div className="search-box" style={{ flex: 1 }}>
           <input placeholder="Search by name or email..." value={search} onChange={e => { setSearch(e.target.value); setPage(1); }} />
         </div>
-        <select className="filter-select" value={roleFilter} onChange={e => { setRoleFilter(e.target.value); setPage(1); }}>
-          <option value="">All Roles</option>
-          {ROLES.map(r => <option key={r} value={r}>{r.replace(/_/g,' ')}</option>)}
-        </select>
+        <CustomSelect
+          className="filter-cs"
+          value={roleFilter}
+          onChange={val => { setRoleFilter(val); setPage(1); }}
+          options={[
+            { value: '', label: 'All Roles' },
+            ...ROLES.map(r => ({ value: r, label: r.replace(/_/g,' ') }))
+          ]}
+        />
       </div>
 
       <div className="card">

@@ -4,6 +4,7 @@ import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
 import { useAuthStore } from '../../store/authStore';
+import CustomSelect from '../../components/forms/CustomSelect';
 
 const STATUS_COLORS = {
   pending: 'badge-yellow', under_review: 'badge-blue', for_assessment: 'badge-blue',
@@ -295,18 +296,26 @@ export default function EnrollmentPage() {
       {/* Filters - Hidden for Students */}
       {!isStudent && (
         <div className="filter-bar">
-          <select className="filter-select" value={filter.status} onChange={e => setFilter(p => ({ ...p, status: e.target.value }))}>
-            <option value="">All Status</option>
-            {['pending','under_review','for_assessment','assessed','for_payment','enrolled','cancelled','rejected'].map(s => (
-              <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-            ))}
-          </select>
-          <select className="filter-select" value={filter.semester} onChange={e => setFilter(p => ({ ...p, semester: e.target.value }))}>
-            <option value="">All Semesters</option>
-            <option value="1st">1st Semester</option>
-            <option value="2nd">2nd Semester</option>
-            <option value="Summer">Summer</option>
-          </select>
+          <CustomSelect
+            className="filter-cs"
+            value={filter.status}
+            onChange={val => setFilter(p => ({ ...p, status: val }))}
+            options={[
+              { value: '', label: 'All Status' },
+              ...['pending','under_review','for_assessment','assessed','for_payment','enrolled','cancelled','rejected'].map(s => ({ value: s, label: s.replace(/_/g, ' ') }))
+            ]}
+          />
+          <CustomSelect
+            className="filter-cs"
+            value={filter.semester}
+            onChange={val => setFilter(p => ({ ...p, semester: val }))}
+            options={[
+              { value: '', label: 'All Semesters' },
+              { value: '1st', label: '1st Semester' },
+              { value: '2nd', label: '2nd Semester' },
+              { value: 'Summer', label: 'Summer' }
+            ]}
+          />
         </div>
       )}
 

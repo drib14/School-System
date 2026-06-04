@@ -3,6 +3,7 @@ import { User, Camera, Lock, Shield, Bell, Save, Eye, EyeOff } from 'lucide-reac
 import api from '../../services/api';
 import { useAuthStore } from '../../store/authStore';
 import toast from 'react-hot-toast';
+import CustomCheckbox from '../../components/forms/CustomCheckbox';
 
 const ROLE_LABELS = {
   super_admin:'Super Admin', school_owner:'School Owner', principal:'Principal',
@@ -18,6 +19,13 @@ export default function ProfilePage() {
   const [showPass, setShowPass] = useState(false);
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(false);
+  const [notifs, setNotifs] = useState({
+    'Email notifications': true,
+    'SMS notifications': true,
+    'Announcements': true,
+    'Grade updates': true,
+    'Payment reminders': true,
+  });
   const fileRef = useRef();
 
   useEffect(() => {
@@ -171,10 +179,13 @@ export default function ProfilePage() {
           ].map(([label, desc]) => (
             <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid var(--border)' }}>
               <div><div style={{ fontWeight: 600, fontSize: 13 }}>{label}</div><div style={{ fontSize: 11, color: 'var(--text-muted)' }}>{desc}</div></div>
-              <label style={{ position: 'relative', display: 'inline-block', width: 44, height: 24, cursor: 'pointer' }}>
-                <input type="checkbox" defaultChecked style={{ opacity: 0, width: 0, height: 0 }} onChange={(e) => toast.success(`${label} turned ${e.target.checked ? 'on' : 'off'}`)} />
-                <span style={{ position: 'absolute', inset: 0, borderRadius: 12, background: 'var(--primary)', transition: '0.3s' }} />
-              </label>
+              <CustomCheckbox
+                checked={notifs[label]}
+                onChange={e => {
+                  setNotifs(prev => ({ ...prev, [label]: e.target.checked }));
+                  toast.success(`${label} turned ${e.target.checked ? 'on' : 'off'}`);
+                }}
+              />
             </div>
           ))}
         </div>
